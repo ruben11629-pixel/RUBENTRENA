@@ -691,6 +691,20 @@ select.fi{appearance:none;cursor:pointer;}
 <div class="mo" id="m-wa"><div class="md"><div class="mt">📱 WhatsApp — Alertas pago</div><div id="wa-content"></div><div class="macts"><button class="btn btn-g" onclick="closeM('m-wa')">Cerrar</button></div></div></div>
 
 <input type="file" id="import-input" accept=".json" style="display:none" onchange="processImport(this)">
+
+<!-- EXERCISE PICKER MODAL -->
+<div class="mo" id="m-ej-picker">
+  <div class="md md-w" style="max-height:92vh">
+    <div class="mt">Seleccionar ejercicio</div>
+    <div class="srch" style="margin-bottom:11px">
+      <span style="color:var(--t3)">⌕</span>
+      <input id="picker-search" placeholder="Buscar por nombre, músculo o equipo..." oninput="filterPicker(this.value)" style="background:none;border:none;outline:none;color:var(--tx);font-family:'Barlow',sans-serif;font-size:15px;flex:1">
+    </div>
+    <div class="trow" id="picker-tags" style="margin-bottom:11px"></div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:9px;max-height:50vh;overflow-y:auto;padding-bottom:4px" id="picker-grid"></div>
+    <div class="macts"><button class="btn btn-g" onclick="closeM('m-ej-picker')">Cancelar</button></div>
+  </div>
+</div>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -1091,28 +1105,100 @@ function editRut(id){
 }
 function addDiaR(){R_DIAS.push({label:`Día ${R_DIAS.length+1}`,calentamiento:[''],bloques:[{nombre:'Bloque 1 — Parte Principal',ejerIds:[],series:[],reps:[],descanso:[]}]});renderRDias();}
 function renderRDias(){
-  const ejs=DB.get('ejercicios')||[];
-  document.getElementById('m-rut-dias').innerHTML=R_DIAS.map((dia,di)=>`
-    <div class="dia-block">
-      <div class="dia-block-header">
-        <input value="${dia.label}" class="fi" style="width:120px;font-family:var(--fd);font-size:15px;font-weight:700;letter-spacing:1px" onchange="R_DIAS[${di}].label=this.value">
-        <button class="btn btn-red btn-sm" onclick="R_DIAS.splice(${di},1);renderRDias()">✕ Día</button>
-      </div>
-      <div class="bloque-build">
-        <div class="bloque-build-header"><span style="font-family:var(--fm);font-size:10px;color:var(--s2);text-transform:uppercase;letter-spacing:1.5px;flex:1">🔥 Calentamiento</span><button class="btn btn-g btn-sm" onclick="R_DIAS[${di}].calentamiento.push('');renderRDias()">+ Ítem</button></div>
-        ${dia.calentamiento.map((c,ci)=>`<div style="display:flex;gap:7px;margin-bottom:7px"><input class="fi" style="flex:1;font-size:13px" value="${c}" placeholder="Movilidad cadera..." onchange="R_DIAS[${di}].calentamiento[${ci}]=this.value"><button class="btn btn-red btn-sm" onclick="R_DIAS[${di}].calentamiento.splice(${ci},1);renderRDias()">✕</button></div>`).join('')}
-      </div>
-      ${dia.bloques.map((b,bi)=>`
-        <div class="bloque-build">
-          <div class="bloque-build-header">
-            <input value="${b.nombre}" class="fi" style="flex:1;font-size:12px;font-family:var(--fm)" onchange="R_DIAS[${di}].bloques[${bi}].nombre=this.value">
-            <button class="btn btn-red btn-sm" onclick="R_DIAS[${di}].bloques.splice(${bi},1);renderRDias()">✕</button>
-          </div>
-          ${(b.ejerIds||[]).map((ejId,ei)=>{const ej=ejs.find(x=>x.id===ejId)||{n:ejId};return `<div class="ej-row"><span style="flex:1;font-size:13px;color:var(--tx)">${ej.n}</span><input class="fi" style="width:52px;font-size:12px;font-family:var(--fm);text-align:center" value="${b.series[ei]||3}" onchange="R_DIAS[${di}].bloques[${bi}].series[${ei}]=parseInt(this.value)||3" title="Series"><input class="fi" style="width:66px;font-size:12px;font-family:var(--fm);text-align:center" value="${b.reps[ei]||'8'}" onchange="R_DIAS[${di}].bloques[${bi}].reps[${ei}]=this.value" title="Reps"><input class="fi" style="width:52px;font-size:12px;font-family:var(--fm);text-align:center" value="${b.descanso[ei]||90}" onchange="R_DIAS[${di}].bloques[${bi}].descanso[${ei}]=parseInt(this.value)||90" title="Desc(s)"><button class="btn btn-red btn-sm" onclick="['ejerIds','series','reps','descanso'].forEach(k=>R_DIAS[${di}].bloques[${bi}][k].splice(${ei},1));renderRDias()">✕</button></div>`;}).join('')}
-          <select class="fi" style="margin-top:8px;font-size:13px" onchange="if(this.value){R_DIAS[${di}].bloques[${bi}].ejerIds.push(this.value);R_DIAS[${di}].bloques[${bi}].series.push(3);R_DIAS[${di}].bloques[${bi}].reps.push('10');R_DIAS[${di}].bloques[${bi}].descanso.push(90);renderRDias();this.value=''}"><option value="">+ Agregar ejercicio...</option>${ejs.map(e=>`<option value="${e.id}">${e.n} (${e.eq})</option>`).join('')}</select>
-        </div>`).join('')}
-      <button class="btn btn-g btn-sm" style="width:100%;margin-top:7px" onclick="R_DIAS[${di}].bloques.push({nombre:\`Bloque \${R_DIAS[${di}].bloques.length+1} — Accesorio\`,ejerIds:[],series:[],reps:[],descanso:[]});renderRDias()">+ Bloque</button>
-    </div>`).join('');
+  var ejs = DB.get('ejercicios') || [];
+  var container = document.getElementById('m-rut-dias');
+  if(!container) return;
+  var html = '';
+  R_DIAS.forEach(function(dia, di){
+    html += '<div class="dia-block">';
+    html += '<div class="dia-block-header">';
+    html += '<input value="' + dia.label + '" class="fi" style="width:120px;font-family:var(--fd);font-size:15px;font-weight:700;letter-spacing:1px" onchange="R_DIAS[' + di + '].label=this.value">';
+    html += '<button class="btn btn-red btn-sm" onclick="R_DIAS.splice(' + di + ',1);renderRDias()">✕ Día</button>';
+    html += '</div>';
+
+    // ── CALENTAMIENTO ── uses exercise library with search
+    html += '<div class="bloque-build">';
+    html += '<div class="bloque-build-header"><span style="font-family:var(--fm);font-size:10px;color:var(--s2);text-transform:uppercase;letter-spacing:1.5px;flex:1">🔥 Calentamiento</span></div>';
+
+    // Calentamiento items (text OR exercise from library)
+    dia.calentamiento.forEach(function(item, ci){
+      var isEjId = ejs.find(function(e){ return e.id === item; });
+      if(isEjId){
+        // It's an exercise ID - show with image
+        html += '<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--bor)">';
+        html += isEjId.fo ? '<img src="' + isEjId.fo + '" style="width:40px;height:40px;border-radius:5px;object-fit:cover;flex-shrink:0" onerror="this.style.display=\'none\'">' : '<div style="width:40px;height:40px;border-radius:5px;background:var(--bg3);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px">' + ejIco(isEjId.m) + '</div>';
+        html += '<span style="flex:1;font-size:13px;color:var(--tx)">' + isEjId.n + '</span>';
+        html += '<button class="btn btn-red btn-sm" onclick="R_DIAS[' + di + '].calentamiento.splice(' + ci + ',1);renderRDias()">✕</button>';
+        html += '</div>';
+      } else {
+        // It's plain text
+        html += '<div style="display:flex;gap:7px;margin-bottom:7px">';
+        html += '<input class="fi" style="flex:1;font-size:13px" value="' + item.replace(/'/g,"&#39;") + '" placeholder="Movilidad cadera..." onchange="R_DIAS[' + di + '].calentamiento[' + ci + ']=this.value">';
+        html += '<button class="btn btn-red btn-sm" onclick="R_DIAS[' + di + '].calentamiento.splice(' + ci + ',1);renderRDias()">✕</button>';
+        html += '</div>';
+      }
+    });
+
+    // Add calentamiento options
+    html += '<div style="display:flex;gap:7px;margin-top:8px">';
+    html += '<button class="btn btn-g btn-sm" style="flex:1" onclick="R_DIAS[' + di + '].calentamiento.push(\'\');renderRDias()">+ Texto libre</button>';
+    html += '<button class="btn btn-g btn-sm" style="flex:1" onclick="openEjPicker(' + di + ', -1)">+ Ejercicio con foto</button>';
+    html += '</div>';
+    html += '</div>';
+
+    // ── BLOQUES ──
+    dia.bloques.forEach(function(b, bi){
+      html += '<div class="bloque-build">';
+      html += '<div class="bloque-build-header">';
+      html += '<input value="' + b.nombre.replace(/'/g,"&#39;") + '" class="fi" style="flex:1;font-size:12px;font-family:var(--fm)" onchange="R_DIAS[' + di + '].bloques[' + bi + '].nombre=this.value">';
+      html += '<button class="btn btn-red btn-sm" onclick="R_DIAS[' + di + '].bloques.splice(' + bi + ',1);renderRDias()">✕</button>';
+      html += '</div>';
+
+      // Column headers
+      if((b.ejerIds||[]).length > 0){
+        html += '<div style="display:grid;grid-template-columns:1fr 54px 64px 64px 54px 36px;gap:5px;padding:4px 0;border-bottom:1px solid var(--bor);margin-bottom:4px">';
+        html += '<div style="font-family:var(--fm);font-size:8px;color:var(--t3);text-transform:uppercase;letter-spacing:1px">Ejercicio</div>';
+        html += '<div style="font-family:var(--fm);font-size:8px;color:var(--t3);text-transform:uppercase;letter-spacing:1px;text-align:center">Series</div>';
+        html += '<div style="font-family:var(--fm);font-size:8px;color:var(--t3);text-transform:uppercase;letter-spacing:1px;text-align:center">Reps</div>';
+        html += '<div style="font-family:var(--fm);font-size:8px;color:var(--t3);text-transform:uppercase;letter-spacing:1px;text-align:center">Kg ref</div>';
+        html += '<div style="font-family:var(--fm);font-size:8px;color:var(--t3);text-transform:uppercase;letter-spacing:1px;text-align:center">Desc(s)</div>';
+        html += '<div></div>';
+        html += '</div>';
+      }
+
+      // Exercise rows
+      (b.ejerIds||[]).forEach(function(ejId, ei){
+        var ej = ejs.find(function(x){ return x.id===ejId; }) || {n:ejId, fo:'', m:''};
+        html += '<div style="display:grid;grid-template-columns:1fr 54px 64px 64px 54px 36px;gap:5px;align-items:center;padding:6px 0;border-bottom:1px solid var(--bor)">';
+        // Exercise with thumbnail
+        html += '<div style="display:flex;align-items:center;gap:7px">';
+        html += ej.fo ? '<img src="' + ej.fo + '" style="width:36px;height:36px;border-radius:5px;object-fit:cover;flex-shrink:0" onerror="this.style.display=\'none\'">' : '<div style="width:36px;height:36px;border-radius:5px;background:var(--bg3);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px">' + ejIco(ej.m) + '</div>';
+        html += '<span style="font-size:12px;color:var(--tx);line-height:1.3">' + ej.n + '</span>';
+        html += '</div>';
+        // Series
+        html += '<input class="fi" style="font-size:12px;font-family:var(--fm);text-align:center;padding:5px 3px" value="' + (b.series[ei]||3) + '" type="number" min="1" max="20" onchange="R_DIAS[' + di + '].bloques[' + bi + '].series[' + ei + ']=parseInt(this.value)||3">';
+        // Reps
+        html += '<input class="fi" style="font-size:12px;font-family:var(--fm);text-align:center;padding:5px 3px" value="' + (b.reps[ei]||'10') + '" placeholder="10" onchange="R_DIAS[' + di + '].bloques[' + bi + '].reps[' + ei + ']=this.value">';
+        // Kg ref
+        html += '<input class="fi" style="font-size:12px;font-family:var(--fm);text-align:center;padding:5px 3px" value="' + (b.kgs ? (b.kgs[ei]||'') : '') + '" placeholder="—" onchange="if(!R_DIAS[' + di + '].bloques[' + bi + '].kgs)R_DIAS[' + di + '].bloques[' + bi + '].kgs=[];R_DIAS[' + di + '].bloques[' + bi + '].kgs[' + ei + ']=this.value">';
+        // Descanso
+        html += '<input class="fi" style="font-size:12px;font-family:var(--fm);text-align:center;padding:5px 3px" value="' + (b.descanso[ei]||90) + '" type="number" onchange="R_DIAS[' + di + '].bloques[' + bi + '].descanso[' + ei + ']=parseInt(this.value)||90">';
+        // Delete
+        html += '<button class="btn btn-red btn-sm" style="padding:4px 6px;min-height:32px" onclick="[\'ejerIds\',\'series\',\'reps\',\'descanso\'].forEach(function(k){R_DIAS[' + di + '].bloques[' + bi + '][k].splice(' + ei + ',1);});renderRDias()">✕</button>';
+        html += '</div>';
+      });
+
+      // Exercise picker with search
+      html += '<div style="margin-top:9px">';
+      html += '<button class="btn btn-g btn-sm" style="width:100%" onclick="openEjPicker(' + di + ',' + bi + ')">+ Agregar ejercicio...</button>';
+      html += '</div>';
+      html += '</div>';
+    });
+
+    html += '<button class="btn btn-g btn-sm" style="width:100%;margin-top:8px" onclick="R_DIAS[' + di + '].bloques.push({nombre:\'Bloque \' + (R_DIAS[' + di + '].bloques.length+1) + \' — Accesorio\',ejerIds:[],series:[],reps:[],descanso:[]});renderRDias()">+ Bloque</button>';
+    html += '</div>';
+  });
+  container.innerHTML = html;
 }
 function saveRut(){
   const id=document.getElementById('m-rut-id').value||('r'+Date.now());
@@ -1899,6 +1985,116 @@ function delNotaById(btn){
   DB.set('notas', notas);
   renderNotas();
   showToast('Nota eliminada');
+}
+
+
+// ═══ EXERCISE PICKER ═══
+var PICKER_DI = 0;
+var PICKER_BI = 0; // -1 = calentamiento
+var PICKER_EQ_FILTER = 'all';
+
+function openEjPicker(di, bi){
+  PICKER_DI = di;
+  PICKER_BI = bi;
+  PICKER_EQ_FILTER = 'all';
+  var searchEl = document.getElementById('picker-search');
+  if(searchEl) searchEl.value = '';
+  renderPickerTags();
+  renderPickerGrid('');
+  openM('m-ej-picker');
+}
+
+function renderPickerTags(){
+  var ejs = DB.get('ejercicios') || [];
+  var eqs = ['all'].concat(Array.from(new Set(ejs.map(function(e){ return e.eq; }).filter(Boolean))));
+  var el = document.getElementById('picker-tags');
+  if(!el) return;
+  el.innerHTML = '';
+  eqs.forEach(function(eq){
+    var div = document.createElement('div');
+    div.className = 'ttag' + (PICKER_EQ_FILTER===eq?' active':'');
+    div.style.cursor = 'pointer';
+    div.textContent = eq==='all' ? 'Todos' : eq;
+    div.addEventListener('click', function(){
+      PICKER_EQ_FILTER = eq;
+      renderPickerTags();
+      var s = document.getElementById('picker-search');
+      renderPickerGrid(s ? s.value : '');
+    });
+    el.appendChild(div);
+  });
+}
+
+function filterPicker(q){
+  renderPickerGrid(q);
+}
+
+function renderPickerGrid(q){
+  var ejs = DB.get('ejercicios') || [];
+  var filtered = ejs;
+  if(PICKER_EQ_FILTER !== 'all') filtered = filtered.filter(function(e){ return e.eq === PICKER_EQ_FILTER; });
+  if(q) filtered = filtered.filter(function(e){ return (e.n+' '+e.m+' '+e.eq).toLowerCase().includes(q.toLowerCase()); });
+  var el = document.getElementById('picker-grid');
+  if(!el) return;
+  el.innerHTML = '';
+  if(!filtered.length){
+    var msg = document.createElement('div');
+    msg.style.cssText = 'grid-column:1/-1;text-align:center;color:var(--t3);font-size:13px;padding:20px';
+    msg.textContent = 'Sin resultados';
+    el.appendChild(msg);
+    return;
+  }
+  filtered.forEach(function(e){
+    var card = document.createElement('div');
+    card.style.cssText = 'background:var(--bg3);border:1px solid var(--bor);border-radius:8px;overflow:hidden;cursor:pointer;transition:all .15s;';
+    card.addEventListener('mouseover', function(){ this.style.borderColor='var(--si)'; });
+    card.addEventListener('mouseout', function(){ this.style.borderColor='var(--bor)'; });
+    card.addEventListener('click', function(){ selectEj(e.id); });
+    // Media
+    var media = document.createElement('div');
+    media.style.cssText = 'height:90px;overflow:hidden;background:var(--bg2);position:relative';
+    if(e.fo){
+      var img = document.createElement('img');
+      img.src = e.fo;
+      img.style.cssText = 'width:100%;height:100%;object-fit:cover';
+      img.onerror = function(){ this.style.display='none'; };
+      media.appendChild(img);
+    } else {
+      var ph = document.createElement('div');
+      ph.style.cssText = 'width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:32px;color:var(--t3)';
+      ph.textContent = ejIco(e.m);
+      media.appendChild(ph);
+    }
+    card.appendChild(media);
+    // Body
+    var body = document.createElement('div');
+    body.style.cssText = 'padding:7px 9px';
+    var name = document.createElement('div');
+    name.style.cssText = 'font-size:12px;font-weight:600;color:var(--tx);line-height:1.3;margin-bottom:3px';
+    name.textContent = e.n;
+    var eq = document.createElement('span');
+    eq.style.cssText = 'font-size:9px;color:var(--s3);font-family:var(--fm)';
+    eq.textContent = e.eq || '';
+    body.appendChild(name);
+    body.appendChild(eq);
+    card.appendChild(body);
+    el.appendChild(card);
+  });
+}
+
+function selectEj(ejId){
+  if(PICKER_BI === -1){
+    // Calentamiento
+    R_DIAS[PICKER_DI].calentamiento.push(ejId);
+  } else {
+    // Bloque
+    R_DIAS[PICKER_DI].bloques[PICKER_BI].ejerIds.push(ejId);
+    R_DIAS[PICKER_DI].bloques[PICKER_BI].series.push(3);
+    R_DIAS[PICKER_DI].bloques[PICKER_BI].reps.push('10');
+    R_DIAS[PICKER_DI].bloques[PICKER_BI].descanso.push(90);
+  }
+  closeM('m-ej-picker');
+  renderRDias();
 }
 
 </script>
