@@ -864,7 +864,7 @@ function tRutsDetail(id){
     html+=`<div style="font-family:var(--fd);font-size:17px;font-weight:700;letter-spacing:2px;color:var(--si);text-transform:uppercase;margin-bottom:11px">${dia.label}</div>`;
     if(dia.calentamiento?.length){
       html+=`<div style="margin-bottom:11px"><div style="font-family:var(--fm);font-size:9px;color:var(--s2);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:7px">🔥 Calentamiento</div>`;
-      html+=dia.calentamiento.map(c=>`<div style="font-size:13px;color:var(--t2);padding:5px 0;border-bottom:1px solid var(--bor)">${c}</div>`).join('');
+      html+=dia.calentamiento.map(function(item){var ejMatch=ejs.find(function(e){return e.id===item;});var label=ejMatch?ejMatch.n:item;var img=ejMatch&&ejMatch.fo?'<img src="'+ejMatch.fo+'" style="width:32px;height:32px;border-radius:4px;object-fit:cover;flex-shrink:0" onerror="this.style.display=\'none\'">'  :'';return '<div style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--t2);padding:6px 0;border-bottom:1px solid var(--bor)">'+img+'<span>'+label+'</span></div>';}).join('');
       html+='</div>';
     }
     dia.bloques?.forEach(b=>{
@@ -981,7 +981,7 @@ function printRutinaId(id){
   if(ev.les)html+=`<div style="background:#f5f5f5;border-radius:4px;padding:8px 12px;margin-bottom:12px;font-size:12px"><strong>Lesiones/historial:</strong> ${ev.les}</div>`;
   r.dias?.forEach(dia=>{
     html+=`<h2>${dia.label}</h2>`;
-    if(dia.calentamiento?.length)html+=`<h3>🔥 Calentamiento</h3><ul style="margin:0 0 12px;padding-left:18px">${dia.calentamiento.map(c=>`<li style="font-size:12px;margin-bottom:4px">${c}</li>`).join('')}</ul>`;
+    if(dia.calentamiento?.length)html+=`<h3>🔥 Calentamiento</h3><ul style="margin:0 0 12px;padding-left:18px">${dia.calentamiento.map(function(item){var _ej=(DB.get('ejercicios')||[]).find(function(e){return e.id===item;});return '<li style="font-size:12px;margin-bottom:4px">'+(_ej?_ej.n:item)+'</li>';}).join('')}</ul>`;
     dia.bloques?.forEach(b=>{
       html+=`<h3>💪 ${b.nombre}</h3><table><tr><th>Ejercicio</th><th>Series</th><th>Reps</th><th>Descanso</th><th>kg (anotar)</th><th>Feedback</th></tr>`;
       (b.ejerIds||[]).forEach((ejId,i)=>{const ej=ejs.find(e=>e.id===ejId)||{n:ejId,no:''};html+=`<tr><td><strong>${ej.n}</strong>${ej.no?`<br><small style="color:#666">${ej.no}</small>`:''}</td><td style="text-align:center">${b.series?.[i]||3}</td><td style="text-align:center">${b.reps?.[i]||'—'}</td><td style="text-align:center">${b.descanso?.[i]||60}s</td><td style="text-align:center">_____</td><td>_____________</td></tr>`;});
@@ -1321,7 +1321,7 @@ function sHoy(){
   const dia0=PLAN?.dias?.[0];
   const ejs=DB.get('ejercicios')||[];
   set('s-hoy-prev',dia0?`
-    <div class="sblq" style="cursor:pointer" onclick="sGo('plan')"><div class="sblq-hdr"><div class="sblq-ico">🔥</div><div class="sblq-t">Calentamiento</div><div class="sblq-m">${dia0.calentamiento.length} ítems</div></div><div class="sblq-body">${dia0.calentamiento.slice(0,2).map(c=>`<div style="font-size:12px;color:var(--t2);padding:6px 0;border-bottom:1px solid var(--bor)">${c}</div>`).join('')}<div style="font-size:11px;color:var(--t3);font-family:var(--fm);margin-top:5px">Ver plan completo →</div></div></div>
+    <div class="sblq" style="cursor:pointer" onclick="sGo('plan')"><div class="sblq-hdr"><div class="sblq-ico">🔥</div><div class="sblq-t">Calentamiento</div><div class="sblq-m">${dia0.calentamiento.length} ítems</div></div><div class="sblq-body">${dia0.calentamiento.slice(0,2).map(function(item){var _ej=(DB.get('ejercicios')||[]).find(function(e){return e.id===item;});return '<div style="font-size:12px;color:var(--t2);padding:6px 0;border-bottom:1px solid var(--bor)">'+ (_ej?_ej.n:item) +'</div>';}).join('')}<div style="font-size:11px;color:var(--t3);font-family:var(--fm);margin-top:5px">Ver plan completo →</div></div></div>
     ${(dia0.bloques?.[0]?.ejerIds||[]).slice(0,2).map(ejId=>{const ej=ejs.find(e=>e.id===ejId)||{n:ejId,m:'',fo:''};return `<div class="excard" style="cursor:pointer" onclick="sGo('plan')">${ej.fo?`<div class="ex-media" style="height:100px"><img src="${ej.fo}" onerror="this.style.display='none'"><div class="ex-badge">${ej.m}</div></div>`:''}<div class="ex-body" style="padding:10px 13px"><div class="ex-name" style="font-size:17px">${ej.n}</div></div></div>`;}).join('')}
     <div style="text-align:center;padding:7px 0;font-family:var(--fm);font-size:11px;color:var(--t3);cursor:pointer" onclick="sGo('plan')">Ver ${dia0.bloques?.reduce((s,b)=>s+(b.ejerIds?.length||0),0)||0} ejercicios completos →</div>`:'<p style="color:var(--t3);font-size:13px;text-align:center;padding:20px">Rubén aún no asignó tu plan.</p>');
 }
@@ -1338,7 +1338,7 @@ function sDiaC(idx){
   const dia=PLAN?.dias?.[idx];if(!dia)return;
   if(!CCOMP[idx])CCOMP[idx]=new Set();if(!ECOMP[idx])ECOMP[idx]=new Set();
   const ejs=DB.get('ejercicios')||[];const fb=DB.get('feedback')||[];
-  let html=`<div class="sblq" id="sbc-${idx}"><div class="sblq-hdr" onclick="this.parentElement.classList.toggle('collapsed')"><div class="sblq-ico">🔥</div><div class="sblq-t">Calentamiento</div><div class="sblq-m">${dia.calentamiento.length} ítems</div></div><div class="sblq-body">${dia.calentamiento.map((c,ci)=>`<div class="ci ${CCOMP[idx].has(ci)?'done':''}" id="ci-${idx}-${ci}"><div class="ci-chk ${CCOMP[idx].has(ci)?'done':''}" onclick="sCal(${idx},${ci})"><span class="ci-chk-i">✓</span></div><div class="ci-txt">${c}</div></div>`).join('')}</div></div>`;
+  let html=`<div class="sblq" id="sbc-${idx}"><div class="sblq-hdr" onclick="this.parentElement.classList.toggle('collapsed')"><div class="sblq-ico">🔥</div><div class="sblq-t">Calentamiento</div><div class="sblq-m">${dia.calentamiento.length} ítems</div></div><div class="sblq-body">${dia.calentamiento.map((item,ci)=>`<div class="ci ${CCOMP[idx].has(ci)?'done':''}" id="ci-${idx}-${ci}"><div class="ci-chk ${CCOMP[idx].has(ci)?'done':''}" onclick="sCal(${idx},${ci})"><span class="ci-chk-i">✓</span></div><div class="ci-txt">${(()=>{var _ej=(DB.get('ejercicios')||[]).find(e=>e.id===item);return _ej?_ej.n:item;})()}</div></div>`).join('')}</div></div>`;
   dia.bloques.forEach((bloque,bi)=>{
     html+=`<div class="sblq" id="sbb-${idx}-${bi}"><div class="sblq-hdr" onclick="this.parentElement.classList.toggle('collapsed')"><div class="sblq-ico">💪</div><div class="sblq-t">${bloque.nombre}</div><div class="sblq-m">${bloque.ejerIds?.length||0} ej.</div></div><div class="sblq-body">${(bloque.ejerIds||[]).map((ejId,ei)=>{
       const ej=ejs.find(e=>e.id===ejId)||{n:ejId,m:'',fo:'',vi:'',no:''};
