@@ -864,7 +864,7 @@ function tRutsDetail(id){
     html+=`<div style="font-family:var(--fd);font-size:17px;font-weight:700;letter-spacing:2px;color:var(--si);text-transform:uppercase;margin-bottom:11px">${dia.label}</div>`;
     if(dia.calentamiento?.length){
       html+=`<div style="margin-bottom:11px"><div style="font-family:var(--fm);font-size:9px;color:var(--s2);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:7px">🔥 Calentamiento</div>`;
-      html+=dia.calentamiento.map(function(item){var ejMatch=ejs.find(function(e){return e.id===item;});var label=ejMatch?ejMatch.n:item;var img=ejMatch&&ejMatch.fo?'<img src="'+ejMatch.fo+'" style="width:32px;height:32px;border-radius:4px;object-fit:cover;flex-shrink:0" onerror="this.style.display=\'none\'">'  :'';return '<div style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--t2);padding:6px 0;border-bottom:1px solid var(--bor)">'+img+'<span>'+label+'</span></div>';}).join('');
+      html+=[...(dia.calentamiento||[]),...(dia.calCore||[])].map(function(item){var _r=resolveCalItem(item);var _extra=(_r.series?_r.series+' series ':'')+(_r.reps?_r.reps+' reps ':'')+(_r.tiempo||'');return '<div style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--t2);padding:6px 0;border-bottom:1px solid var(--bor)">' + (_r.fo?'<img src="'+_r.fo+'" style="width:32px;height:32px;border-radius:4px;object-fit:cover" onerror="this.style.display=\'none\'">' :'') + '<span>'+_r.n+(_extra?' <em style="font-size:11px;color:var(--t3)">'+_extra.trim()+'</em>':'')+'</span></div>';}).join('');
       html+='</div>';
     }
     dia.bloques?.forEach(b=>{
@@ -1116,37 +1116,34 @@ function renderRDias(){
     html += '<button class="btn btn-red btn-sm" onclick="R_DIAS.splice(' + di + ',1);renderRDias()">✕ Día</button>';
     html += '</div>';
 
-    // ── CALENTAMIENTO ── uses exercise library with search
-    html += '<div class="bloque-build">';
-    html += '<div class="bloque-build-header"><span style="font-family:var(--fm);font-size:10px;color:var(--s2);text-transform:uppercase;letter-spacing:1.5px;flex:1">🔥 Calentamiento</span></div>';
+    // ── CALENTAMIENTO ── two sections with images + series/reps/tiempo
+    // Ensure structure has calentamiento and calCore arrays
+    if(!dia.calentamiento) dia.calentamiento = [];
+    if(!dia.calCore) dia.calCore = [];
 
-    // Calentamiento items (text OR exercise from library)
-    dia.calentamiento.forEach(function(item, ci){
-      var isEjId = ejs.find(function(e){ return e.id === item; });
-      if(isEjId){
-        // It's an exercise ID - show with image
-        html += '<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--bor)">';
-        html += isEjId.fo ? '<img src="' + isEjId.fo + '" style="width:40px;height:40px;border-radius:5px;object-fit:cover;flex-shrink:0" onerror="this.style.display=\'none\'">' : '<div style="width:40px;height:40px;border-radius:5px;background:var(--bg3);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px">' + ejIco(isEjId.m) + '</div>';
-        html += '<span style="flex:1;font-size:13px;color:var(--tx)">' + isEjId.n + '</span>';
-        html += '<button class="btn btn-red btn-sm" onclick="R_DIAS[' + di + '].calentamiento.splice(' + ci + ',1);renderRDias()">✕</button>';
-        html += '</div>';
-      } else {
-        // It's plain text
-        html += '<div style="display:flex;gap:7px;margin-bottom:7px">';
-        html += '<input class="fi" style="flex:1;font-size:13px" value="' + item.replace(/'/g,"&#39;") + '" placeholder="Movilidad cadera..." onchange="R_DIAS[' + di + '].calentamiento[' + ci + ']=this.value">';
-        html += '<button class="btn btn-red btn-sm" onclick="R_DIAS[' + di + '].calentamiento.splice(' + ci + ',1);renderRDias()">✕</button>';
-        html += '</div>';
-      }
-    });
+    // Wrap in a container div for DOM building
+    var calWrap = document.createElement('div');
 
-    // Add calentamiento options
-    html += '<div style="display:flex;gap:7px;margin-top:8px">';
-    html += '<button class="btn btn-g btn-sm" style="flex:1" onclick="R_DIAS[' + di + '].calentamiento.push(\'\');renderRDias()">+ Texto libre</button>';
-    html += '<button class="btn btn-g btn-sm" style="flex:1" onclick="openEjPicker(' + di + ', -1)">+ Ejercicio con foto</button>';
-    html += '</div>';
-    html += '</div>';
+    // Section label
+    var calTitle = document.createElement('div');
+    calTitle.style.cssText = 'font-family:var(--fm);font-size:10px;color:var(--s2);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px;padding:5px 0;border-bottom:1px solid var(--bor)';
+    calTitle.textContent = '🔥 Calentamiento';
+    calWrap.appendChild(calTitle);
 
-    // ── BLOQUES ──
+    buildCalSection(calWrap, di, 'calentamiento', 'Movilidad articular', '🤸');
+    buildCalSection(calWrap, di, 'calCore', 'Core / Activación', '⚡');
+
+    // Append to bloque-build container
+    var calBuild = document.createElement('div');
+    calBuild.className = 'bloque-build';
+    calBuild.appendChild(calWrap);
+
+    // We'll append this after the dia header via a unique id
+    container.insertAdjacentHTML('beforeend', '<div id="cal-wrap-' + di + '"></div>');
+    // Replace with actual DOM element after setting innerHTML
+    html += '<!-- CAL_PLACEHOLDER_' + di + ' -->';
+
+// ── BLOQUES ──
     dia.bloques.forEach(function(b, bi){
       html += '<div class="bloque-build">';
       html += '<div class="bloque-build-header">';
@@ -1199,6 +1196,24 @@ function renderRDias(){
     html += '</div>';
   });
   container.innerHTML = html;
+  // Rebuild calentamiento sections with DOM (to avoid quote issues)
+  R_DIAS.forEach(function(dia2, di2){
+    if(!dia2.calentamiento) dia2.calentamiento = [];
+    if(!dia2.calCore) dia2.calCore = [];
+    var placeholder = container.querySelector('#cal-wrap-' + di2);
+    if(!placeholder) return;
+    var calWrap2 = document.createElement('div');
+    var calBuild2 = document.createElement('div');
+    calBuild2.className = 'bloque-build';
+    var calTitle2 = document.createElement('div');
+    calTitle2.style.cssText = 'font-family:var(--fm);font-size:10px;color:var(--s2);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px;padding:5px 0;border-bottom:1px solid var(--bor)';
+    calTitle2.textContent = '🔥 Calentamiento';
+    calWrap2.appendChild(calTitle2);
+    buildCalSection(calWrap2, di2, 'calentamiento', 'Movilidad articular', '🤸');
+    buildCalSection(calWrap2, di2, 'calCore', 'Core / Activación', '⚡');
+    calBuild2.appendChild(calWrap2);
+    placeholder.replaceWith(calBuild2);
+  });
 }
 function saveRut(){
   const id=document.getElementById('m-rut-id').value||('r'+Date.now());
@@ -1338,7 +1353,7 @@ function sDiaC(idx){
   const dia=PLAN?.dias?.[idx];if(!dia)return;
   if(!CCOMP[idx])CCOMP[idx]=new Set();if(!ECOMP[idx])ECOMP[idx]=new Set();
   const ejs=DB.get('ejercicios')||[];const fb=DB.get('feedback')||[];
-  let html=`<div class="sblq" id="sbc-${idx}"><div class="sblq-hdr" onclick="this.parentElement.classList.toggle('collapsed')"><div class="sblq-ico">🔥</div><div class="sblq-t">Calentamiento</div><div class="sblq-m">${dia.calentamiento.length} ítems</div></div><div class="sblq-body">${dia.calentamiento.map((item,ci)=>`<div class="ci ${CCOMP[idx].has(ci)?'done':''}" id="ci-${idx}-${ci}"><div class="ci-chk ${CCOMP[idx].has(ci)?'done':''}" onclick="sCal(${idx},${ci})"><span class="ci-chk-i">✓</span></div><div class="ci-txt">${(()=>{var _ej=(DB.get('ejercicios')||[]).find(e=>e.id===item);return _ej?_ej.n:item;})()}</div></div>`).join('')}</div></div>`;
+  let html=`<div class="sblq" id="sbc-${idx}"><div class="sblq-hdr" onclick="this.parentElement.classList.toggle('collapsed')"><div class="sblq-ico">🔥</div><div class="sblq-t">Calentamiento</div><div class="sblq-m">${dia.calentamiento.length} ítems</div></div><div class="sblq-body">${[...(dia.calentamiento||[]), ...(dia.calCore||[])].map((item,ci)=>`<div class="ci ${CCOMP[idx].has(ci)?'done':''}" id="ci-${idx}-${ci}"><div class="ci-chk ${CCOMP[idx].has(ci)?'done':''}" onclick="sCal(${idx},${ci})"><span class="ci-chk-i">✓</span></div><div class="ci-txt">${(()=>{var _r=resolveCalItem(item);var _extra=(_r.series?_r.series+' series ':'')+(_r.reps?_r.reps+' reps ':'')+(_r.tiempo||'');return _r.n+(_extra?' · <em style="font-size:10px;color:var(--t3)">'+_extra.trim()+'</em>':'');})()}</div></div>`).join('')}</div></div>`;
   dia.bloques.forEach((bloque,bi)=>{
     html+=`<div class="sblq" id="sbb-${idx}-${bi}"><div class="sblq-hdr" onclick="this.parentElement.classList.toggle('collapsed')"><div class="sblq-ico">💪</div><div class="sblq-t">${bloque.nombre}</div><div class="sblq-m">${bloque.ejerIds?.length||0} ej.</div></div><div class="sblq-body">${(bloque.ejerIds||[]).map((ejId,ei)=>{
       const ej=ejs.find(e=>e.id===ejId)||{n:ejId,m:'',fo:'',vi:'',no:''};
@@ -1994,6 +2009,7 @@ var PICKER_BI = 0; // -1 = calentamiento
 var PICKER_EQ_FILTER = 'all';
 
 function openEjPicker(di, bi){
+  // bi can be a number (bloque index) or string (calentamiento key)
   PICKER_DI = di;
   PICKER_BI = bi;
   PICKER_EQ_FILTER = 'all';
@@ -2083,9 +2099,13 @@ function renderPickerGrid(q){
 }
 
 function selectEj(ejId){
-  if(PICKER_BI === -1){
-    // Calentamiento
-    R_DIAS[PICKER_DI].calentamiento.push(ejId);
+  if(typeof PICKER_BI === 'string'){
+    // Calentamiento section key (e.g. 'calentamiento' or 'calCore')
+    if(!R_DIAS[PICKER_DI][PICKER_BI]) R_DIAS[PICKER_DI][PICKER_BI] = [];
+    R_DIAS[PICKER_DI][PICKER_BI].push({ref:ejId, series:'', reps:'', tiempo:''});
+  } else if(PICKER_BI === -1){
+    // Legacy calentamiento
+    R_DIAS[PICKER_DI].calentamiento.push({ref:ejId, series:'', reps:'', tiempo:''});
   } else {
     // Bloque
     R_DIAS[PICKER_DI].bloques[PICKER_BI].ejerIds.push(ejId);
@@ -2095,6 +2115,135 @@ function selectEj(ejId){
   }
   closeM('m-ej-picker');
   renderRDias();
+}
+
+
+// ═══ CALENTAMIENTO HELPERS ═══
+function resolveCalItem(item){
+  var ejs = DB.get('ejercicios') || [];
+  if(typeof item === 'string'){
+    var ej = ejs.find(function(e){ return e.id === item; });
+    if(ej) return {n:ej.n, fo:ej.fo||'', m:ej.m||'', series:'', reps:'', tiempo:''};
+    return {n:item, fo:'', m:'', series:'', reps:'', tiempo:''};
+  }
+  if(item.ref){
+    var ej2 = ejs.find(function(e){ return e.id === item.ref; });
+    return {n:ej2?ej2.n:item.ref, fo:ej2?ej2.fo||'':'', m:ej2?ej2.m||'':'', series:item.series||'', reps:item.reps||'', tiempo:item.tiempo||''};
+  }
+  return {n:item.txt||'', fo:'', m:'', series:item.series||'', reps:item.reps||'', tiempo:item.tiempo||''};
+}
+
+function buildCalSection(container, di, sectionKey, sectionLabel, sectionIcon, items){
+  var wrap = document.createElement('div');
+  wrap.style.cssText = 'background:var(--bg2);border:1px solid var(--bor);border-radius:8px;padding:11px;margin-bottom:9px';
+
+  var hdr = document.createElement('div');
+  hdr.style.cssText = 'font-family:var(--fm);font-size:10px;color:var(--si);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:9px';
+  hdr.textContent = sectionIcon + ' ' + sectionLabel;
+  wrap.appendChild(hdr);
+
+  items.forEach(function(item, ci){
+    var r = resolveCalItem(item);
+    var row = document.createElement('div');
+    row.style.cssText = 'background:var(--bg3);border:1px solid var(--bor);border-radius:7px;padding:9px;margin-bottom:7px';
+
+    // Top: image/icon + name/input + delete
+    var top = document.createElement('div');
+    top.style.cssText = 'display:flex;align-items:center;gap:8px;margin-bottom:7px';
+
+    if(r.fo){
+      var img = document.createElement('img');
+      img.src = r.fo;
+      img.style.cssText = 'width:38px;height:38px;border-radius:5px;object-fit:cover;flex-shrink:0';
+      img.onerror = function(){ this.style.display='none'; };
+      top.appendChild(img);
+    } else if(item.ref){
+      var ico = document.createElement('div');
+      ico.style.cssText = 'width:38px;height:38px;border-radius:5px;background:var(--bg2);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px';
+      ico.textContent = ejIco(r.m);
+      top.appendChild(ico);
+    }
+
+    if(item.txt !== undefined || typeof item === 'string' && !item.startsWith('e1')){
+      var inp = document.createElement('input');
+      inp.className = 'fi';
+      inp.style.cssText = 'flex:1;font-size:13px;padding:6px 9px';
+      inp.value = r.n;
+      inp.placeholder = 'Ej: Movilidad cadera...';
+      (function(dii, sk, cii){ inp.addEventListener('change', function(){
+        var arr = R_DIAS[dii][sk];
+        var it = arr[cii];
+        if(typeof it === 'object') it.txt = this.value;
+        else arr[cii] = this.value;
+      }); })(di, sectionKey, ci);
+      top.appendChild(inp);
+    } else {
+      var nm = document.createElement('span');
+      nm.style.cssText = 'flex:1;font-size:13px;color:var(--tx)';
+      nm.textContent = r.n;
+      top.appendChild(nm);
+    }
+
+    var del = document.createElement('button');
+    del.className = 'btn btn-red btn-sm';
+    del.style.cssText = 'padding:4px 8px;min-height:30px';
+    del.textContent = '✕';
+    (function(dii, sk, cii){ del.addEventListener('click', function(){
+      R_DIAS[dii][sk].splice(cii, 1);
+      renderRDias();
+    }); })(di, sectionKey, ci);
+    top.appendChild(del);
+    row.appendChild(top);
+
+    // Series / Reps / Tiempo
+    var grid = document.createElement('div');
+    grid.style.cssText = 'display:grid;grid-template-columns:repeat(3,1fr);gap:6px';
+    [['series','Series','2'],['reps','Reps','10'],['tiempo','Tiempo','30seg']].forEach(function(f){
+      var cell = document.createElement('div');
+      var lbl = document.createElement('div');
+      lbl.style.cssText = 'font-family:var(--fm);font-size:8px;color:var(--t3);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px';
+      lbl.textContent = f[1];
+      var finp = document.createElement('input');
+      finp.className = 'fi';
+      finp.style.cssText = 'font-size:12px;text-align:center;padding:5px 4px';
+      finp.placeholder = f[2];
+      finp.value = r[f[0]] || '';
+      if(f[0]==='series') finp.type='number';
+      (function(dii,sk,cii,field){ finp.addEventListener('change', function(){
+        var arr = R_DIAS[dii][sk];
+        var it = arr[cii];
+        if(typeof it === 'object') it[field] = this.value;
+      }); })(di, sectionKey, ci, f[0]);
+      cell.appendChild(lbl);
+      cell.appendChild(finp);
+      grid.appendChild(cell);
+    });
+    row.appendChild(grid);
+    wrap.appendChild(row);
+  });
+
+  // Add buttons
+  var btns = document.createElement('div');
+  btns.style.cssText = 'display:flex;gap:7px;margin-top:8px';
+  var btnTxt = document.createElement('button');
+  btnTxt.className = 'btn btn-g btn-sm';
+  btnTxt.style.flex = '1';
+  btnTxt.textContent = '+ Texto libre';
+  (function(dii,sk){ btnTxt.addEventListener('click', function(){
+    R_DIAS[dii][sk].push({txt:'',series:'',reps:'',tiempo:''});
+    renderRDias();
+  }); })(di, sectionKey);
+  var btnLib = document.createElement('button');
+  btnLib.className = 'btn btn-g btn-sm';
+  btnLib.style.flex = '1';
+  btnLib.textContent = '+ De biblioteca';
+  (function(dii,sk){ btnLib.addEventListener('click', function(){
+    openEjPicker(dii, sk);
+  }); })(di, sectionKey);
+  btns.appendChild(btnTxt);
+  btns.appendChild(btnLib);
+  wrap.appendChild(btns);
+  container.appendChild(wrap);
 }
 
 </script>
