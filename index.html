@@ -515,7 +515,7 @@ select.fi{appearance:none;cursor:pointer;}
     <!-- EJERCICIOS -->
     <div class="t-screen" id="t-ejer">
       <div class="t-scroll">
-        <div class="hdr"><div><div class="htitle">BANCO DE <em>EJERCICIOS</em></div><div class="hsub" id="ej-sub">—</div></div><button class="btn btn-p" onclick="openM('m-ej')">+ Ejercicio</button></div>
+        <div class="hdr"><div><div class="htitle">BANCO DE <em>EJERCICIOS</em></div><div class="hsub" id="ej-sub">—</div></div><button class="btn btn-p" onclick="clearEjForm();openM('m-ej')">+ Ejercicio</button></div>
         <div class="srch"><span style="color:var(--t3);font-size:16px">⌕</span><input id="ej-srch" placeholder="Buscar ejercicio, músculo, equipo..." oninput="filterEj(this.value)"></div>
         <div class="trow" id="ej-tags"><div class="ttag active" onclick="filterEjT(this,'all')">Todos</div></div>
         <div class="ej-grid" id="ej-grid"></div>
@@ -864,7 +864,7 @@ function tRutsDetail(id){
     html+=`<div style="font-family:var(--fd);font-size:17px;font-weight:700;letter-spacing:2px;color:var(--si);text-transform:uppercase;margin-bottom:11px">${dia.label}</div>`;
     if(dia.calentamiento?.length){
       html+=`<div style="margin-bottom:11px"><div style="font-family:var(--fm);font-size:9px;color:var(--s2);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:7px">🔥 Calentamiento</div>`;
-      html+=[...(dia.calentamiento||[]),...(dia.calCore||[])].map(function(item){var _r=resolveCalItem(item);var _extra=(_r.series?_r.series+' series ':'')+(_r.reps?_r.reps+' reps ':'')+(_r.tiempo||'');return '<div style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--t2);padding:6px 0;border-bottom:1px solid var(--bor)">' + (_r.fo?'<img src="'+_r.fo+'" style="width:32px;height:32px;border-radius:4px;object-fit:cover" onerror="this.style.display=\'none\'">' :'') + '<span>'+_r.n+(_extra?' <em style="font-size:11px;color:var(--t3)">'+_extra.trim()+'</em>':'')+'</span></div>';}).join('');
+      html+=[...(dia.calentamiento||[]),...(dia.calCore||[])].map(function(item){var _r=resolveCalItem(item);var _extra=(_r.series?_r.series+' series ':'')+(_r.reps?_r.reps+' reps ':'')+(_r.tiempo||'');return '<div style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--t2);padding:6px 0;border-bottom:1px solid var(--bor)">' + (_r.fo?'<img src="'+_r.fo+'" style="width:44px;height:44px;border-radius:6px;object-fit:cover;flex-shrink:0" onerror="this.style.display=\'none\'">' :'') + '<span>'+_r.n+(_extra?' <em style="font-size:11px;color:var(--t3)">'+_extra.trim()+'</em>':'')+'</span></div>';}).join('');
       html+='</div>';
     }
     dia.bloques?.forEach(b=>{
@@ -1079,6 +1079,7 @@ function saveAl(){
 function delAl(){const id=document.getElementById('m-al-id').value;if(!id||!confirm('¿Eliminar?'))return;DB.set('alumnos',(DB.get('alumnos')||[]).filter(x=>x.id!==id));closeM('m-al');tAll();showToast('Eliminado');}
 
 function editEj(id){
+  clearEjForm();
   const e=(DB.get('ejercicios')||[]).find(x=>x.id===id);if(!e)return;
   set('m-ej-t','Editar ejercicio');
   document.getElementById('m-ej-id').value=e.id;
@@ -1353,7 +1354,7 @@ function sDiaC(idx){
   const dia=PLAN?.dias?.[idx];if(!dia)return;
   if(!CCOMP[idx])CCOMP[idx]=new Set();if(!ECOMP[idx])ECOMP[idx]=new Set();
   const ejs=DB.get('ejercicios')||[];const fb=DB.get('feedback')||[];
-  let html=`<div class="sblq" id="sbc-${idx}"><div class="sblq-hdr" onclick="this.parentElement.classList.toggle('collapsed')"><div class="sblq-ico">🔥</div><div class="sblq-t">Calentamiento</div><div class="sblq-m">${dia.calentamiento.length} ítems</div></div><div class="sblq-body">${[...(dia.calentamiento||[]), ...(dia.calCore||[])].map((item,ci)=>`<div class="ci ${CCOMP[idx].has(ci)?'done':''}" id="ci-${idx}-${ci}"><div class="ci-chk ${CCOMP[idx].has(ci)?'done':''}" onclick="sCal(${idx},${ci})"><span class="ci-chk-i">✓</span></div><div class="ci-txt">${(()=>{var _r=resolveCalItem(item);var _extra=(_r.series?_r.series+' series ':'')+(_r.reps?_r.reps+' reps ':'')+(_r.tiempo||'');return _r.n+(_extra?' · <em style="font-size:10px;color:var(--t3)">'+_extra.trim()+'</em>':'');})()}</div></div>`).join('')}</div></div>`;
+  let html=`<div class="sblq" id="sbc-${idx}"><div class="sblq-hdr" onclick="this.parentElement.classList.toggle('collapsed')"><div class="sblq-ico">🔥</div><div class="sblq-t">Calentamiento</div><div class="sblq-m">${dia.calentamiento.length} ítems</div></div><div class="sblq-body">${[...(dia.calentamiento||[]), ...(dia.calCore||[])].map((item,ci)=>`<div class="ci ${CCOMP[idx].has(ci)?'done':''}" id="ci-${idx}-${ci}"><div class="ci-chk ${CCOMP[idx].has(ci)?'done':''}" onclick="sCal(${idx},${ci})"><span class="ci-chk-i">✓</span></div>${(()=>{var _r=resolveCalItem(item);var _extra=(_r.series?_r.series+' series ':'')+(_r.reps?_r.reps+' reps ':'')+(_r.tiempo||'');var _img=_r.fo?'<img src="'+_r.fo+'" style="width:40px;height:40px;border-radius:6px;object-fit:cover;flex-shrink:0;margin-right:9px" onerror="this.style.display=\'none\'">'  :'';return _img+'<div class="ci-txt">'+_r.n+(_extra?'<div style="font-size:10px;color:var(--t3);font-family:var(--fm);margin-top:2px">'+_extra.trim()+'</div>':'')+'</div>';})()}</div>`).join('')}</div></div>`;
   dia.bloques.forEach((bloque,bi)=>{
     html+=`<div class="sblq" id="sbb-${idx}-${bi}"><div class="sblq-hdr" onclick="this.parentElement.classList.toggle('collapsed')"><div class="sblq-ico">💪</div><div class="sblq-t">${bloque.nombre}</div><div class="sblq-m">${bloque.ejerIds?.length||0} ej.</div></div><div class="sblq-body">${(bloque.ejerIds||[]).map((ejId,ei)=>{
       const ej=ejs.find(e=>e.id===ejId)||{n:ejId,m:'',fo:'',vi:'',no:''};
@@ -2244,6 +2245,16 @@ function buildCalSection(container, di, sectionKey, sectionLabel, sectionIcon, i
   btns.appendChild(btnLib);
   wrap.appendChild(btns);
   container.appendChild(wrap);
+}
+
+
+function clearEjForm(){
+  var fields = ['id','n','m','eq','tp','fo','vi','no'];
+  fields.forEach(function(f){
+    var el = document.getElementById('m-ej-'+f);
+    if(el) el.value = '';
+  });
+  set('m-ej-t','Nuevo ejercicio');
 }
 
 </script>
