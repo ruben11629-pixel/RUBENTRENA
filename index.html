@@ -853,6 +853,7 @@ function selRut(id){
 
 function tRutsDetail(id){
   if(!id){set('rut-detail-title','Selecciona una rutina');set('rut-detail-sub','—');set('rut-detail-body','<p style="color:var(--t3);font-size:13px;padding:20px 0;text-align:center">Toca una rutina de la lista</p>');return;}
+  try{
   const ruts=DB.get('rutinas')||[],als=DB.get('alumnos')||[],ejs=DB.get('ejercicios')||[];
   const r=ruts.find(x=>x.id===id);if(!r)return;
   const al=als.find(a=>a.id===r.alId)||{n:'Sin asignar'};
@@ -879,6 +880,7 @@ function tRutsDetail(id){
     html+='</div>';
   });
   set('rut-detail-body',html);
+  }catch(err){console.warn('tRutsDetail error:',err);set('rut-detail-body','<p style="color:var(--re);font-size:12px;padding:16px">Error al cargar: '+err.message+'</p>');}
 }
 
 function renderFb(){
@@ -1252,7 +1254,7 @@ function saveRut(){
   const r={id,nombre:document.getElementById('m-rut-n').value.trim(),alId:document.getElementById('m-rut-al').value,dias:R_DIAS};
   if(!r.nombre){showToast('⚠ Nombre requerido');return;}
   const list=DB.get('rutinas')||[];const idx=list.findIndex(x=>x.id===id);if(idx>=0)list[idx]=r;else list.push(r);
-  DB.set('rutinas',list);closeM('m-rut');SEL_RUT_ID=id;tRuts();tRutsDetail(id);showToast(`✓ "${r.nombre}" guardado`);
+  DB.set('rutinas',list);closeM('m-rut');tRuts();SEL_RUT_ID=null;SEL_RUT_ID=id;tRuts();tRutsDetail(id);showToast(`✓ "${r.nombre}" guardado`);
 }
 function delRut(){const id=document.getElementById('m-rut-id').value;if(!confirm('¿Eliminar?'))return;DB.set('rutinas',(DB.get('rutinas')||[]).filter(x=>x.id!==id));SEL_RUT_ID=null;closeM('m-rut');tRuts();tRutsDetail(null);showToast('Eliminado');}
 
@@ -1302,7 +1304,7 @@ function tGo(s){
   document.querySelectorAll('.t-tab').forEach(x=>x.classList.remove('active'));
   document.getElementById('t-'+s)?.classList.add('active');
   document.getElementById('tt-'+s)?.classList.add('active');
-  if(s==='cal')tCal();if(s==='ruts'||s==='eval')populateMods();if(s==='hist'){fillHistSels();loadHist();}if(s==='fb')renderFb();if(s==='stats')renderStats();if(s==='msgs'){fillMsgSel();}if(s==='medidas'){fillMedSel();loadMedidas();}if(s==='notas'){fillNotaSels();renderNotas();}
+  if(s==='cal')tCal();if(s==='ruts'){tRuts();tRutsDetail(SEL_RUT_ID||null);}if(s==='ruts'||s==='eval')populateMods();if(s==='hist'){fillHistSels();loadHist();}if(s==='fb')renderFb();if(s==='stats')renderStats();if(s==='msgs'){fillMsgSel();}if(s==='medidas'){fillMedSel();loadMedidas();}if(s==='notas'){fillNotaSels();renderNotas();}
 }
 
 // BACKUP
