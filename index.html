@@ -1129,7 +1129,7 @@ function renderRDias(){
   var ejs = DB.get('ejercicios') || [];
   var container = document.getElementById('m-rut-dias');
   if(!container) return;
-  // Normalize all days - ensure arrays exist
+  // Normalize all days
   R_DIAS.forEach(function(d){
     if(!d.calentamiento) d.calentamiento=[];
     if(!d.calCore) d.calCore=[];
@@ -1142,46 +1142,23 @@ function renderRDias(){
       if(!b.kgs) b.kgs=[];
     });
   });
+
   var html = '';
   R_DIAS.forEach(function(dia, di){
     html += '<div class="dia-block">';
     html += '<div class="dia-block-header">';
-    html += '<input value="' + dia.label + '" class="fi" style="width:120px;font-family:var(--fd);font-size:15px;font-weight:700;letter-spacing:1px" onchange="R_DIAS[' + di + '].label=this.value">';
+    html += '<input value="' + (dia.label||'Día '+(di+1)).replace(/"/g,'&quot;') + '" class="fi" style="width:120px;font-family:var(--fd);font-size:15px;font-weight:700;letter-spacing:1px" onchange="R_DIAS[' + di + '].label=this.value">';
     html += '<button class="btn btn-red btn-sm" onclick="R_DIAS.splice(' + di + ',1);renderRDias()">✕ Día</button>';
     html += '</div>';
 
-    // ── CALENTAMIENTO ── two sections with images + series/reps/tiempo
-    // Ensure structure has calentamiento and calCore arrays
-    if(!dia.calentamiento) dia.calentamiento = [];
-    if(!dia.calCore) dia.calCore = [];
+    // Calentamiento placeholder - will be filled by DOM after innerHTML
+    html += '<div id="cal-wrap-' + di + '"></div>';
 
-    // Wrap in a container div for DOM building
-    var calWrap = document.createElement('div');
-
-    // Section label
-    var calTitle = document.createElement('div');
-    calTitle.style.cssText = 'font-family:var(--fm);font-size:10px;color:var(--s2);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px;padding:5px 0;border-bottom:1px solid var(--bor)';
-    calTitle.textContent = '🔥 Calentamiento';
-    calWrap.appendChild(calTitle);
-
-    buildCalSection(calWrap, di, 'calentamiento', 'Movilidad articular', '🤸');
-    buildCalSection(calWrap, di, 'calCore', 'Core / Activación', '⚡');
-
-    // Append to bloque-build container
-    var calBuild = document.createElement('div');
-    calBuild.className = 'bloque-build';
-    calBuild.appendChild(calWrap);
-
-    // We'll append this after the dia header via a unique id
-    container.insertAdjacentHTML('beforeend', '<div id="cal-wrap-' + di + '"></div>');
-    // Replace with actual DOM element after setting innerHTML
-    html += '<!-- CAL_PLACEHOLDER_' + di + ' -->';
-
-// ── BLOQUES ──
+    // Bloques
     dia.bloques.forEach(function(b, bi){
       html += '<div class="bloque-build">';
       html += '<div class="bloque-build-header">';
-      html += '<input value="' + b.nombre.replace(/'/g,"&#39;") + '" class="fi" style="flex:1;font-size:12px;font-family:var(--fm)" onchange="R_DIAS[' + di + '].bloques[' + bi + '].nombre=this.value">';
+      html += '<input value="' + (b.nombre||'Bloque').replace(/"/g,'&quot;') + '" class="fi" style="flex:1;font-size:12px;font-family:var(--fm)" onchange="R_DIAS[' + di + '].bloques[' + bi + '].nombre=this.value">';
       html += '<button class="btn btn-red btn-sm" onclick="R_DIAS[' + di + '].bloques.splice(' + bi + ',1);renderRDias()">✕</button>';
       html += '</div>';
 
@@ -1193,60 +1170,49 @@ function renderRDias(){
         html += '<div style="font-family:var(--fm);font-size:8px;color:var(--t3);text-transform:uppercase;letter-spacing:1px;text-align:center">Reps</div>';
         html += '<div style="font-family:var(--fm);font-size:8px;color:var(--t3);text-transform:uppercase;letter-spacing:1px;text-align:center">Kg ref</div>';
         html += '<div style="font-family:var(--fm);font-size:8px;color:var(--t3);text-transform:uppercase;letter-spacing:1px;text-align:center">Desc(s)</div>';
-        html += '<div></div>';
-        html += '</div>';
+        html += '<div></div></div>';
       }
 
       // Exercise rows
       (b.ejerIds||[]).forEach(function(ejId, ei){
         var ej = ejs.find(function(x){ return x.id===ejId; }) || {n:ejId, fo:'', m:''};
         html += '<div style="display:grid;grid-template-columns:1fr 54px 64px 64px 54px 36px;gap:5px;align-items:center;padding:6px 0;border-bottom:1px solid var(--bor)">';
-        // Exercise with thumbnail
         html += '<div style="display:flex;align-items:center;gap:7px">';
-        html += ej.fo ? '<img src="' + ej.fo + '" style="width:36px;height:36px;border-radius:5px;object-fit:cover;flex-shrink:0" onerror="this.style.display=\'none\'">' : '<div style="width:36px;height:36px;border-radius:5px;background:var(--bg3);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px">' + ejIco(ej.m) + '</div>';
-        html += '<span style="font-size:12px;color:var(--tx);line-height:1.3">' + ej.n + '</span>';
-        html += '</div>';
-        // Series
-        html += '<input class="fi" style="font-size:12px;font-family:var(--fm);text-align:center;padding:5px 3px" value="' + (b.series[ei]||3) + '" type="number" min="1" max="20" onchange="R_DIAS[' + di + '].bloques[' + bi + '].series[' + ei + ']=parseInt(this.value)||3">';
-        // Reps
+        html += ej.fo ? '<img src="' + ej.fo + '" style="width:36px;height:36px;border-radius:5px;object-fit:cover;flex-shrink:0" onerror="this.style.display=\'none\'">'
+                      : '<div style="width:36px;height:36px;border-radius:5px;background:var(--bg3);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px">' + ejIco(ej.m) + '</div>';
+        html += '<span style="font-size:12px;color:var(--tx);line-height:1.3">' + ej.n + '</span></div>';
+        html += '<input class="fi" style="font-size:12px;font-family:var(--fm);text-align:center;padding:5px 3px" type="number" min="1" max="20" value="' + (b.series[ei]||3) + '" onchange="R_DIAS[' + di + '].bloques[' + bi + '].series[' + ei + ']=parseInt(this.value)||3">';
         html += '<input class="fi" style="font-size:12px;font-family:var(--fm);text-align:center;padding:5px 3px" value="' + (b.reps[ei]||'10') + '" placeholder="10" onchange="R_DIAS[' + di + '].bloques[' + bi + '].reps[' + ei + ']=this.value">';
-        // Kg ref
-        html += '<input class="fi" style="font-size:12px;font-family:var(--fm);text-align:center;padding:5px 3px" value="' + (b.kgs ? (b.kgs[ei]||'') : '') + '" placeholder="—" onchange="if(!R_DIAS[' + di + '].bloques[' + bi + '].kgs)R_DIAS[' + di + '].bloques[' + bi + '].kgs=[];R_DIAS[' + di + '].bloques[' + bi + '].kgs[' + ei + ']=this.value">';
-        // Descanso
-        html += '<input class="fi" style="font-size:12px;font-family:var(--fm);text-align:center;padding:5px 3px" value="' + (b.descanso[ei]||90) + '" type="number" onchange="R_DIAS[' + di + '].bloques[' + bi + '].descanso[' + ei + ']=parseInt(this.value)||90">';
-        // Delete
+        html += '<input class="fi" style="font-size:12px;font-family:var(--fm);text-align:center;padding:5px 3px" value="' + (b.kgs&&b.kgs[ei]||'') + '" placeholder="—" onchange="if(!R_DIAS[' + di + '].bloques[' + bi + '].kgs)R_DIAS[' + di + '].bloques[' + bi + '].kgs=[];R_DIAS[' + di + '].bloques[' + bi + '].kgs[' + ei + ']=this.value">';
+        html += '<input class="fi" style="font-size:12px;font-family:var(--fm);text-align:center;padding:5px 3px" type="number" value="' + (b.descanso[ei]||90) + '" onchange="R_DIAS[' + di + '].bloques[' + bi + '].descanso[' + ei + ']=parseInt(this.value)||90">';
         html += '<button class="btn btn-red btn-sm" style="padding:4px 6px;min-height:32px" onclick="[\'ejerIds\',\'series\',\'reps\',\'descanso\'].forEach(function(k){R_DIAS[' + di + '].bloques[' + bi + '][k].splice(' + ei + ',1);});renderRDias()">✕</button>';
         html += '</div>';
       });
 
-      // Exercise picker with search
-      html += '<div style="margin-top:9px">';
-      html += '<button class="btn btn-g btn-sm" style="width:100%" onclick="openEjPicker(' + di + ',' + bi + ')">+ Agregar ejercicio...</button>';
-      html += '</div>';
+      html += '<div style="margin-top:9px"><button class="btn btn-g btn-sm" style="width:100%" onclick="openEjPicker(' + di + ',' + bi + ')">+ Agregar ejercicio...</button></div>';
       html += '</div>';
     });
 
-    html += '<button class="btn btn-g btn-sm" style="width:100%;margin-top:8px" onclick="R_DIAS[' + di + '].bloques.push({nombre:\'Bloque \' + (R_DIAS[' + di + '].bloques.length+1) + \' — Accesorio\',ejerIds:[],series:[],reps:[],descanso:[]});renderRDias()">+ Bloque</button>';
+    html += '<button class="btn btn-g btn-sm" style="width:100%;margin-top:8px" onclick="R_DIAS[' + di + '].bloques.push({nombre:\'Bloque \'+(R_DIAS[' + di + '].bloques.length+1)+\' — Accesorio\',ejerIds:[],series:[],reps:[],descanso:[]});renderRDias()">+ Bloque</button>';
     html += '</div>';
   });
+
+  // Set innerHTML FIRST
   container.innerHTML = html;
-  // Rebuild calentamiento sections with DOM (to avoid quote issues)
-  R_DIAS.forEach(function(dia2, di2){
-    if(!dia2.calentamiento) dia2.calentamiento = [];
-    if(!dia2.calCore) dia2.calCore = [];
-    var placeholder = container.querySelector('#cal-wrap-' + di2);
+
+  // NOW build calentamiento sections via DOM (placeholder divs exist now)
+  R_DIAS.forEach(function(dia, di){
+    var placeholder = document.getElementById('cal-wrap-' + di);
     if(!placeholder) return;
-    var calWrap2 = document.createElement('div');
-    var calBuild2 = document.createElement('div');
-    calBuild2.className = 'bloque-build';
-    var calTitle2 = document.createElement('div');
-    calTitle2.style.cssText = 'font-family:var(--fm);font-size:10px;color:var(--s2);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px;padding:5px 0;border-bottom:1px solid var(--bor)';
-    calTitle2.textContent = '🔥 Calentamiento';
-    calWrap2.appendChild(calTitle2);
-    buildCalSection(calWrap2, di2, 'calentamiento', 'Movilidad articular', '🤸');
-    buildCalSection(calWrap2, di2, 'calCore', 'Core / Activación', '⚡');
-    calBuild2.appendChild(calWrap2);
-    placeholder.replaceWith(calBuild2);
+    var wrap = document.createElement('div');
+    wrap.className = 'bloque-build';
+    var title = document.createElement('div');
+    title.style.cssText = 'font-family:var(--fm);font-size:10px;color:var(--s2);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px;padding:5px 0;border-bottom:1px solid var(--bor)';
+    title.textContent = '🔥 Calentamiento';
+    wrap.appendChild(title);
+    buildCalSection(wrap, di, 'calentamiento', 'Movilidad articular', '🤸');
+    buildCalSection(wrap, di, 'calCore', 'Core / Activación', '⚡');
+    placeholder.replaceWith(wrap);
   });
 }
 function saveRut(){
