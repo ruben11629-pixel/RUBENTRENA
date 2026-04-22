@@ -1100,7 +1100,15 @@ function delEjById(id){if(!confirm('¿Eliminar?'))return;DB.set('ejercicios',(DB
 function prevImg(url){const img=document.getElementById('m-ej-prev');if(!img)return;if(url){img.src=url;img.style.display='block';img.onerror=()=>img.style.display='none';}else img.style.display='none';}
 
 // RUTINAS BUILDER
-function openMRut(){set('m-rut-t','Nueva rutina');document.getElementById('m-rut-id').value='';document.getElementById('m-rut-n').value='Plan Semana Actual';R_DIAS=[];addDiaR();document.getElementById('m-rut-del').style.display='none';openM('m-rut');}
+function openMRut(){
+  set('m-rut-t','Nueva rutina');
+  document.getElementById('m-rut-id').value='';
+  document.getElementById('m-rut-n').value='Plan Semana Actual';
+  document.getElementById('m-rut-del').style.display='none';
+  openM('m-rut');
+  R_DIAS=[];
+  addDiaR();
+}
 function editRut(id){
   const r=(DB.get('rutinas')||[]).find(x=>x.id===id);if(!r)return;
   set('m-rut-t','Editar rutina');
@@ -1120,11 +1128,19 @@ function editRut(id){
       if(!b.descanso) b.descanso=[];
     });
   });
-  try{ renderRDias(); }catch(err){ console.warn('renderRDias error:',err); }
   document.getElementById('m-rut-del').style.display='inline-flex';
   openM('m-rut');
+  try{ renderRDias(); }catch(err){ console.warn('renderRDias error:',err); }
 }
-function addDiaR(){R_DIAS.push({label:`Día ${R_DIAS.length+1}`,calentamiento:[''],bloques:[{nombre:'Bloque 1 — Parte Principal',ejerIds:[],series:[],reps:[],descanso:[]}]});renderRDias();}
+function addDiaR(){
+  R_DIAS.push({
+    label:'Día '+(R_DIAS.length+1),
+    calentamiento:[],
+    calCore:[],
+    bloques:[{nombre:'Bloque 1 — Parte Principal',ejerIds:[],series:[],reps:[],descanso:[],kgs:[]}]
+  });
+  try{ renderRDias(); }catch(e){ console.warn('renderRDias:',e); }
+}
 function renderRDias(){
   var ejs = DB.get('ejercicios') || [];
   var container = document.getElementById('m-rut-dias');
