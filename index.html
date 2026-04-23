@@ -866,7 +866,12 @@ function tRutsDetail(id){
     html+=`<div style="font-family:var(--fd);font-size:17px;font-weight:700;letter-spacing:2px;color:var(--si);text-transform:uppercase;margin-bottom:11px">${dia.label}</div>`;
     if(dia.calentamiento?.length){
       html+=`<div style="margin-bottom:11px"><div style="font-family:var(--fm);font-size:9px;color:var(--s2);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:7px">🔥 Calentamiento</div>`;
-      html+=[...(dia.calentamiento||[]),...(dia.calCore||[])].map(function(item){var _r=resolveCalItem(item);var _extra=(_r.series?_r.series+' series ':'')+(_r.reps?_r.reps+' reps ':'')+(_r.tiempo||'');return '<div style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--t2);padding:6px 0;border-bottom:1px solid var(--bor)">' + (_r.fo?'<img src="'+_r.fo+'" style="width:44px;height:44px;border-radius:6px;object-fit:cover;flex-shrink:0" onerror="this.style.display=\'none\'">' :'') + '<span>'+_r.n+(_extra?' <em style="font-size:11px;color:var(--t3)">'+_extra.trim()+'</em>':'')+'</span></div>';}).join('');
+      html+=[...(dia.calentamiento||[]),...(dia.calCore||[])].map(function(item){
+      var _r=resolveCalItem(item);
+      var _extra=(_r.series?_r.series+' series ':'')+(_r.reps?_r.reps+' reps ':'')+(_r.tiempo||'');
+      var _imgTag = _r.fo ? ('<img src="'+_r.fo+'" style="width:44px;height:44px;border-radius:6px;object-fit:cover;flex-shrink:0" onerror="this.style.display=\'none\'">') : '';
+      return '<div style="display:flex;align-items:center;gap:9px;font-size:13px;color:var(--t2);padding:7px 0;border-bottom:1px solid var(--bor)">'+_imgTag+'<div>'+_r.n+(_extra?'<div style="font-size:10px;color:var(--t3);margin-top:2px">'+_extra.trim()+'</div>':'')+'</div></div>';
+    }).join('');
       html+='</div>';
     }
     dia.bloques?.forEach(b=>{
@@ -1362,7 +1367,17 @@ function sDiaC(idx){
   const dia=PLAN?.dias?.[idx];if(!dia)return;
   if(!CCOMP[idx])CCOMP[idx]=new Set();if(!ECOMP[idx])ECOMP[idx]=new Set();
   const ejs=DB.get('ejercicios')||[];const fb=DB.get('feedback')||[];
-  let html=`<div class="sblq" id="sbc-${idx}"><div class="sblq-hdr" onclick="this.parentElement.classList.toggle('collapsed')"><div class="sblq-ico">🔥</div><div class="sblq-t">Calentamiento</div><div class="sblq-m">${dia.calentamiento.length} ítems</div></div><div class="sblq-body">${[...(dia.calentamiento||[]), ...(dia.calCore||[])].map((item,ci)=>`<div class="ci ${CCOMP[idx].has(ci)?'done':''}" id="ci-${idx}-${ci}"><div class="ci-chk ${CCOMP[idx].has(ci)?'done':''}" onclick="sCal(${idx},${ci})"><span class="ci-chk-i">✓</span></div>${(()=>{var _r=resolveCalItem(item);var _extra=(_r.series?_r.series+' series ':'')+(_r.reps?_r.reps+' reps ':'')+(_r.tiempo||'');var _img=_r.fo?'<img src="'+_r.fo+'" style="width:40px;height:40px;border-radius:6px;object-fit:cover;flex-shrink:0;margin-right:9px" onerror="this.style.display=\'none\'">'  :'';return _img+'<div class="ci-txt">'+_r.n+(_extra?'<div style="font-size:10px;color:var(--t3);font-family:var(--fm);margin-top:2px">'+_extra.trim()+'</div>':'')+'</div>';})()}</div>`).join('')}</div></div>`;
+  let html=`<div class="sblq" id="sbc-${idx}"><div class="sblq-hdr" onclick="this.parentElement.classList.toggle('collapsed')"><div class="sblq-ico">🔥</div><div class="sblq-t">Calentamiento</div><div class="sblq-m">${dia.calentamiento.length} ítems</div></div><div class="sblq-body">${[...(dia.calentamiento||[]), ...(dia.calCore||[])].map((item,ci)=>{
+      const _r=resolveCalItem(item);
+      const _extra=(_r.series?_r.series+' series ':'')+(_r.reps?_r.reps+' reps ':'')+(_r.tiempo||'');
+      const _isDone=CCOMP[idx].has(ci);
+      const _safe=_r.n.replace(/['"<>]/g,'');
+      const _fo=_r.fo||'';
+      const _imgBlock=_fo
+        ? `<div onclick="tapImg(this)" data-s="${_fo}" data-n="${_safe}" style="height:150px;overflow:hidden;border-radius:9px;margin-bottom:9px;position:relative;cursor:pointer"><img src="${_fo}" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.style.display='none'"><div style="position:absolute;bottom:7px;right:7px;background:rgba(0,0,0,.6);border-radius:4px;padding:3px 9px;font-size:9px;color:#fff">toca para ampliar</div></div>`
+        : '';
+      return `<div class="ci ${_isDone?'done':''}" id="ci-${idx}-${ci}" style="flex-direction:column;align-items:stretch;padding:10px 0">${_imgBlock}<div style="display:flex;align-items:center;gap:10px"><div class="ci-chk ${_isDone?'done':''}" onclick="sCal(${idx},${ci})"><span class="ci-chk-i">✓</span></div><div class="ci-txt" style="flex:1">${_r.n}${_extra?`<div style="font-size:10px;color:var(--t3);margin-top:2px">${_extra}</div>`:''}</div></div></div>`;
+    }).join('')}</div></div>`;
   dia.bloques.forEach((bloque,bi)=>{
     html+=`<div class="sblq" id="sbb-${idx}-${bi}"><div class="sblq-hdr" onclick="this.parentElement.classList.toggle('collapsed')"><div class="sblq-ico">💪</div><div class="sblq-t">${bloque.nombre}</div><div class="sblq-m">${bloque.ejerIds?.length||0} ej.</div></div><div class="sblq-body">${(bloque.ejerIds||[]).map((ejId,ei)=>{
       const ej=ejs.find(e=>e.id===ejId)||{n:ejId,m:'',fo:'',vi:'',no:''};
@@ -2263,6 +2278,44 @@ function clearEjForm(){
     if(el) el.value = '';
   });
   set('m-ej-t','Nuevo ejercicio');
+}
+
+
+// ═══ IMAGE FULL SCREEN VIEWER ═══
+function showImgFull(srcOrEvt, name){
+  // Can be called with src string or from onclick with data attributes
+  var src = srcOrEvt;
+  var nm = name || '';
+  if(typeof srcOrEvt !== 'string'){
+    // Called from onclick="showImgFull()" - read from event target
+    var el = event.currentTarget || event.target;
+    while(el && !el.getAttribute('data-imgsrc')) el = el.parentElement;
+    if(el){ src = el.getAttribute('data-imgsrc'); nm = el.getAttribute('data-imgname')||''; }
+  }
+  if(!src) return;
+  var ov = document.createElement('div');
+  ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;';
+  ov.addEventListener('click', function(){ ov.remove(); });
+  var img = document.createElement('img');
+  img.src = src;
+  img.style.cssText = 'max-width:100%;max-height:80vh;border-radius:10px;object-fit:contain;';
+  var lbl = document.createElement('div');
+  lbl.style.cssText = 'color:#fff;font-family:var(--fd);font-size:18px;font-weight:700;margin-top:14px;letter-spacing:1px;text-align:center;text-transform:uppercase;';
+  lbl.textContent = name;
+  var close = document.createElement('div');
+  close.style.cssText = 'position:absolute;top:16px;right:20px;color:#fff;font-size:28px;cursor:pointer;line-height:1;';
+  close.textContent = '✕';
+  ov.appendChild(img);
+  ov.appendChild(lbl);
+  ov.appendChild(close);
+  document.body.appendChild(ov);
+}
+
+
+function tapImg(el){
+  var src=el.getAttribute('data-s');
+  var nm=el.getAttribute('data-n');
+  showImgFull(src,nm);
 }
 
 </script>
