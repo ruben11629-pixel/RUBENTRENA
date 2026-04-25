@@ -1389,17 +1389,49 @@ function sDiaC(idx){
       if(ej.vi&&ej.vi.includes('youtu')){try{const vid=ej.vi.includes('youtu.be/')?ej.vi.split('youtu.be/')[1].split('?')[0]:new URL(ej.vi).searchParams.get('v');if(vid)mediaHtml=`<div class="ex-media"><iframe src="https://www.youtube.com/embed/${vid}" allowfullscreen></iframe><div class="ex-badge">${ej.m}</div></div>`;}catch{}}
       else if(ej.fo)mediaHtml=`<div class="ex-media" style="cursor:pointer" onclick="tapImg(this)" data-s="${ej.fo}" data-n="${ej.n}"><img src="${ej.fo}" alt="${ej.n}" onerror="this.style.display='none'"><div class="ex-badge">${ej.m}</div><div style="position:absolute;bottom:7px;right:7px;background:rgba(0,0,0,.6);border-radius:4px;padding:3px 9px;font-size:9px;color:#fff">toca para ampliar</div></div>`;
       let histHtml='';
-      if(myFb.length){const chartData=myFb.slice(0,4).reverse().map(f=>parseFloat(f.entries?.[0]?.kg)||0);const maxV=Math.max(...chartData)||1;histHtml=`<div class="ex-hist"><div class="ex-hist-t"><span>Mis registros</span>${bestKg?`<span class="ex-hist-best">🏆 ${bestKg}kg</span>`:''}</div><div style="display:flex;align-items:flex-end;gap:4px;height:52px">${chartData.map((v,i)=>`<div class="hcol"><div class="hbv">${v||'—'}</div><div class="hbar${i===chartData.length-1?' latest':''}" style="height:${v?Math.round(v/maxV*42)+8:4}px"></div></div>`).join('')}</div></div>`;}
+      if(myFb.length){
+        const chartData=myFb.slice(0,5).reverse().map(f=>parseFloat(f.entries?.[0]?.kg)||0);
+        const maxV=Math.max(...chartData)||1;
+        histHtml=`<div class="ex-hist"><div class="ex-hist-t"><span>Historial</span>${bestKg?`<span class="ex-hist-best">🏆 ${bestKg}kg</span>`:''}</div><div style="display:flex;align-items:flex-end;gap:5px;height:52px">${chartData.map((v,i)=>`<div class="hcol"><div class="hbv">${v||'—'}</div><div class="hbar${i===chartData.length-1?' latest':''}" style="height:${v?Math.round(v/maxV*42)+8:4}px"></div></div>`).join('')}</div></div>`;
+      }
+
+      // Build series rows - bigger inputs, +/- buttons, per-series completion
+      const seriesRows = Array.from({length:series}).map((_,si)=>{
+        const kgKey=`kg-${idx}-${bi}-${ei}-${si}`;
+        const rpKey=`rp-${idx}-${bi}-${ei}-${si}`;
+        const fbKey=`fb-${idx}-${bi}-${ei}-${si}`;
+        const savedKg = si===0 && lastKg ? lastKg : '';
+        return `<div class="serie-row" id="sr-${idx}-${bi}-${ei}-${si}">
+          <div class="serie-num">${si+1}</div>
+          <div class="serie-kg-wrap">
+            <button class="serie-adj" onclick="adjKg('${kgKey}',-2.5)">−</button>
+            <input class="ex-inp serie-kg-inp${savedKg?' prefill':''}" type="number" step="0.5" placeholder="${savedKg||reps||'kg'}" ${savedKg?`value="${savedKg}"`:''}data-k="${kgKey}" onchange="autoSaveSerie(${idx},${bi},${ei},${si},${series},'${ej.n.replace(/'/g,'').replace(/"/g,'')}')">
+            <button class="serie-adj" onclick="adjKg('${kgKey}',2.5)">+</button>
+          </div>
+          <input class="ex-inp serie-rp-inp" placeholder="${reps}" data-k="${rpKey}" onchange="autoSaveSerie(${idx},${bi},${ei},${si},${series},'${ej.n.replace(/'/g,'').replace(/"/g,'')}')">
+          <button class="serie-done-btn ${ECOMP[`${idx}-${bi}-${ei}-${si}`]?'done':''}" onclick="toggleSerie(${idx},${bi},${ei},${si},${series},${desc},'${ej.n.replace(/'/g,'').replace(/"/g,'')}')">
+            ${ECOMP[`${idx}-${bi}-${ei}-${si}`]?'✓':'○'}
+          </button>
+        </div>`;
+      }).join('');
+
       return `<div class="excard ${done?'done-ej':''}" id="ec-${idx}-${bi}-${ei}">
         ${mediaHtml}
         <div class="ex-body">
           <div class="ex-name">${ej.n}</div>
           ${ej.no?`<div class="ex-note">${ej.no}</div>`:''}
           ${histHtml}
-          <table class="ex-tabla"><thead><tr><th style="text-align:left">Ejercicio</th><th>kg</th><th>Reps</th><th>Serie</th><th>Feedback</th></tr></thead>
-          <tbody>${Array.from({length:series}).map((_,si)=>`<tr><td style="font-family:var(--fm);font-size:10px;color:var(--s2)">${si===0?ej.n.substring(0,16)+'...':''}</td><td><input class="ex-inp${si===0&&lastKg?' prefill':''}" type="number" placeholder="${si===0&&lastKg?lastKg:'—'}" ${si===0&&lastKg?`value="${lastKg}"`:''}data-k="kg-${idx}-${bi}-${ei}-${si}"></td><td><input class="ex-inp" placeholder="${reps}" data-k="rp-${idx}-${bi}-${ei}-${si}"></td><td><span style="font-family:var(--fm);font-size:11px;color:var(--s2)">${si+1}</span></td><td><input class="ex-inp fb" placeholder="Sensaciones..." data-k="fb-${idx}-${bi}-${ei}-${si}"></td></tr>`).join('')}
-          </tbody></table>
-          <button class="ex-done-btn ${done?'done':''}" id="edb-${idx}-${bi}-${ei}" onclick="sTogEj(${idx},${bi},${ei},${series},${desc},'${ej.n.replace(/'/g,"\\'")}')">${done?'✓ Completado':'✓ Completar + Timer'}</button>
+          <div class="serie-header">
+            <div class="serie-num" style="color:var(--t3);font-size:9px;text-transform:uppercase;letter-spacing:1px">Serie</div>
+            <div style="flex:1;text-align:center;color:var(--t3);font-size:9px;text-transform:uppercase;letter-spacing:1px">Kg</div>
+            <div style="width:64px;text-align:center;color:var(--t3);font-size:9px;text-transform:uppercase;letter-spacing:1px">Reps</div>
+            <div style="width:44px;text-align:center;color:var(--t3);font-size:9px;text-transform:uppercase;letter-spacing:1px">✓</div>
+          </div>
+          ${seriesRows}
+          <div style="margin-top:8px"><input class="ex-inp fb" placeholder="Sensaciones generales del ejercicio..." data-k="fb-${idx}-${bi}-${ei}-0-gen" style="font-size:12px"></div>
+          <button class="ex-done-btn ${done?'done':''}" id="edb-${idx}-${bi}-${ei}" onclick="sTogEj(${idx},${bi},${ei},${series},${desc},'${ej.n.replace(/'/g,'').replace(/"/g,'')}')">
+            ${done?'✓ Completado':'✓ Marcar completado'}
+          </button>
         </div>
       </div>`;
     }).join('')}</div></div>`;
@@ -2316,6 +2348,116 @@ function tapImg(el){
   var src=el.getAttribute('data-s');
   var nm=el.getAttribute('data-n');
   showImgFull(src,nm);
+}
+
+
+// ═══ AUTO SAVE SERIE ═══
+function autoSaveSerie(di,bi,ei,si){
+  // Auto-save immediately when user enters kg/reps
+  // Also show completion indicator
+  var kg = document.querySelector('[data-k="kg-'+di+'-'+bi+'-'+ei+'-'+si+'"]');
+  var rp = document.querySelector('[data-k="rp-'+di+'-'+bi+'-'+ei+'-'+si+'"]');
+  if(kg && rp && kg.value && rp.value){
+    // Visual feedback - green border
+    kg.style.borderColor = 'var(--gr)';
+    rp.style.borderColor = 'var(--gr)';
+    // Save to local cache
+    var key = 'serie_'+di+'_'+bi+'_'+ei+'_'+si;
+    localStorage.setItem(key, JSON.stringify({kg:kg.value, rp:rp.value}));
+  }
+}
+
+// ═══ CONTADOR DE SERIES COMPLETADAS ═══
+function countSeriesDone(di,bi,ei,series){
+  var done=0;
+  for(var si=0;si<series;si++){
+    var kg=document.querySelector('[data-k="kg-'+di+'-'+bi+'-'+ei+'-'+si+'"]');
+    var rp=document.querySelector('[data-k="rp-'+di+'-'+bi+'-'+ei+'-'+si+'"]');
+    if(kg&&rp&&kg.value&&rp.value) done++;
+  }
+  return done;
+}
+
+
+// ═══ SERIE REGISTRATION ═══
+function adjKg(key, delta){
+  var inp = document.querySelector('[data-k="'+key+'"]');
+  if(!inp) return;
+  var current = parseFloat(inp.value) || 0;
+  var next = Math.max(0, Math.round((current + delta) * 2) / 2);
+  inp.value = next;
+  inp.classList.add('prefill');
+  inp.dispatchEvent(new Event('change'));
+}
+
+function toggleSerie(idx, bi, ei, si, series, desc, ejNombre){
+  var key = idx+'-'+bi+'-'+ei+'-'+si;
+  if(ECOMP[key]){
+    delete ECOMP[key];
+  } else {
+    ECOMP[key] = true;
+    // Auto-copy kg to next series if empty
+    var nextInp = document.querySelector('[data-k="kg-'+idx+'-'+bi+'-'+ei+'-'+(si+1)+'"]');
+    var currInp = document.querySelector('[data-k="kg-'+idx+'-'+bi+'-'+ei+'-'+si+'"]');
+    if(nextInp && currInp && currInp.value && !nextInp.value){
+      nextInp.value = currInp.value;
+      nextInp.classList.add('prefill');
+    }
+    // Auto-copy reps too
+    var nextRp = document.querySelector('[data-k="rp-'+idx+'-'+bi+'-'+ei+'-'+(si+1)+'"]');
+    var currRp = document.querySelector('[data-k="rp-'+idx+'-'+bi+'-'+ei+'-'+si+'"]');
+    if(nextRp && currRp && currRp.value && !nextRp.value){
+      nextRp.value = currRp.value;
+    }
+  }
+  // Update button
+  var btn = document.querySelector('#sr-'+idx+'-'+bi+'-'+ei+'-'+si+' .serie-done-btn');
+  if(btn){
+    btn.className = 'serie-done-btn' + (ECOMP[key]?' done':'');
+    btn.textContent = ECOMP[key] ? '✓' : '○';
+  }
+  // Check if all series done
+  var allDone = true;
+  for(var s=0; s<series; s++){
+    if(!ECOMP[idx+'-'+bi+'-'+ei+'-'+s]) allDone=false;
+  }
+  if(allDone){
+    autoSaveSerie(idx, bi, ei, 0, series, ejNombre);
+    // Start rest timer
+    if(desc>0) startTimer(desc, ejNombre);
+    // Mark exercise done
+    var edb = document.getElementById('edb-'+idx+'-'+bi+'-'+ei);
+    if(edb && !edb.classList.contains('done')){
+      edb.click();
+    }
+  }
+}
+
+function autoSaveSerie(idx, bi, ei, si, series, ejNombre){
+  if(!ALUMNO) return;
+  // Save all series to feedback
+  var entries=[];
+  for(var s=0; s<series; s++){
+    var kg = document.querySelector('[data-k="kg-'+idx+'-'+bi+'-'+ei+'-'+s+'"]')?.value||'—';
+    var rp = document.querySelector('[data-k="rp-'+idx+'-'+bi+'-'+ei+'-'+s+'"]')?.value||'—';
+    var fb = document.querySelector('[data-k="fb-'+idx+'-'+bi+'-'+ei+'-'+s+'-gen"]')?.value||'';
+    entries.push({kg:kg, rp:rp, serie:s+1, fb:fb});
+  }
+  var fbList = DB.get('feedback')||[];
+  // Remove existing entry for this exercise today
+  var today = new Date().toISOString().split('T')[0];
+  fbList = fbList.filter(function(f){
+    return !(f.alumnoId===ALUMNO.id && f.ejercicio===ejNombre && f.fecha===today);
+  });
+  fbList.unshift({
+    alumno:ALUMNO.n, alumnoId:ALUMNO.id,
+    ejercicio:ejNombre, entries:entries,
+    fecha:today, hora:new Date().toLocaleTimeString('es-CL',{hour:'2-digit',minute:'2-digit'})
+  });
+  DB.set('feedback', fbList.slice(0,500));
+  // Save kg for next session prefill
+  var bestKg = entries.reduce(function(mx,e){ return Math.max(mx,parseFloat(e.kg)||0); },0);
+  if(bestKg>0) DB.set('inp_'+ALUMNO.id+'_'+idx+'_'+bi+'_'+ei, bestKg);
 }
 
 </script>
