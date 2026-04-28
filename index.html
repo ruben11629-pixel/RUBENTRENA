@@ -910,6 +910,21 @@ body{font-family:'Plus Jakarta Sans',sans-serif;letter-spacing:-0.01em;}
 <!-- MODAL NUTRICION (en eval) embebido más abajo -->
 <input type="file" id="import-input" accept=".json" style="display:none" onchange="processImport(this)">
 
+
+<!-- EXERCISE PICKER MODAL -->
+<div class="mo" id="m-ej-picker">
+  <div class="md md-w" style="max-height:92vh">
+    <div class="mt">Seleccionar ejercicio</div>
+    <div class="srch" style="margin-bottom:11px">
+      <span style="color:var(--t3)">⌕</span>
+      <input id="picker-search" placeholder="Buscar por nombre, músculo o equipo..." oninput="filterPicker(this.value)" style="background:none;border:none;outline:none;color:var(--tx);font-family:var(--fb);font-size:14px;flex:1">
+    </div>
+    <div class="trow" id="picker-tags" style="margin-bottom:10px"></div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:9px;max-height:52vh;overflow-y:auto" id="picker-grid"></div>
+    <div class="macts"><button class="btn btn-g" onclick="closeM('m-ej-picker')">Cancelar</button></div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -1480,28 +1495,84 @@ function editRut(id){
 }
 function addDiaR(){R_DIAS.push({label:`Día ${R_DIAS.length+1}`,calentamiento:[''],bloques:[{nombre:'Bloque 1 — Parte Principal',ejerIds:[],series:[],reps:[],descanso:[]}]});renderRDias();}
 function renderRDias(){
-  const ejs=DB.get('ejercicios')||[];
-  document.getElementById('m-rut-dias').innerHTML=R_DIAS.map((dia,di)=>`
-    <div class="dia-block">
-      <div class="dia-block-header">
-        <input value="${dia.label}" class="fi" style="width:120px;font-family:var(--fd);font-size:15px;font-weight:700;letter-spacing:1px" onchange="R_DIAS[${di}].label=this.value">
-        <button class="btn btn-red btn-sm" onclick="R_DIAS.splice(${di},1);renderRDias()">✕ Día</button>
-      </div>
-      <div class="bloque-build">
-        <div class="bloque-build-header"><span style="font-family:var(--fm);font-size:10px;color:var(--s2);text-transform:uppercase;letter-spacing:1.5px;flex:1">🔥 Calentamiento</span><button class="btn btn-g btn-sm" onclick="R_DIAS[${di}].calentamiento.push('');renderRDias()">+ Ítem</button></div>
-        ${dia.calentamiento.map((c,ci)=>`<div style="display:flex;gap:7px;margin-bottom:7px"><input class="fi" style="flex:1;font-size:13px" value="${c}" placeholder="Movilidad cadera..." onchange="R_DIAS[${di}].calentamiento[${ci}]=this.value"><button class="btn btn-red btn-sm" onclick="R_DIAS[${di}].calentamiento.splice(${ci},1);renderRDias()">✕</button></div>`).join('')}
-      </div>
-      ${dia.bloques.map((b,bi)=>`
-        <div class="bloque-build">
-          <div class="bloque-build-header">
-            <input value="${b.nombre}" class="fi" style="flex:1;font-size:12px;font-family:var(--fm)" onchange="R_DIAS[${di}].bloques[${bi}].nombre=this.value">
-            <button class="btn btn-red btn-sm" onclick="R_DIAS[${di}].bloques.splice(${bi},1);renderRDias()">✕</button>
-          </div>
-          ${(b.ejerIds||[]).map((ejId,ei)=>{const ej=ejs.find(x=>x.id===ejId)||{n:ejId};return `<div class="ej-row"><span style="flex:1;font-size:13px;color:var(--tx)">${ej.n}</span><input class="fi" style="width:52px;font-size:12px;font-family:var(--fm);text-align:center" value="${b.series[ei]||3}" onchange="R_DIAS[${di}].bloques[${bi}].series[${ei}]=parseInt(this.value)||3" title="Series"><input class="fi" style="width:66px;font-size:12px;font-family:var(--fm);text-align:center" value="${b.reps[ei]||'8'}" onchange="R_DIAS[${di}].bloques[${bi}].reps[${ei}]=this.value" title="Reps"><input class="fi" style="width:52px;font-size:12px;font-family:var(--fm);text-align:center" value="${b.descanso[ei]||90}" onchange="R_DIAS[${di}].bloques[${bi}].descanso[${ei}]=parseInt(this.value)||90" title="Desc(s)"><button class="btn btn-red btn-sm" onclick="['ejerIds','series','reps','descanso'].forEach(k=>R_DIAS[${di}].bloques[${bi}][k].splice(${ei},1));renderRDias()">✕</button></div>`;}).join('')}
-          <select class="fi" style="margin-top:8px;font-size:13px" onchange="if(this.value){R_DIAS[${di}].bloques[${bi}].ejerIds.push(this.value);R_DIAS[${di}].bloques[${bi}].series.push(3);R_DIAS[${di}].bloques[${bi}].reps.push('10');R_DIAS[${di}].bloques[${bi}].descanso.push(90);renderRDias();this.value=''}"><option value="">+ Agregar ejercicio...</option>${ejs.map(e=>`<option value="${e.id}">${e.n} (${e.eq})</option>`).join('')}</select>
-        </div>`).join('')}
-      <button class="btn btn-g btn-sm" style="width:100%;margin-top:7px" onclick="R_DIAS[${di}].bloques.push({nombre:\`Bloque \${R_DIAS[${di}].bloques.length+1} — Accesorio\`,ejerIds:[],series:[],reps:[],descanso:[]});renderRDias()">+ Bloque</button>
-    </div>`).join('');
+  var ejs = DB.get('ejercicios') || [];
+  var container = document.getElementById('m-rut-dias');
+  if(!container) return;
+  // Normalize all days
+  R_DIAS.forEach(function(d){
+    if(!d.calentamiento) d.calentamiento=[];
+    if(!d.calCore) d.calCore=[];
+    if(!d.bloques) d.bloques=[];
+    d.bloques.forEach(function(b){
+      if(!b.ejerIds) b.ejerIds=[];
+      if(!b.series) b.series=[];
+      if(!b.reps) b.reps=[];
+      if(!b.descanso) b.descanso=[];
+      if(!b.kgs) b.kgs=[];
+    });
+  });
+  var html = '';
+  R_DIAS.forEach(function(dia, di){
+    html += '<div class="dia-block" id="dia-block-'+di+'">';
+    html += '<div class="dia-block-header">';
+    html += '<input value="'+(dia.label||'Día '+(di+1)).replace(/"/g,'&quot;')+'" class="fi" style="width:120px;font-family:var(--fd);font-size:15px;font-weight:700;letter-spacing:1px" onchange="R_DIAS['+di+'].label=this.value">';
+    html += '<button class="btn btn-red btn-sm" onclick="R_DIAS.splice('+di+',1);renderRDias()">✕ Día</button>';
+    html += '</div>';
+    // Calentamiento placeholder
+    html += '<div id="cal-placeholder-'+di+'"></div>';
+    // Bloques
+    dia.bloques.forEach(function(b, bi){
+      html += '<div class="bloque-build">';
+      html += '<div class="bloque-build-header">';
+      html += '<input value="'+(b.nombre||'Bloque').replace(/"/g,'&quot;')+'" class="fi" style="flex:1;font-size:12px;font-family:var(--fm)" onchange="R_DIAS['+di+'].bloques['+bi+'].nombre=this.value">';
+      html += '<button class="btn btn-red btn-sm" onclick="R_DIAS['+di+'].bloques.splice('+bi+',1);renderRDias()">✕</button>';
+      html += '</div>';
+      if((b.ejerIds||[]).length>0){
+        html += '<div style="display:grid;grid-template-columns:1fr 54px 64px 64px 54px 36px;gap:5px;padding:4px 0;border-bottom:1px solid var(--bor);margin-bottom:4px">';
+        html += '<div style="font-family:var(--fm);font-size:8px;color:var(--t3);text-transform:uppercase">Ejercicio</div>';
+        html += '<div style="font-family:var(--fm);font-size:8px;color:var(--t3);text-transform:uppercase;text-align:center">Series</div>';
+        html += '<div style="font-family:var(--fm);font-size:8px;color:var(--t3);text-transform:uppercase;text-align:center">Reps</div>';
+        html += '<div style="font-family:var(--fm);font-size:8px;color:var(--t3);text-transform:uppercase;text-align:center">Kg ref</div>';
+        html += '<div style="font-family:var(--fm);font-size:8px;color:var(--t3);text-transform:uppercase;text-align:center">Desc(s)</div>';
+        html += '<div></div></div>';
+      }
+      (b.ejerIds||[]).forEach(function(ejId, ei){
+        var ej = ejs.find(function(x){return x.id===ejId;})||{n:ejId,fo:'',m:''};
+        html += '<div style="display:grid;grid-template-columns:1fr 54px 64px 64px 54px 36px;gap:5px;align-items:center;padding:6px 0;border-bottom:1px solid var(--bor)">';
+        html += '<div style="display:flex;align-items:center;gap:7px">';
+        html += ej.fo
+          ? '<img src="'+ej.fo+'" style="width:36px;height:36px;border-radius:5px;object-fit:cover;flex-shrink:0" onerror="this.style.display=\'none\'">'
+          : '<div style="width:36px;height:36px;border-radius:5px;background:var(--bg3);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px">'+ejIco(ej.m)+'</div>';
+        html += '<span style="font-size:12px;color:var(--tx);line-height:1.3">'+ej.n+'</span></div>';
+        html += '<input class="fi" style="font-size:12px;font-family:var(--fm);text-align:center;padding:5px 3px" type="number" min="1" max="20" value="'+(b.series[ei]||3)+'" onchange="R_DIAS['+di+'].bloques['+bi+'].series['+ei+']=parseInt(this.value)||3">';
+        html += '<input class="fi" style="font-size:12px;font-family:var(--fm);text-align:center;padding:5px 3px" value="'+(b.reps[ei]||'10')+'" placeholder="10" onchange="R_DIAS['+di+'].bloques['+bi+'].reps['+ei+']=this.value">';
+        html += '<input class="fi" style="font-size:12px;font-family:var(--fm);text-align:center;padding:5px 3px" value="'+(b.kgs&&b.kgs[ei]||'')+'" placeholder="—" onchange="if(!R_DIAS['+di+'].bloques['+bi+'].kgs)R_DIAS['+di+'].bloques['+bi+'].kgs=[];R_DIAS['+di+'].bloques['+bi+'].kgs['+ei+']=this.value">';
+        html += '<input class="fi" style="font-size:12px;font-family:var(--fm);text-align:center;padding:5px 3px" type="number" value="'+(b.descanso[ei]||90)+'" onchange="R_DIAS['+di+'].bloques['+bi+'].descanso['+ei+']=parseInt(this.value)||90">';
+        html += '<button class="btn btn-red btn-sm" style="padding:4px 6px;min-height:32px" onclick="[\'ejerIds\',\'series\',\'reps\',\'descanso\'].forEach(function(k){R_DIAS['+di+'].bloques['+bi+'][k].splice('+ei+',1);});renderRDias()">✕</button>';
+        html += '</div>';
+      });
+      html += '<div style="margin-top:9px"><button class="btn btn-g btn-sm" style="width:100%" onclick="openEjPicker('+di+','+bi+')">+ Agregar ejercicio...</button></div>';
+      html += '</div>';
+    });
+    html += '<button class="btn btn-g btn-sm" style="width:100%;margin-top:8px" onclick="R_DIAS['+di+'].bloques.push({nombre:\'Bloque \'+(R_DIAS['+di+'].bloques.length+1)+\' — Accesorio\',ejerIds:[],series:[],reps:[],descanso:[],kgs:[]});renderRDias()">+ Bloque</button>';
+    html += '</div>';
+  });
+  // Set HTML first
+  container.innerHTML = html;
+  // Then inject calentamiento via DOM
+  R_DIAS.forEach(function(dia, di){
+    var ph = document.getElementById('cal-placeholder-'+di);
+    if(!ph) return;
+    var calDiv = document.createElement('div');
+    calDiv.className = 'bloque-build';
+    var calTitle = document.createElement('div');
+    calTitle.style.cssText = 'font-family:var(--fm);font-size:10px;color:var(--s2);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px;padding:5px 0;border-bottom:1px solid var(--bor)';
+    calTitle.textContent = '🔥 Calentamiento';
+    calDiv.appendChild(calTitle);
+    buildCalSection(calDiv, di, 'calentamiento', 'Movilidad articular', '🤸', dia.calentamiento||[]);
+    buildCalSection(calDiv, di, 'calCore', 'Core / Activación', '⚡', dia.calCore||[]);
+    ph.replaceWith(calDiv);
+  });
 }
 function saveRut(){
   const id=document.getElementById('m-rut-id').value||('r'+Date.now());
@@ -1947,6 +2018,273 @@ function buildProgressCharts(byEj){
     html+='</div></div>';
     return html;
   }).join('');
+}
+
+
+// ═══ RESOLVE CAL ITEM ═══
+function resolveCalItem(item){
+  var ejs = DB.get('ejercicios') || [];
+  if(typeof item === 'string'){
+    var ej = ejs.find(function(e){ return e.id === item; });
+    if(ej) return {n:ej.n, fo:ej.fo||'', m:ej.m||'', series:'', reps:'', tiempo:''};
+    return {n:item, fo:'', m:'', series:'', reps:'', tiempo:''};
+  }
+  if(item && item.ref){
+    var ej2 = ejs.find(function(e){ return e.id === item.ref; });
+    return {n:ej2?ej2.n:item.ref, fo:ej2?ej2.fo||'':'', m:ej2?ej2.m||'':'', series:item.series||'', reps:item.reps||'', tiempo:item.tiempo||''};
+  }
+  if(item && item.txt !== undefined){
+    return {n:item.txt||'', fo:'', m:'', series:item.series||'', reps:item.reps||'', tiempo:item.tiempo||''};
+  }
+  return {n:String(item||''), fo:'', m:'', series:'', reps:'', tiempo:''};
+}
+
+// ═══ BUILD CAL SECTION (DOM-based, no quote issues) ═══
+function buildCalSection(container, di, sectionKey, sectionLabel, sectionIcon, items){
+  var wrap = document.createElement('div');
+  wrap.style.cssText = 'background:var(--bg2);border:1px solid var(--bor);border-radius:10px;padding:11px;margin-bottom:9px';
+
+  var hdr = document.createElement('div');
+  hdr.style.cssText = 'font-family:var(--fm);font-size:10px;color:var(--si);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:9px;display:flex;align-items:center;gap:6px';
+  hdr.textContent = sectionIcon + ' ' + sectionLabel;
+  wrap.appendChild(hdr);
+
+  (items||[]).forEach(function(item, ci){
+    var r = resolveCalItem(item);
+    var row = document.createElement('div');
+    row.style.cssText = 'background:var(--bg3);border:1px solid var(--bor);border-radius:8px;padding:9px;margin-bottom:7px';
+
+    // Top row: image + name/input + delete
+    var top = document.createElement('div');
+    top.style.cssText = 'display:flex;align-items:center;gap:8px;margin-bottom:7px';
+
+    if(r.fo){
+      var img = document.createElement('img');
+      img.src = r.fo;
+      img.style.cssText = 'width:40px;height:40px;border-radius:6px;object-fit:cover;flex-shrink:0;cursor:pointer';
+      img.onerror = function(){ this.style.display='none'; };
+      img.setAttribute('data-s', r.fo);
+      img.setAttribute('data-n', r.n.replace(/['"<>]/g,''));
+      img.addEventListener('click', function(){ tapImg(this); });
+      top.appendChild(img);
+    } else if(item && item.ref){
+      var ico = document.createElement('div');
+      ico.style.cssText = 'width:40px;height:40px;border-radius:6px;background:var(--bg2);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px';
+      ico.textContent = ejIco(r.m);
+      top.appendChild(ico);
+    }
+
+    if(item && item.txt !== undefined){
+      var inp = document.createElement('input');
+      inp.className = 'fi';
+      inp.style.cssText = 'flex:1;font-size:13px;padding:7px 10px';
+      inp.value = r.n;
+      inp.placeholder = 'Ej: Movilidad cadera...';
+      (function(dii,sk,cii){ inp.addEventListener('change', function(){
+        if(!R_DIAS[dii][sk]) R_DIAS[dii][sk]=[];
+        var it = R_DIAS[dii][sk][cii];
+        if(it && typeof it==='object') it.txt = this.value;
+      }); })(di, sectionKey, ci);
+      top.appendChild(inp);
+    } else {
+      var nm = document.createElement('span');
+      nm.style.cssText = 'flex:1;font-size:13px;color:var(--tx);font-weight:500';
+      nm.textContent = r.n;
+      top.appendChild(nm);
+    }
+
+    var del = document.createElement('button');
+    del.className = 'btn btn-red btn-sm';
+    del.style.cssText = 'padding:4px 8px;min-height:30px;flex-shrink:0';
+    del.textContent = '✕';
+    (function(dii,sk,cii){ del.addEventListener('click', function(){
+      if(R_DIAS[dii][sk]) R_DIAS[dii][sk].splice(cii,1);
+      renderRDias();
+    }); })(di, sectionKey, ci);
+    top.appendChild(del);
+    row.appendChild(top);
+
+    // Series / Reps / Tiempo
+    var grid = document.createElement('div');
+    grid.style.cssText = 'display:grid;grid-template-columns:repeat(3,1fr);gap:6px';
+    [['series','Series','2'],['reps','Reps','10'],['tiempo','Tiempo','30seg']].forEach(function(f){
+      var cell = document.createElement('div');
+      var lbl = document.createElement('div');
+      lbl.style.cssText = 'font-family:var(--fm);font-size:8px;color:var(--t3);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px';
+      lbl.textContent = f[1];
+      var finp = document.createElement('input');
+      finp.className = 'fi';
+      finp.style.cssText = 'font-size:13px;text-align:center;padding:6px 4px';
+      finp.placeholder = f[2];
+      finp.value = r[f[0]] || '';
+      if(f[0]==='series') finp.type='number';
+      (function(dii,sk,cii,field){ finp.addEventListener('change', function(){
+        if(!R_DIAS[dii][sk]) return;
+        var it = R_DIAS[dii][sk][cii];
+        if(it && typeof it==='object') it[field] = this.value;
+      }); })(di, sectionKey, ci, f[0]);
+      cell.appendChild(lbl);
+      cell.appendChild(finp);
+      grid.appendChild(cell);
+    });
+    row.appendChild(grid);
+    wrap.appendChild(row);
+  });
+
+  // Add buttons
+  var btns = document.createElement('div');
+  btns.style.cssText = 'display:flex;gap:7px;margin-top:8px';
+
+  var btnTxt = document.createElement('button');
+  btnTxt.className = 'btn btn-g btn-sm';
+  btnTxt.style.flex = '1';
+  btnTxt.textContent = '+ Texto libre';
+  (function(dii,sk){ btnTxt.addEventListener('click', function(){
+    if(!R_DIAS[dii][sk]) R_DIAS[dii][sk]=[];
+    R_DIAS[dii][sk].push({txt:'',series:'',reps:'',tiempo:''});
+    renderRDias();
+  }); })(di, sectionKey);
+
+  var btnLib = document.createElement('button');
+  btnLib.className = 'btn btn-g btn-sm';
+  btnLib.style.flex = '1';
+  btnLib.textContent = '+ De biblioteca';
+  (function(dii,sk){ btnLib.addEventListener('click', function(){
+    openEjPicker(dii, sk);
+  }); })(di, sectionKey);
+
+  btns.appendChild(btnTxt);
+  btns.appendChild(btnLib);
+  wrap.appendChild(btns);
+  container.appendChild(wrap);
+}
+
+// ═══ EXERCISE PICKER ═══
+var PICKER_DI = 0, PICKER_BI = 0;
+var PICKER_EQ_FILTER = 'all';
+
+function openEjPicker(di, bi){
+  PICKER_DI = di;
+  PICKER_BI = bi;
+  PICKER_EQ_FILTER = 'all';
+  var s = document.getElementById('picker-search');
+  if(s) s.value = '';
+  renderPickerTags();
+  renderPickerGrid('');
+  openM('m-ej-picker');
+}
+
+function renderPickerTags(){
+  var ejs = DB.get('ejercicios') || [];
+  var eqs = Array.from(new Set(ejs.map(function(e){ return e.eq; }).filter(Boolean)));
+  var el = document.getElementById('picker-tags');
+  if(!el) return;
+  el.innerHTML = '';
+  ['all'].concat(eqs).forEach(function(eq){
+    var d = document.createElement('div');
+    d.className = 'ttag' + (PICKER_EQ_FILTER===eq?' active':'');
+    d.textContent = eq==='all'?'Todos':eq;
+    d.addEventListener('click', function(){
+      PICKER_EQ_FILTER = eq;
+      renderPickerTags();
+      var s = document.getElementById('picker-search');
+      renderPickerGrid(s?s.value:'');
+    });
+    el.appendChild(d);
+  });
+}
+
+function filterPicker(q){ renderPickerGrid(q); }
+
+function renderPickerGrid(q){
+  var ejs = DB.get('ejercicios') || [];
+  var filtered = ejs;
+  if(PICKER_EQ_FILTER!=='all') filtered = filtered.filter(function(e){ return e.eq===PICKER_EQ_FILTER; });
+  if(q) filtered = filtered.filter(function(e){ return (e.n+' '+e.m+' '+e.eq).toLowerCase().includes(q.toLowerCase()); });
+  var el = document.getElementById('picker-grid');
+  if(!el) return;
+  el.innerHTML = '';
+  if(!filtered.length){
+    el.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--t3);font-size:13px;padding:20px">Sin resultados</div>';
+    return;
+  }
+  filtered.forEach(function(e){
+    var card = document.createElement('div');
+    card.style.cssText = 'background:var(--bg3);border:1px solid var(--bor);border-radius:10px;overflow:hidden;cursor:pointer;transition:all .15s';
+    card.addEventListener('click', function(){ selectEj(e.id); });
+    var media = document.createElement('div');
+    media.style.cssText = 'height:90px;overflow:hidden;background:var(--bg2)';
+    if(e.fo){
+      var img = document.createElement('img');
+      img.src = e.fo;
+      img.style.cssText = 'width:100%;height:100%;object-fit:cover';
+      img.onerror = function(){ this.style.display='none'; };
+      media.appendChild(img);
+    } else {
+      var ph = document.createElement('div');
+      ph.style.cssText = 'width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:30px;color:var(--t3)';
+      ph.textContent = ejIco(e.m);
+      media.appendChild(ph);
+    }
+    card.appendChild(media);
+    var body = document.createElement('div');
+    body.style.cssText = 'padding:7px 9px';
+    var nm = document.createElement('div');
+    nm.style.cssText = 'font-size:12px;font-weight:600;color:var(--tx);line-height:1.3;margin-bottom:3px';
+    nm.textContent = e.n;
+    var eq = document.createElement('span');
+    eq.style.cssText = 'font-size:9px;color:var(--s3);font-family:var(--fm)';
+    eq.textContent = e.eq||'';
+    body.appendChild(nm);
+    body.appendChild(eq);
+    card.appendChild(body);
+    el.appendChild(card);
+  });
+}
+
+function selectEj(ejId){
+  if(typeof PICKER_BI==='string'){
+    if(!R_DIAS[PICKER_DI][PICKER_BI]) R_DIAS[PICKER_DI][PICKER_BI]=[];
+    R_DIAS[PICKER_DI][PICKER_BI].push({ref:ejId,series:'',reps:'',tiempo:''});
+  } else if(PICKER_BI===-1){
+    if(!R_DIAS[PICKER_DI].calentamiento) R_DIAS[PICKER_DI].calentamiento=[];
+    R_DIAS[PICKER_DI].calentamiento.push({ref:ejId,series:'',reps:'',tiempo:''});
+  } else {
+    if(!R_DIAS[PICKER_DI].bloques[PICKER_BI].ejerIds) R_DIAS[PICKER_DI].bloques[PICKER_BI].ejerIds=[];
+    R_DIAS[PICKER_DI].bloques[PICKER_BI].ejerIds.push(ejId);
+    R_DIAS[PICKER_DI].bloques[PICKER_BI].series.push(3);
+    R_DIAS[PICKER_DI].bloques[PICKER_BI].reps.push('10');
+    R_DIAS[PICKER_DI].bloques[PICKER_BI].descanso.push(90);
+  }
+  closeM('m-ej-picker');
+  renderRDias();
+}
+
+// ═══ TAP IMAGE FULLSCREEN ═══
+function tapImg(el){
+  var src = el.getAttribute('data-s') || el.src || '';
+  var nm = el.getAttribute('data-n') || '';
+  if(!src) return;
+  showImgFull(src, nm);
+}
+
+function showImgFull(src, name){
+  var ov = document.createElement('div');
+  ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.93);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;';
+  ov.addEventListener('click', function(){ ov.remove(); });
+  var img = document.createElement('img');
+  img.src = src;
+  img.style.cssText = 'max-width:100%;max-height:80vh;border-radius:12px;object-fit:contain;';
+  var lbl = document.createElement('div');
+  lbl.style.cssText = 'color:#fff;font-family:var(--fd);font-size:20px;font-weight:700;margin-top:14px;text-align:center;text-transform:uppercase;letter-spacing:1px;';
+  lbl.textContent = name||'';
+  var cls = document.createElement('div');
+  cls.style.cssText = 'position:absolute;top:16px;right:20px;color:#fff;font-size:30px;cursor:pointer;line-height:1;';
+  cls.textContent = '✕';
+  ov.appendChild(img);
+  ov.appendChild(lbl);
+  ov.appendChild(cls);
+  document.body.appendChild(ov);
 }
 
 </script>
