@@ -323,7 +323,7 @@ select.fi{appearance:none;cursor:pointer;}
 .ci.done .ci-txt{color:var(--t3);text-decoration:line-through;}
 .excard{background:var(--bg3);border:1px solid var(--bor);border-radius:11px;overflow:hidden;margin-bottom:10px;}
 .excard.done-ej{border-color:var(--g2);}
-.ex-media{height:170px;overflow:hidden;background:var(--bg2);position:relative;}
+.ex-media{height:170px;overflow:hidden;background:var(--bg2);position:relative;;cursor:pointer;}
 .ex-media img{width:100%;height:100%;object-fit:cover;}
 .ex-media iframe{width:100%;height:100%;border:none;}
 .ex-media-ph{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:44px;color:var(--t3);}
@@ -537,6 +537,10 @@ body{font-family:'Plus Jakarta Sans',sans-serif;letter-spacing:-0.01em;}
 .bloque-build-header{margin-bottom:10px;}
 .dia-block{background:var(--bg2);border:1px solid var(--bor);border-radius:16px;padding:15px;margin-bottom:12px;box-shadow:0 2px 12px var(--sh);}
 .dia-block-header{display:flex;align-items:center;gap:10px;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--bor);}
+
+
+.ex-media::after{content:'toca para ampliar';position:absolute;bottom:7px;right:7px;background:rgba(0,0,0,.55);border-radius:4px;padding:3px 9px;font-size:9px;color:#fff;pointer-events:none;opacity:0;transition:opacity .2s;}
+.ex-media:hover::after{opacity:1;}
 
 </style>
 </head>
@@ -1005,6 +1009,17 @@ let SEL_RUT_ID=null;
 
 // INIT
 seed();
+
+// Delegated tap for exercise images
+document.addEventListener('click', function(e){
+  var el = e.target.closest('.ex-media');
+  if(!el) return;
+  var img = el.querySelector('img');
+  if(!img) return;
+  var nm = el.closest('.excard')?.querySelector('.ex-name')?.textContent || '';
+  showImgFull(img.src, nm);
+});
+
 const _savedTheme=localStorage.getItem('rt6_theme')||'dark';document.documentElement.setAttribute('data-theme',_savedTheme);['ti-mode','ti-t','ti-s'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=_savedTheme==='dark'?'🌙':'☀️';});
 document.getElementById('tb-date').textContent='// '+new Date().toLocaleDateString('es-CL',{weekday:'long',day:'numeric',month:'long'});
 
@@ -1683,7 +1698,7 @@ function sHoy(){
   const dia0=PLAN?.dias?.[0];
   const ejs=DB.get('ejercicios')||[];
   set('s-hoy-prev',dia0?`
-    <div class="sblq" style="cursor:pointer" onclick="sGo('plan')"><div class="sblq-hdr"><div class="sblq-ico">🔥</div><div class="sblq-t">Calentamiento</div><div class="sblq-m">${dia0.calentamiento.length} ítems</div></div><div class="sblq-body">${dia0.calentamiento.slice(0,2).map(c=>`<div style="font-size:12px;color:var(--t2);padding:6px 0;border-bottom:1px solid var(--bor)">${c}</div>`).join('')}<div style="font-size:11px;color:var(--t3);font-family:var(--fm);margin-top:5px">Ver plan completo →</div></div></div>
+    <div class="sblq" style="cursor:pointer" onclick="sGo('plan')"><div class="sblq-hdr"><div class="sblq-ico">🔥</div><div class="sblq-t">Calentamiento</div><div class="sblq-m">${((dia0.calentamiento||[]).length+(dia0.calCore||[]).length)} ítems</div></div><div class="sblq-body">${[...(dia0.calentamiento||[]),...(dia0.calCore||[])].slice(0,2).map(function(it){var r=resolveCalItem(it);return '<div style="font-size:12px;color:var(--t2);padding:6px 0;border-bottom:1px solid var(--bor)">'+r.n+'</div>';}).join('')}<div style="font-size:11px;color:var(--t3);font-family:var(--fm);margin-top:5px">Ver plan completo →</div></div></div>
     ${(dia0.bloques?.[0]?.ejerIds||[]).slice(0,2).map(ejId=>{const ej=ejs.find(e=>e.id===ejId)||{n:ejId,m:'',fo:''};return `<div class="excard" style="cursor:pointer" onclick="sGo('plan')">${ej.fo?`<div class="ex-media" style="height:100px"><img src="${ej.fo}" onerror="this.style.display='none'"><div class="ex-badge">${ej.m}</div></div>`:''}<div class="ex-body" style="padding:10px 13px"><div class="ex-name" style="font-size:17px">${ej.n}</div></div></div>`;}).join('')}
     <div style="text-align:center;padding:7px 0;font-family:var(--fm);font-size:11px;color:var(--t3);cursor:pointer" onclick="sGo('plan')">Ver ${dia0.bloques?.reduce((s,b)=>s+(b.ejerIds?.length||0),0)||0} ejercicios completos →</div>`:'<p style="color:var(--t3);font-size:13px;text-align:center;padding:20px">Rubén aún no asignó tu plan.</p>');
 }
@@ -1699,7 +1714,7 @@ function sDiaC(idx){
   const dia=PLAN?.dias?.[idx];if(!dia)return;
   if(!CCOMP[idx])CCOMP[idx]=new Set();if(!ECOMP[idx])ECOMP[idx]=new Set();
   const ejs=DB.get('ejercicios')||[];const fb=DB.get('feedback')||[];
-  let html=`<div class="sblq" id="sbc-${idx}"><div class="sblq-hdr" onclick="this.parentElement.classList.toggle('collapsed')"><div class="sblq-ico">🔥</div><div class="sblq-t">Calentamiento</div><div class="sblq-m">${dia.calentamiento.length} ítems</div></div><div class="sblq-body">${dia.calentamiento.map((item,ci)=>{
+  let html=`<div class="sblq" id="sbc-${idx}"><div class="sblq-hdr" onclick="this.parentElement.classList.toggle('collapsed')"><div class="sblq-ico">🔥</div><div class="sblq-t">Calentamiento</div><div class="sblq-m">${((dia.calentamiento||[]).length+(dia.calCore||[]).length)} ítems</div></div><div class="sblq-body">${[...(dia.calentamiento||[]),...(dia.calCore||[])].map((item,ci)=>{
     const _r=resolveCalItem(item);
     const _extra=(_r.series?_r.series+' series ':'')+(_r.reps?_r.reps+' reps ':'')+(_r.tiempo||'');
     const _isDone=CCOMP[idx].has(ci);
@@ -1708,7 +1723,7 @@ function sDiaC(idx){
     const _imgBlock=_fo
       ? `<div data-s="${_fo}" data-n="${_safe}" onclick="tapImg(this)" style="height:150px;overflow:hidden;border-radius:9px;margin-bottom:9px;position:relative;cursor:pointer"><img src="${_fo}" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.style.display='none'"><div style="position:absolute;bottom:7px;right:7px;background:rgba(0,0,0,.6);border-radius:4px;padding:3px 9px;font-size:9px;color:#fff">toca para ampliar</div></div>`
       : '';
-    return `<div class="ci ${_isDone?'done':''}" id="ci-${idx}-${ci}" style="flex-direction:column;align-items:stretch;padding:10px 0">${_imgBlock}<div style="display:flex;align-items:center;gap:10px"><div class="ci-chk ${_isDone?'done':''}" onclick="sCal(${idx},${ci})"><span class="ci-chk-i">✓</span></div><div class="ci-txt" style="flex:1">${_r.n}${_extra?`<div style="font-size:10px;color:var(--t3);margin-top:2px">${_extra}</div>`:''}</div></div></div>`;
+    return `<div class="ci ${_isDone?'done':''}" id="ci-${idx}-${ci}" style="flex-direction:column;align-items:stretch;padding:10px 0">${_imgBlock}<div style="display:flex;align-items:center;gap:10px"><div class="ci-chk ${_isDone?'done':''}" onclick="sCal(${idx},${ci})"><span class="ci-chk-i">✓</span></div><div class="ci-txt" style="flex:1">${_r.n}${_extra?`<div style="font-size:13px;color:var(--t2);margin-top:4px;font-family:var(--fm)">${_extra}</div>`:''}</div></div></div>`;
   }).join('')}</div></div>`;
   dia.bloques.forEach((bloque,bi)=>{
     html+=`<div class="sblq" id="sbb-${idx}-${bi}"><div class="sblq-hdr" onclick="this.parentElement.classList.toggle('collapsed')"><div class="sblq-ico">💪</div><div class="sblq-t">${bloque.nombre}</div><div class="sblq-m">${bloque.ejerIds?.length||0} ej.</div></div><div class="sblq-body">${(bloque.ejerIds||[]).map((ejId,ei)=>{
