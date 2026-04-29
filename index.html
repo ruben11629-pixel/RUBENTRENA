@@ -585,7 +585,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;letter-spacing:-0.01em;}
     <div class="t-topbar-date" id="tb-date">—</div>
     <div class="t-topbar-actions">
       <div class="theme-toggle" onclick="toggleTheme()" title="Cambiar tema"><span class="theme-icon" id="ti-t">🌙</span></div>
-      <button class="btn btn-g btn-sm" onclick="importData()">⬆ Importar</button>
+      <button class="btn btn-g btn-sm" onclick="launchMode()" title="Volver al inicio" style="min-width:44px">⇄</button><button class="btn btn-g btn-sm" onclick="importData()">⬆ Importar</button>
       <button class="btn btn-g btn-sm" onclick="exportData()">⬇ Backup</button>
       <button class="btn btn-p btn-sm" onclick="openM('m-ses')">+ Sesión</button>
     </div>
@@ -861,6 +861,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;letter-spacing:-0.01em;}
     </div>
   </div>
   <div class="s-bnav">
+    <div class="s-tab" onclick="sLogout()" style="flex:0.7"><div class="s-tab-icon" style="font-size:17px">↩</div><div class="s-tab-lbl">Salir</div></div>
     <div class="s-tab active" id="ntab-hoy" onclick="sGo('hoy')"><div class="s-tab-icon">⚡</div><div class="s-tab-lbl">Hoy</div></div>
     <div class="s-tab" id="ntab-plan" onclick="sGo('plan')"><div class="s-tab-icon">💪</div><div class="s-tab-lbl">Mi plan</div></div>
     <div class="s-tab" id="ntab-prog" onclick="sGo('prog')"><div class="s-tab-icon">📈</div><div class="s-tab-lbl">Progreso</div></div>
@@ -1074,13 +1075,18 @@ function tRutsDetail(id){
   const al=als.find(a=>a.id===r.alId)||{n:'Sin asignar'};
   set('rut-detail-title',r.nombre);
   set('rut-detail-sub',`${al.n} · ${r.dias?.length||0} días`);
-  let html=`<div style="display:flex;gap:9px;margin-bottom:16px"><button class="btn btn-g btn-sm" onclick="editRut('${r.id}')">✎ Editar</button><button class="btn btn-pdf btn-sm" onclick="printRutinaId('${r.id}')">🖨 PDF</button></div>`;
+  let html=`<div style="display:flex;gap:9px;margin-bottom:16px"><button class="btn btn-g btn-sm" onclick="editRut('${r.id}')">✎ Editar</button><button class="btn btn-g btn-sm" onclick="dupeRut('${r.id}')" style="margin-left:6px">⧉ Duplicar</button><button class="btn btn-pdf btn-sm" onclick="printRutinaId('${r.id}')">🖨 PDF</button></div>`;
   r.dias?.forEach(dia=>{
     html+=`<div style="background:var(--bg3);border:1px solid var(--bor);border-radius:9px;padding:14px;margin-bottom:11px">`;
     html+=`<div style="font-family:var(--fd);font-size:17px;font-weight:700;letter-spacing:2px;color:var(--si);text-transform:uppercase;margin-bottom:11px">${dia.label}</div>`;
     if(dia.calentamiento?.length){
       html+=`<div style="margin-bottom:11px"><div style="font-family:var(--fm);font-size:9px;color:var(--s2);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:7px">🔥 Calentamiento</div>`;
-      html+=dia.calentamiento.map(c=>`<div style="font-size:13px;color:var(--t2);padding:5px 0;border-bottom:1px solid var(--bor)">${c}</div>`).join('');
+      html+=[...(dia.calentamiento||[]),...(dia.calCore||[])].map(function(item){
+      var _r=resolveCalItem(item);
+      var _extra=(_r.series?_r.series+' series ':'')+(_r.reps?_r.reps+' reps ':'')+(_r.tiempo||'');
+      var _img=_r.fo?('<img src="'+_r.fo+'" style="width:44px;height:44px;border-radius:6px;object-fit:cover;flex-shrink:0;margin-right:8px" onerror="this.style.display=\'none\'">') :'';
+      return '<div style="display:flex;align-items:center;gap:0;font-size:13px;color:var(--t2);padding:7px 0;border-bottom:1px solid var(--bor)">'+_img+'<div>'+_r.n+(_extra?'<div style="font-size:10px;color:var(--t3);margin-top:2px">'+_extra+'</div>':'')+'</div></div>';
+    }).join('');
       html+='</div>';
     }
     dia.bloques?.forEach(b=>{
@@ -1693,7 +1699,17 @@ function sDiaC(idx){
   const dia=PLAN?.dias?.[idx];if(!dia)return;
   if(!CCOMP[idx])CCOMP[idx]=new Set();if(!ECOMP[idx])ECOMP[idx]=new Set();
   const ejs=DB.get('ejercicios')||[];const fb=DB.get('feedback')||[];
-  let html=`<div class="sblq" id="sbc-${idx}"><div class="sblq-hdr" onclick="this.parentElement.classList.toggle('collapsed')"><div class="sblq-ico">🔥</div><div class="sblq-t">Calentamiento</div><div class="sblq-m">${dia.calentamiento.length} ítems</div></div><div class="sblq-body">${dia.calentamiento.map((c,ci)=>`<div class="ci ${CCOMP[idx].has(ci)?'done':''}" id="ci-${idx}-${ci}"><div class="ci-chk ${CCOMP[idx].has(ci)?'done':''}" onclick="sCal(${idx},${ci})"><span class="ci-chk-i">✓</span></div><div class="ci-txt">${c}</div></div>`).join('')}</div></div>`;
+  let html=`<div class="sblq" id="sbc-${idx}"><div class="sblq-hdr" onclick="this.parentElement.classList.toggle('collapsed')"><div class="sblq-ico">🔥</div><div class="sblq-t">Calentamiento</div><div class="sblq-m">${dia.calentamiento.length} ítems</div></div><div class="sblq-body">${dia.calentamiento.map((item,ci)=>{
+    const _r=resolveCalItem(item);
+    const _extra=(_r.series?_r.series+' series ':'')+(_r.reps?_r.reps+' reps ':'')+(_r.tiempo||'');
+    const _isDone=CCOMP[idx].has(ci);
+    const _fo=_r.fo||'';
+    const _safe=_r.n.replace(/['"<>]/g,'');
+    const _imgBlock=_fo
+      ? `<div data-s="${_fo}" data-n="${_safe}" onclick="tapImg(this)" style="height:150px;overflow:hidden;border-radius:9px;margin-bottom:9px;position:relative;cursor:pointer"><img src="${_fo}" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.style.display='none'"><div style="position:absolute;bottom:7px;right:7px;background:rgba(0,0,0,.6);border-radius:4px;padding:3px 9px;font-size:9px;color:#fff">toca para ampliar</div></div>`
+      : '';
+    return `<div class="ci ${_isDone?'done':''}" id="ci-${idx}-${ci}" style="flex-direction:column;align-items:stretch;padding:10px 0">${_imgBlock}<div style="display:flex;align-items:center;gap:10px"><div class="ci-chk ${_isDone?'done':''}" onclick="sCal(${idx},${ci})"><span class="ci-chk-i">✓</span></div><div class="ci-txt" style="flex:1">${_r.n}${_extra?`<div style="font-size:10px;color:var(--t3);margin-top:2px">${_extra}</div>`:''}</div></div></div>`;
+  }).join('')}</div></div>`;
   dia.bloques.forEach((bloque,bi)=>{
     html+=`<div class="sblq" id="sbb-${idx}-${bi}"><div class="sblq-hdr" onclick="this.parentElement.classList.toggle('collapsed')"><div class="sblq-ico">💪</div><div class="sblq-t">${bloque.nombre}</div><div class="sblq-m">${bloque.ejerIds?.length||0} ej.</div></div><div class="sblq-body">${(bloque.ejerIds||[]).map((ejId,ei)=>{
       const ej=ejs.find(e=>e.id===ejId)||{n:ejId,m:'',fo:'',vi:'',no:''};
@@ -1765,6 +1781,7 @@ function sProg(){
   const byEj={};myFb.forEach(f=>{if(!byEj[f.ejercicio])byEj[f.ejercicio]=[];f.entries?.forEach(e=>{if(e.kg&&parseFloat(e.kg)>0)byEj[f.ejercicio].push({kg:parseFloat(e.kg),fecha:f.fecha});});});
   set('s-hist-pesos', buildProgressCharts(byEj));
   const hist=DB.get('hist_s')||[];set('s-historial',hist.filter(h=>h.alumno===a.n).slice(0,5).map(h=>`<div style="background:var(--card);border:1px solid var(--bor);border-radius:9px;padding:12px;margin-bottom:8px"><div style="display:flex;justify-content:space-between;align-items:center"><div style="font-family:var(--fd);font-size:15px;font-weight:700;color:var(--tx);text-transform:uppercase">${h.dia}</div><span class="badge bok">Completada</span></div><div style="font-family:var(--fm);font-size:10px;color:var(--t3);margin-top:3px">${h.fecha}</div></div>`).join('')||'<p style="color:var(--t3);font-size:13px;padding:10px 0">Completa tu primera sesión.</p>');
+  renderLogros();
 }
 
 function sPerfil(){
@@ -2285,6 +2302,122 @@ function showImgFull(src, name){
   ov.appendChild(lbl);
   ov.appendChild(cls);
   document.body.appendChild(ov);
+}
+
+
+// ═══ DUPLICATE RUTINA ═══
+function dupeRut(id){
+  var ruts = DB.get('rutinas') || [];
+  var orig = ruts.find(function(r){ return r.id===id; });
+  if(!orig) return;
+  var als = DB.get('alumnos') || [];
+  var al = als.find(function(a){ return a.id===orig.alId; }) || {n:''};
+  // Count existing copies
+  var copies = ruts.filter(function(r){
+    return r.alId===orig.alId && r.nombre.indexOf(orig.nombre.split(' — Semana')[0])===0;
+  }).length;
+  var copy = JSON.parse(JSON.stringify(orig));
+  copy.id = 'r' + Date.now();
+  copy.nombre = orig.nombre.split(' — Semana')[0] + ' — Semana ' + (copies + 1);
+  copy.createdAt = new Date().toISOString();
+  ruts.unshift(copy);
+  DB.set('rutinas', ruts);
+  tRuts();
+  // Auto-select and open the copy for editing
+  setTimeout(function(){
+    selRut(copy.id);
+    showToast('✓ Rutina duplicada como "' + copy.nombre + '"');
+  }, 200);
+}
+
+// ═══ PROGRESIÓN SEMANAL ═══
+function getLastKgForEj(alId, ejName){
+  var fb = DB.get('feedback') || [];
+  var myFb = fb.filter(function(f){ return f.alumnoId===alId && f.ejercicio===ejName; });
+  if(!myFb.length) return null;
+  var last = myFb[0];
+  var bestKg = 0;
+  (last.entries||[]).forEach(function(e){ var k=parseFloat(e.kg)||0; if(k>bestKg)bestKg=k; });
+  return bestKg > 0 ? {kg:bestKg, fecha:last.fecha} : null;
+}
+
+function renderProgresionHint(alId, ejId, container){
+  if(!alId || !ejId) return;
+  var ejs = DB.get('ejercicios') || [];
+  var ej = ejs.find(function(e){ return e.id===ejId; });
+  if(!ej) return;
+  var last = getLastKgForEj(alId, ej.n);
+  if(!last) return;
+  var hint = document.createElement('div');
+  hint.style.cssText = 'font-family:var(--fm);font-size:9px;color:var(--gr);margin-top:3px;padding:2px 6px;background:rgba(74,222,128,.08);border-radius:4px;display:inline-block';
+  hint.textContent = '↑ Última vez: ' + last.kg + 'kg · ' + last.fecha;
+  container.appendChild(hint);
+}
+
+// ═══ LOGROS / ACHIEVEMENTS ═══
+var LOGROS_DEF = [
+  {id:'primera_sesion', ico:'🌟', titulo:'Primera sesión', desc:'Completaste tu primera sesión', check:function(al,fb){ return fb.length >= 1; }},
+  {id:'racha_3', ico:'🔥', titulo:'Racha de 3', desc:'3 sesiones seguidas', check:function(al,fb){ return fb.length >= 3; }},
+  {id:'racha_7', ico:'⚡', titulo:'Semana perfecta', desc:'7 sesiones registradas', check:function(al,fb){ return fb.length >= 7; }},
+  {id:'racha_30', ico:'💎', titulo:'Mes completo', desc:'30 sesiones registradas', check:function(al,fb){ return fb.length >= 30; }},
+  {id:'record_peso', ico:'🏆', titulo:'Nuevo récord', desc:'Superaste tu marca personal', check:function(al,fb){
+    // Check if latest session has higher kg than all previous for any exercise
+    if(fb.length < 2) return false;
+    var byEj = {};
+    fb.forEach(function(f){
+      var maxKg = Math.max.apply(null, (f.entries||[]).map(function(e){ return parseFloat(e.kg)||0; }));
+      if(!byEj[f.ejercicio]) byEj[f.ejercicio] = [];
+      byEj[f.ejercicio].push(maxKg);
+    });
+    return Object.values(byEj).some(function(data){
+      return data.length >= 2 && data[0] > Math.max.apply(null, data.slice(1));
+    });
+  }},
+  {id:'volumen_1000', ico:'💪', titulo:'1 tonelada', desc:'1,000 kg de volumen total', check:function(al,fb){
+    var total = 0;
+    fb.forEach(function(f){ (f.entries||[]).forEach(function(e){ total += (parseFloat(e.kg)||0)*(parseFloat(e.rp)||0); }); });
+    return total >= 1000;
+  }},
+  {id:'volumen_10000', ico:'🚀', titulo:'10 toneladas', desc:'10,000 kg de volumen acumulado', check:function(al,fb){
+    var total = 0;
+    fb.forEach(function(f){ (f.entries||[]).forEach(function(e){ total += (parseFloat(e.kg)||0)*(parseFloat(e.rp)||0); }); });
+    return total >= 10000;
+  }},
+  {id:'constancia', ico:'📅', titulo:'Constante', desc:'Entrenas hace más de 4 semanas', check:function(al,fb){
+    if(!fb.length) return false;
+    var first = new Date(fb[fb.length-1].fecha);
+    var diff = (new Date() - first) / (1000*60*60*24);
+    return diff >= 28;
+  }}
+];
+
+function calcLogros(alId){
+  var fb = (DB.get('feedback')||[]).filter(function(f){ return f.alumnoId===alId; });
+  var als = DB.get('alumnos')||[];
+  var al = als.find(function(a){ return a.id===alId; })||{};
+  var unlocked = [];
+  LOGROS_DEF.forEach(function(l){
+    if(l.check(al, fb)) unlocked.push(l);
+  });
+  return unlocked;
+}
+
+function renderLogros(){
+  if(!ALUMNO) return;
+  var el = document.getElementById('s-logros');
+  if(!el) return;
+  var logros = calcLogros(ALUMNO.id);
+  var all = LOGROS_DEF;
+  el.innerHTML = '<div style="font-family:var(--fm);font-size:9px;color:var(--s2);text-transform:uppercase;letter-spacing:2px;margin-bottom:12px">🏅 Mis logros · '+logros.length+'/'+all.length+'</div>'
+    + all.map(function(l){
+      var done = logros.find(function(u){ return u.id===l.id; });
+      return '<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--bor);opacity:'+(done?'1':'0.35')+'">'
+        + '<div style="font-size:28px;flex-shrink:0">' + l.ico + '</div>'
+        + '<div style="flex:1"><div style="font-weight:600;font-size:13px;color:'+(done?'var(--tx)':'var(--t2)')+'">'+l.titulo+'</div>'
+        + '<div style="font-size:11px;color:var(--t3);margin-top:2px">'+l.desc+'</div></div>'
+        + (done ? '<div style="font-size:18px">✅</div>' : '<div style="font-size:13px;color:var(--t3);font-family:var(--fm)">bloqueado</div>')
+        + '</div>';
+    }).join('');
 }
 
 </script>
