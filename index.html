@@ -1681,7 +1681,8 @@ function buildSLogin(){
   set('s-al-grid',als.map(a=>`<div class="al-btn" onclick="checkPinStudent('${a.id}')"><div class="al-btn-n">${a.n}</div><div class="al-btn-m">${a.obj} · ${a.nivel}</div></div>`).join('')||'<p style="color:var(--t3);font-size:13px;text-align:center;padding:20px;grid-column:1/-1">Sin alumnos.</p>');
 }
 function sLoginById(id){const a=(DB.get('alumnos')||[]).find(x=>x.id===id);if(a)sLogin(a);}
-function sLogin(a){ALUMNO=a;localStorage.setItem('rt6_student',a.id);const ruts=DB.get('rutinas')||[];PLAN=ruts.find(r=>r.alId===a.id)||null;CCOMP={};ECOMP={};CDIA=0;h('s-login');sAll();}
+function sLogin(a){ALUMNO=a;localStorage.setItem('rt6_student',a.id);const ruts=DB.get('rutinas')||[];PLAN=ruts.find(r=>r.alId===a.id)||null;
+  if(PLAN){PLAN.dias=(PLAN.dias||[]).map(d=>{if(!d.calCore)d.calCore=[];if(!d.calentamiento)d.calentamiento=[];return d;});}CCOMP={};ECOMP={};CDIA=0;h('s-login');sAll();}
 function sLogout(){localStorage.removeItem('rt6_student');ALUMNO=null;document.getElementById('s-login').style.display='flex';buildSLogin();}
 
 function sAll(){if(!ALUMNO)return;sHoy();sPlan();sProg();sPerfil();}
@@ -1712,6 +1713,8 @@ function sPlan(){
 function sDia(idx){CDIA=idx;document.querySelectorAll('.dtab').forEach((t,i)=>t.classList.toggle('active',i===idx));sDiaC(idx);}
 function sDiaC(idx){
   const dia=PLAN?.dias?.[idx];if(!dia)return;
+  if(!dia.calCore) dia.calCore=[];
+  if(!dia.calentamiento) dia.calentamiento=[];
   if(!CCOMP[idx])CCOMP[idx]=new Set();if(!ECOMP[idx])ECOMP[idx]=new Set();
   const ejs=DB.get('ejercicios')||[];const fb=DB.get('feedback')||[];
   let html=`<div class="sblq" id="sbc-${idx}"><div class="sblq-hdr" onclick="this.parentElement.classList.toggle('collapsed')"><div class="sblq-ico">🔥</div><div class="sblq-t">Calentamiento</div><div class="sblq-m">${((dia.calentamiento||[]).length+(dia.calCore||[]).length)} ítems</div></div><div class="sblq-body">${[...(dia.calentamiento||[]),...(dia.calCore||[])].map((item,ci)=>{
@@ -1734,7 +1737,7 @@ function sDiaC(idx){
       const lastKg=myFb[0]?.entries?.[0]?.kg||'';const bestKg=myFb.length?Math.max(...myFb.flatMap(f=>f.entries?.map(e=>parseFloat(e.kg)||0)||[])):0;
       let mediaHtml='';
       if(ej.vi&&ej.vi.includes('youtu')){try{const vid=ej.vi.includes('youtu.be/')?ej.vi.split('youtu.be/')[1].split('?')[0]:new URL(ej.vi).searchParams.get('v');if(vid)mediaHtml=`<div class="ex-media"><iframe src="https://www.youtube.com/embed/${vid}" allowfullscreen></iframe><div class="ex-badge">${ej.m}</div></div>`;}catch{}}
-      else if(ej.fo)mediaHtml=`<div class="ex-media"><img src="${ej.fo}" alt="${ej.n}" onerror="this.style.display='none'"><div class="ex-badge">${ej.m}</div></div>`;
+      else if(ej.fo)mediaHtml=`<div class="ex-media" onclick="(function(el){var img=el.querySelector('img');if(img)showImgFull(img.src,el.closest('.excard').querySelector('.ex-name').textContent);})(this)" style="cursor:pointer"><img src="${ej.fo}" alt="${ej.n}" onerror="this.style.display='none'"><div class="ex-badge">${ej.m}</div><div style="position:absolute;bottom:7px;right:7px;background:rgba(0,0,0,.6);border-radius:4px;padding:3px 8px;font-size:9px;color:#fff">toca</div></div></div>`;
       let histHtml='';
       if(myFb.length){const chartData=myFb.slice(0,4).reverse().map(f=>parseFloat(f.entries?.[0]?.kg)||0);const maxV=Math.max(...chartData)||1;histHtml=`<div class="ex-hist"><div class="ex-hist-t"><span>Mis registros</span>${bestKg?`<span class="ex-hist-best">🏆 ${bestKg}kg</span>`:''}</div><div style="display:flex;align-items:flex-end;gap:4px;height:52px">${chartData.map((v,i)=>`<div class="hcol"><div class="hbv">${v||'—'}</div><div class="hbar${i===chartData.length-1?' latest':''}" style="height:${v?Math.round(v/maxV*42)+8:4}px"></div></div>`).join('')}</div></div>`;}
       return `<div class="excard ${done?'done-ej':''}" id="ec-${idx}-${bi}-${ei}">
