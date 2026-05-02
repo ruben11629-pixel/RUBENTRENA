@@ -1734,7 +1734,7 @@ function sDiaC(idx){
       const key=`${bi}-${ei}`;const done=ECOMP[idx].has(key);
       const series=bloque.series[ei]||3;const reps=bloque.reps[ei]||'10';const desc=bloque.descanso[ei]||90;
       const myFb=fb.filter(f=>f.alumnoId===ALUMNO.id&&f.ejercicio===ej.n).slice(0,5);
-      const lastKg=myFb[0]?.entries?.[0]?.kg||'';const bestKg=myFb.length?Math.max(...myFb.flatMap(f=>f.entries?.map(e=>parseFloat(e.kg)||0)||[])):0;
+      const lastKg=myFb[0]?.entries?.[0]?.kg||'';const kgRef=bloque.kgs&&bloque.kgs[ei]?bloque.kgs[ei]:'';const bestKg=myFb.length?Math.max(...myFb.flatMap(f=>f.entries?.map(e=>parseFloat(e.kg)||0)||[])):0;
       let mediaHtml='';
       if(ej.vi&&ej.vi.includes('youtu')){try{const vid=ej.vi.includes('youtu.be/')?ej.vi.split('youtu.be/')[1].split('?')[0]:new URL(ej.vi).searchParams.get('v');if(vid)mediaHtml=`<div class="ex-media"><iframe src="https://www.youtube.com/embed/${vid}" allowfullscreen></iframe><div class="ex-badge">${ej.m}</div></div>`;}catch{}}
       else if(ej.fo)mediaHtml=`<div class="ex-media" onclick="(function(el){var img=el.querySelector('img');if(img)showImgFull(img.src,el.closest('.excard').querySelector('.ex-name').textContent);})(this)" style="cursor:pointer"><img src="${ej.fo}" alt="${ej.n}" onerror="this.style.display='none'"><div class="ex-badge">${ej.m}</div><div style="position:absolute;bottom:7px;right:7px;background:rgba(0,0,0,.6);border-radius:4px;padding:3px 8px;font-size:9px;color:#fff">toca</div></div></div>`;
@@ -1743,11 +1743,11 @@ function sDiaC(idx){
       return `<div class="excard ${done?'done-ej':''}" id="ec-${idx}-${bi}-${ei}">
         ${mediaHtml}
         <div class="ex-body">
-          <div class="ex-name">${ej.n}</div>
+          <div class="ex-name">${ej.n}${kgRef?`<span style="font-family:var(--fm);font-size:10px;color:var(--gr);margin-left:8px;background:rgba(74,222,128,.1);padding:2px 8px;border-radius:4px;border:1px solid rgba(74,222,128,.2)">meta: ${kgRef}kg</span>`:''}</div>
           ${ej.no?`<div class="ex-note">${ej.no}</div>`:''}
           ${histHtml}
           <table class="ex-tabla"><thead><tr><th style="text-align:left">Ejercicio</th><th>kg</th><th>Reps</th><th>Serie</th><th>Feedback</th></tr></thead>
-          <tbody>${Array.from({length:series}).map((_,si)=>`<tr><td style="font-family:var(--fm);font-size:10px;color:var(--s2)">${si===0?ej.n.substring(0,16)+'...':''}</td><td><input class="ex-inp${si===0&&lastKg?' prefill':''}" type="number" placeholder="${si===0&&lastKg?lastKg:'—'}" ${si===0&&lastKg?`value="${lastKg}"`:''}data-k="kg-${idx}-${bi}-${ei}-${si}"></td><td><input class="ex-inp" placeholder="${reps}" data-k="rp-${idx}-${bi}-${ei}-${si}"></td><td><span style="font-family:var(--fm);font-size:11px;color:var(--s2)">${si+1}</span></td><td><input class="ex-inp fb" placeholder="Sensaciones..." data-k="fb-${idx}-${bi}-${ei}-${si}"></td></tr>`).join('')}
+          <tbody>${Array.from({length:series}).map((_,si)=>`<tr><td style="font-family:var(--fm);font-size:10px;color:var(--s2)">${si===0?ej.n.substring(0,16)+'...':''}</td><td><input class="ex-inp${si===0&&lastKg?' prefill':''}" type="number" placeholder="${si===0?(lastKg||kgRef||'—'):'—'}" ${si===0&&lastKg?`value="${lastKg}"`:''}data-k="kg-${idx}-${bi}-${ei}-${si}"></td><td><input class="ex-inp" placeholder="${reps}" data-k="rp-${idx}-${bi}-${ei}-${si}"></td><td><span style="font-family:var(--fm);font-size:11px;color:var(--s2)">${si+1}</span></td><td><input class="ex-inp fb" placeholder="Sensaciones..." data-k="fb-${idx}-${bi}-${ei}-${si}"></td></tr>`).join('')}
           </tbody></table>
           <button class="ex-done-btn ${done?'done':''}" id="edb-${idx}-${bi}-${ei}" onclick="sTogEj(${idx},${bi},${ei},${series},${desc},'${ej.n.replace(/'/g,"\\'")}')">${done?'✓ Completado':'✓ Completar + Timer'}</button>
         </div>
