@@ -810,10 +810,16 @@ body{font-family:'Plus Jakarta Sans',sans-serif;letter-spacing:-0.01em;}
   <div id="s-login">
     <div class="sl-hero"><div class="sl-ov"></div><div class="sl-brand"><svg width="44" height="44" viewBox="0 0 38 38" fill="none" style="margin-bottom:6px"><rect x="2" y="17.5" width="34" height="3" rx="1.5" fill="#8a9e8b"/><rect x="3" y="12" width="3" height="14" rx="1" fill="#b8c4b9"/><rect x="6.5" y="13.5" width="2" height="11" rx="1" fill="#8a9e8b"/><rect x="32" y="12" width="3" height="14" rx="1" fill="#b8c4b9"/><rect x="29.5" y="13.5" width="2" height="11" rx="1" fill="#8a9e8b"/><circle cx="19" cy="19" r="9" stroke="#b8c4b9" stroke-width="2" fill="none"/><rect x="13" y="17.5" width="12" height="2.5" rx="1" fill="#b8c4b9"/><circle cx="19" cy="13" r="2" fill="#8a9e8b"/></svg><div class="sl-t">RUBEN<em>TRENA</em></div><div class="sl-s">— Spotters —</div></div></div>
     <div class="sl-body">
-      <div style="font-family:var(--fd);font-size:20px;font-weight:700;letter-spacing:2px;color:var(--si);text-transform:uppercase;margin-bottom:5px">¿Quién eres?</div>
-      <div style="font-size:12px;color:var(--t3);font-family:var(--fm);margin-bottom:16px">Selecciona tu nombre para ver tu plan</div>
+      <div style="font-family:var(--fd);font-size:22px;font-weight:700;letter-spacing:1px;color:var(--tx);margin-bottom:4px">¡Hola! ¿Quién eres?</div>
+      <div style="font-size:13px;color:var(--t2);font-family:var(--fb);margin-bottom:20px;line-height:1.5">Toca tu nombre para ver tu entrenamiento de hoy</div>
       <div class="al-grid" id="s-al-grid"></div>
-      <button style="width:100%;padding:12px;border-radius:9px;border:1px solid var(--bor);background:transparent;color:var(--t3);font-family:var(--fm);font-size:11px;text-transform:uppercase;letter-spacing:1.5px;cursor:pointer;margin-top:6px;min-height:48px" onclick="launchMode()">← Volver</button>
+      <div style="margin-top:20px;padding:14px;background:var(--bg3);border:1px solid var(--bor);border-radius:12px;text-align:center">
+        <div style="font-size:12px;color:var(--t2);font-family:var(--fb);margin-bottom:10px">📥 ¿Primera vez o no ves tus datos?</div>
+        <button onclick="document.getElementById('import-student-file').click()" style="width:100%;padding:13px;border-radius:10px;background:var(--gr);border:none;color:#000;font-family:var(--fd);font-size:14px;font-weight:700;letter-spacing:1px;cursor:pointer;min-height:48px">⬇ Descargar mi rutina</button>
+        <input type="file" id="import-student-file" accept=".json" style="display:none" onchange="importDataStudent(this)">
+        <div style="font-size:10px;color:var(--t3);font-family:var(--fm);margin-top:8px">Tu entrenador te enviará el archivo por WhatsApp</div>
+      </div>
+      <button style="width:100%;padding:12px;border-radius:10px;border:1px solid var(--bor);background:transparent;color:var(--t3);font-family:var(--fm);font-size:11px;text-transform:uppercase;letter-spacing:1.5px;cursor:pointer;margin-top:10px;min-height:44px" onclick="launchMode()">← Volver al inicio</button>
     </div>
   </div>
   <div class="ss active" id="s-hoy">
@@ -866,8 +872,8 @@ body{font-family:'Plus Jakarta Sans',sans-serif;letter-spacing:-0.01em;}
   </div>
   <div class="s-bnav">
     <div class="s-tab" onclick="sLogout()" style="flex:0.7"><div class="s-tab-icon" style="font-size:17px">↩</div><div class="s-tab-lbl">Salir</div></div>
-    <div class="s-tab active" id="ntab-hoy" onclick="sGo('hoy')"><div class="s-tab-icon">⚡</div><div class="s-tab-lbl">Hoy</div></div>
-    <div class="s-tab" id="ntab-plan" onclick="sGo('plan')"><div class="s-tab-icon">💪</div><div class="s-tab-lbl">Mi plan</div></div>
+    <div class="s-tab active" id="ntab-hoy" onclick="sGo('hoy')"><div class="s-tab-icon">⚡</div><div class="s-tab-lbl">Inicio</div></div>
+    <div class="s-tab" id="ntab-plan" onclick="sGo('plan')"><div class="s-tab-icon">💪</div><div class="s-tab-lbl">Entreno</div></div>
     <div class="s-tab" id="ntab-prog" onclick="sGo('prog')"><div class="s-tab-icon">📈</div><div class="s-tab-lbl">Progreso</div></div>
     <div class="s-tab" id="ntab-perfil" onclick="sGo('perfil')"><div class="s-tab-icon">👤</div><div class="s-tab-lbl">Perfil</div></div>
   </div>
@@ -2436,6 +2442,42 @@ function renderLogros(){
         + (done ? '<div style="font-size:18px">✅</div>' : '<div style="font-size:13px;color:var(--t3);font-family:var(--fm)">bloqueado</div>')
         + '</div>';
     }).join('');
+}
+
+
+// ═══ IMPORT PARA ALUMNO (desde pantalla login) ═══
+function importDataStudent(input){
+  const file = input.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e){
+    try{
+      const data = JSON.parse(e.target.result);
+      let count = 0;
+      Object.entries(data).forEach(function([k,v]){
+        localStorage.setItem(k,JSON.stringify(v));
+        count++;
+      });
+      showToast('✓ Datos cargados correctamente');
+      // Refresh alumno list
+      setTimeout(function(){
+        const als = DB.get('alumnos')||[];
+        const grid = document.getElementById('s-al-grid');
+        if(grid && als.length){
+          grid.innerHTML = als.map(a=>
+            '<div class="al-card" onclick="sLoginById(\''+a.id+'\')">'+
+            '<div class="al-av">'+a.n.charAt(0).toUpperCase()+'</div>'+
+            '<div class="al-name">'+a.n+'</div>'+
+            '</div>'
+          ).join('');
+        }
+      }, 500);
+    }catch(err){
+      showToast('Error al cargar el archivo');
+    }
+  };
+  reader.readAsText(file);
+  input.value='';
 }
 
 </script>
