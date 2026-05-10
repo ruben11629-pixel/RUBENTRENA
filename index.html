@@ -444,7 +444,7 @@ select.fi{appearance:none;cursor:pointer;}
     <div class="t-topbar-date" id="tb-date">—</div>
     <div class="t-topbar-actions">
       <div class="theme-toggle" onclick="toggleTheme()" title="Cambiar tema"><span class="theme-icon" id="ti-t">🌙</span></div>
-      <span id="fb-dot" style="width:7px;height:7px;border-radius:50%;background:var(--t3);display:inline-block;margin-right:3px;vertical-align:middle"></span><span id="fb-txt" style="font-family:var(--fm);font-size:9px;color:var(--t3);margin-right:8px">sync</span><button class="btn btn-g btn-sm" onclick="importData()">⬆ Importar</button>
+      <span id="fb-dot" style="width:7px;height:7px;border-radius:50%;background:var(--t3);display:inline-block;margin-right:3px;vertical-align:middle"></span><span id="fb-txt" style="font-family:var(--fm);font-size:9px;color:var(--t3);margin-right:8px">sync</span><button class="btn btn-g btn-sm" onclick="launchMode()" style="min-width:44px" title="Volver al inicio">⇄</button><button class="btn btn-g btn-sm" onclick="importData()">⬆ Importar</button>
       <button class="btn btn-g btn-sm" onclick="exportData()">⬇ Backup</button>
       <button class="btn btn-p btn-sm" onclick="openM('m-ses')">+ Sesión</button>
     </div>
@@ -721,6 +721,7 @@ select.fi{appearance:none;cursor:pointer;}
     </div>
   </div>
   <div class="s-bnav">
+    <div class="s-tab" onclick="sLogout()" style="flex:0.7"><div class="s-tab-icon" style="font-size:17px">↩</div><div class="s-tab-lbl">Salir</div></div>
     <div class="s-tab active" id="ntab-hoy" onclick="sGo('hoy')"><div class="s-tab-icon">⚡</div><div class="s-tab-lbl">Hoy</div></div>
     <div class="s-tab" id="ntab-plan" onclick="sGo('plan')"><div class="s-tab-icon">💪</div><div class="s-tab-lbl">Mi plan</div></div>
     <div class="s-tab" id="ntab-prog" onclick="sGo('prog')"><div class="s-tab-icon">📈</div><div class="s-tab-lbl">Progreso</div></div>
@@ -926,7 +927,12 @@ function tRutsDetail(id){
     html+=`<div style="font-family:var(--fd);font-size:17px;font-weight:700;letter-spacing:2px;color:var(--si);text-transform:uppercase;margin-bottom:11px">${dia.label}</div>`;
     if(dia.calentamiento?.length){
       html+=`<div style="margin-bottom:11px"><div style="font-family:var(--fm);font-size:9px;color:var(--s2);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:7px">🔥 Calentamiento</div>`;
-      html+=dia.calentamiento.map(c=>`<div style="font-size:13px;color:var(--t2);padding:5px 0;border-bottom:1px solid var(--bor)">${c}</div>`).join('');
+      html+=[...(dia.calentamiento||[]),...(dia.calCore||[])].map(function(item){
+      var r=resolveCalItem(item);
+      var extra=(r.series?r.series+' series ':'')+(r.reps?r.reps+' reps ':'')+( r.tiempo||'');
+      var img=r.fo?('<img src="'+r.fo+'" style="width:44px;height:44px;border-radius:6px;object-fit:cover;flex-shrink:0;margin-right:8px" onerror="this.style.display=none">') :'';
+      return '<div style="display:flex;align-items:center;font-size:13px;color:var(--t2);padding:7px 0;border-bottom:1px solid var(--bor)">'+img+'<div>'+r.n+(extra?'<div style="font-size:10px;color:var(--t3);margin-top:2px">'+extra+'</div>':'')+'</div></div>';
+    }).join('');
       html+='</div>';
     }
     dia.bloques?.forEach(b=>{
@@ -1324,7 +1330,7 @@ function sDiaC(idx){
     +'<div class="sblq-m">'+calItems.length+' ítems</div></div>'
     +'<div class="sblq-body">'+calRows+'</div></div>';
 
-  set('s-dia-c', calBlock);
+  var _planC=document.getElementById('s-plan-c');if(_planC)_planC.innerHTML=calBlock;
 
   // Bloques
   dia.bloques?.forEach((bloque,bi)=>{
@@ -1366,8 +1372,7 @@ function sDiaC(idx){
         +'</div></div>';
     });
     bHtml+='</div></div>';
-    const el=document.getElementById('s-dia-c');
-    if(el)el.insertAdjacentHTML('beforeend',bHtml);
+    var _planC2=document.getElementById('s-plan-c');if(_planC2)_planC2.insertAdjacentHTML('beforeend',bHtml);
   });
 }
 
@@ -1782,6 +1787,20 @@ function importStu(input){
 }
 
 
-}</script>
+}
+function sGo(s){
+  document.querySelectorAll('.s-screen').forEach(function(x){x.classList.remove('active');});
+  document.querySelectorAll('.s-tab').forEach(function(x){x.classList.remove('active');});
+  var sc=document.getElementById('s-'+s);
+  var tb=document.getElementById('ntab-'+s);
+  if(sc)sc.classList.add('active');
+  if(tb)tb.classList.add('active');
+  if(s==='hoy')sHoy();
+  else if(s==='plan')sPlan();
+  else if(s==='prog')sProg();
+  else if(s==='perfil')sAll();
+}
+
+</script>
 </body>
 </html>
