@@ -914,6 +914,17 @@ function selRut(id){
   SEL_RUT_ID=id;tRuts();tRutsDetail(id);
 }
 
+// ── resolveCalItem ──
+function resolveCalItem(item){
+  var ejs=DB.get('ejercicios')||[];
+  if(!item)return{n:'',fo:'',m:'',series:'',reps:'',tiempo:''};
+  if(typeof item==='string'){var ej=ejs.find(function(e){return e.id===item;});return ej?{n:ej.n,fo:ej.fo||'',m:ej.m||'',series:'',reps:'',tiempo:''}:{n:item,fo:'',m:'',series:'',reps:'',tiempo:''};}
+  if(item.ref){var ej2=ejs.find(function(e){return e.id===item.ref;});return{n:ej2?ej2.n:item.ref,fo:ej2?ej2.fo||'':'',m:ej2?ej2.m||'':'',series:item.series||'',reps:item.reps||'',tiempo:item.tiempo||''};}
+  if(item.txt!==undefined)return{n:item.txt||'',fo:'',m:'',series:item.series||'',reps:item.reps||'',tiempo:item.tiempo||''};
+  return{n:'',fo:'',m:'',series:'',reps:'',tiempo:''};
+}
+
+
 function tRutsDetail(id){
   if(!id){set('rut-detail-title','Selecciona una rutina');set('rut-detail-sub','—');set('rut-detail-body','<p style="color:var(--t3);font-size:13px;padding:20px 0;text-align:center">Toca una rutina de la lista</p>');return;}
   try{
@@ -1281,7 +1292,7 @@ function stopTimer(){if(T_INT){clearInterval(T_INT);T_INT=null;}document.getElem
 // ═══ STUDENT ═══
 function buildSLogin(){
   const als=DB.get('alumnos')||[];
-  set('s-al-grid',als.map(a=>`<div class="al-btn" onclick="checkPinStudent('${a.id}')"><div class="al-btn-n">${a.n}</div><div class="al-btn-m">${a.obj} · ${a.nivel}</div></div>`).join('')||'<p style="color:var(--t3);font-size:13px;text-align:center;padding:20px;grid-column:1/-1">Sin alumnos.</p>');
+  set('s-al-grid',als.map(a=>`<div class="al-btn" onclick="sLoginById('${a.id}')"><div class="al-btn-n">${a.n}</div><div class="al-btn-m">${a.obj} · ${a.nivel}</div></div>`).join('')||'<p style="color:var(--t3);font-size:13px;text-align:center;padding:20px;grid-column:1/-1">Sin alumnos.</p>');
 }
 function sLoginById(id){const a=(DB.get('alumnos')||[]).find(x=>x.id===id);if(a)sLogin(a);}
 function sLogin(a){ALUMNO=a;localStorage.setItem('rt6_student',a.id);const ruts=DB.get('rutinas')||[];PLAN=ruts.find(r=>r.alId===a.id)||null;CCOMP={};ECOMP={};CDIA=0;h('s-login');sAll();}
@@ -1582,15 +1593,6 @@ function sRenderNotasYMedidas(){
 }
 
 
-// ── resolveCalItem ──
-function resolveCalItem(item){
-  var ejs=DB.get('ejercicios')||[];
-  if(!item)return{n:'',fo:'',m:'',series:'',reps:'',tiempo:''};
-  if(typeof item==='string'){var ej=ejs.find(function(e){return e.id===item;});return ej?{n:ej.n,fo:ej.fo||'',m:ej.m||'',series:'',reps:'',tiempo:''}:{n:item,fo:'',m:'',series:'',reps:'',tiempo:''};}
-  if(item.ref){var ej2=ejs.find(function(e){return e.id===item.ref;});return{n:ej2?ej2.n:item.ref,fo:ej2?ej2.fo||'':'',m:ej2?ej2.m||'':'',series:item.series||'',reps:item.reps||'',tiempo:item.tiempo||''};}
-  if(item.txt!==undefined)return{n:item.txt||'',fo:'',m:'',series:item.series||'',reps:item.reps||'',tiempo:item.tiempo||''};
-  return{n:'',fo:'',m:'',series:'',reps:'',tiempo:''};
-}
 
 // ── buildCalSection ──
 function buildCalSection(container,di,sk,label,icon,items){
