@@ -916,6 +916,7 @@ function selRut(id){
 
 function tRutsDetail(id){
   if(!id){set('rut-detail-title','Selecciona una rutina');set('rut-detail-sub','—');set('rut-detail-body','<p style="color:var(--t3);font-size:13px;padding:20px 0;text-align:center">Toca una rutina de la lista</p>');return;}
+  try{
   const ruts=DB.get('rutinas')||[],als=DB.get('alumnos')||[],ejs=DB.get('ejercicios')||[];
   const r=ruts.find(x=>x.id===id);if(!r)return;
   const al=als.find(a=>a.id===r.alId)||{n:'Sin asignar'};
@@ -947,6 +948,7 @@ function tRutsDetail(id){
     html+='</div>';
   });
   set('rut-detail-body',html);
+  }catch(e){console.warn('tRutsDetail:',e);set('rut-detail-body','<p style="color:var(--re);padding:16px">Error: '+e.message+'</p>');}
 }
 
 function renderFb(){
@@ -1165,11 +1167,11 @@ function delEjById(id){if(!confirm('¿Eliminar?'))return;DB.set('ejercicios',(DB
 function prevImg(url){const img=document.getElementById('m-ej-prev');if(!img)return;if(url){img.src=url;img.style.display='block';img.onerror=()=>img.style.display='none';}else img.style.display='none';}
 
 // RUTINAS BUILDER
-function openMRut(){set('m-rut-t','Nueva rutina');document.getElementById('m-rut-id').value='';document.getElementById('m-rut-n').value='Plan Semana Actual';R_DIAS=[];addDiaR();document.getElementById('m-rut-del').style.display='none';openM('m-rut');}
+function openMRut(){set('m-rut-t','Nueva rutina');document.getElementById('m-rut-id').value='';document.getElementById('m-rut-n').value='Plan Semana Actual';R_DIAS=[];document.getElementById('m-rut-del').style.display='none';openM('m-rut');setTimeout(function(){addDiaR();},50);}
 function editRut(id){
   const r=(DB.get('rutinas')||[]).find(x=>x.id===id);if(!r)return;
   set('m-rut-t','Editar rutina');document.getElementById('m-rut-id').value=r.id;document.getElementById('m-rut-n').value=r.nombre||'';document.getElementById('m-rut-al').value=r.alId||'';
-  R_DIAS=JSON.parse(JSON.stringify(r.dias||[]));renderRDias();document.getElementById('m-rut-del').style.display='inline-flex';openM('m-rut');
+  R_DIAS=JSON.parse(JSON.stringify(r.dias||[]));R_DIAS.forEach(function(d){if(!d.calentamiento)d.calentamiento=[];if(!d.calCore)d.calCore=[];if(!d.bloques)d.bloques=[];d.bloques.forEach(function(b){if(!b.ejerIds)b.ejerIds=[];if(!b.series)b.series=[];if(!b.reps)b.reps=[];if(!b.descanso)b.descanso=[];if(!b.kgs)b.kgs=[];});});document.getElementById('m-rut-del').style.display='inline-flex';openM('m-rut');setTimeout(function(){try{renderRDias();}catch(e){console.warn(e);}},50);
 }
 function addDiaR(){R_DIAS.push({label:`Día ${R_DIAS.length+1}`,calentamiento:[''],bloques:[{nombre:'Bloque 1 — Parte Principal',ejerIds:[],series:[],reps:[],descanso:[]}]});renderRDias();}
 function renderRDias(){
@@ -1773,13 +1775,7 @@ function importStu(input){
       setTimeout(function(){
         var als=DB.get('alumnos')||[];
         var grid=document.getElementById('s-al-grid');
-        if(grid&&als.length){
-          grid.innerHTML=als.map(function(a){
-            return '<div class="al-card" onclick="sLoginById(\''+a.id+'\')">'
-              +'<div class="al-av">'+a.n.charAt(0).toUpperCase()+'</div>'
-              +'<div class="al-name">'+a.n+'</div></div>';
-          }).join('');
-        }
+        buildSLogin();
       },500);
     }catch(err){showToast('Error al cargar');}
   };
