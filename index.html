@@ -1321,6 +1321,7 @@ function sPlan(){
 }
 function sDia(idx){CDIA=idx;document.querySelectorAll('.dtab').forEach((t,i)=>t.classList.toggle('active',i===idx));sDiaC(idx);}
 function sDiaC(idx){
+  try{
   const dia=PLAN?.dias?.[idx];if(!dia)return;
   if(!dia.calCore)dia.calCore=[];if(!dia.calentamiento)dia.calentamiento=[];
   if(!CCOMP[idx])CCOMP[idx]=new Set();if(!ECOMP[idx])ECOMP[idx]=new Set();
@@ -1387,6 +1388,11 @@ function sDiaC(idx){
     bHtml+='</div></div>';
     var _planC2=document.getElementById('s-plan-c');if(_planC2)_planC2.insertAdjacentHTML('beforeend',bHtml);
   });
+  }catch(e){
+    var _planC=document.getElementById('s-plan-c');
+    if(_planC)_planC.innerHTML='<div style="color:var(--re);padding:16px;font-size:12px">Error: '+e.message+'</div>';
+    console.error('sDiaC error:',e);
+  }
 }
 
 function sCal(di,ci){
