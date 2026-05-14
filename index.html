@@ -362,42 +362,6 @@ select.fi{appearance:none;cursor:pointer;}
 .toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(8px);background:var(--card);border:1px solid var(--s3);border-radius:8px;padding:10px 18px;font-size:12px;font-family:var(--fm);color:var(--si);opacity:0;transition:all .25s;z-index:9999;white-space:nowrap;pointer-events:none;}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 </style>
-  <!-- Firebase SDK -->
-  <script>
-  (function(){
-    function addScript(url,cb){var s=document.createElement('script');s.src=url;s.onload=cb;document.head.appendChild(s);}
-    addScript('https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js',function(){
-      addScript('https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js',function(){
-        try{
-          if(!firebase.apps.length) firebase.initializeApp({
-            apiKey:"AIzaSyBDGlSXzoeRJcS_y7Ebjm6QxuaRYEko1aA",
-            authDomain:"rubentrena-433ea.firebaseapp.com",
-            projectId:"rubentrena-433ea",
-            storageBucket:"rubentrena-433ea.firebasestorage.app",
-            messagingSenderId:"544105379170",
-            appId:"1:544105379170:web:b6752a6a670d67454ae83b"
-          });
-          var _db=firebase.firestore(),_doc=_db.collection('rubentrena').doc('data');
-          window.FB={
-            set:function(k,v){var o={};o[k]=JSON.stringify(v);_doc.set(o,{merge:true}).catch(function(e){console.warn('FB:',e);});},
-            syncAll:function(){_doc.get().then(function(snap){
-              if(!snap.exists())return;
-              var d=snap.data();
-              ['alumnos','ejercicios','rutinas','sesiones','feedback','pagos','medidas','notas'].forEach(function(k){
-                if(d[k]!==undefined)localStorage.setItem('rt6_'+k,d[k]);
-              });
-              if(typeof tAll==='function')tAll();
-              var dot=document.getElementById('fb-dot'),txt=document.getElementById('fb-txt');
-              if(dot)dot.style.background='#4ade80';
-              if(txt){txt.textContent='en linea';txt.style.color='#4ade80';}
-            }).catch(function(e){console.warn('sync:',e);});}
-          };
-          window.FB.syncAll();
-        }catch(e){console.warn('Firebase:',e);}
-      });
-    });
-  })();
-  </script>
 </head>
 <body>
 
@@ -444,7 +408,7 @@ select.fi{appearance:none;cursor:pointer;}
     <div class="t-topbar-date" id="tb-date">—</div>
     <div class="t-topbar-actions">
       <div class="theme-toggle" onclick="toggleTheme()" title="Cambiar tema"><span class="theme-icon" id="ti-t">🌙</span></div>
-      <span id="fb-dot" style="width:7px;height:7px;border-radius:50%;background:var(--t3);display:inline-block;margin-right:3px;vertical-align:middle"></span><span id="fb-txt" style="font-family:var(--fm);font-size:9px;color:var(--t3);margin-right:8px">sync</span><button class="btn btn-g btn-sm" onclick="launchMode()" style="min-width:44px" title="Volver al inicio">⇄</button><button class="btn btn-g btn-sm" onclick="importData()">⬆ Importar</button>
+      <span id="fb-dot" style="width:7px;height:7px;border-radius:50%;background:var(--t3);display:inline-block;margin-right:3px;vertical-align:middle"></span><span id="fb-txt" style="font-family:var(--fm);font-size:9px;color:var(--t3);margin-right:8px">sync</span><button class="btn btn-g btn-sm" onclick="launchMode()" title="Volver">⇄</button><button class="btn btn-g btn-sm" onclick="importData()">⬆ Importar</button>
       <button class="btn btn-g btn-sm" onclick="exportData()">⬇ Backup</button>
       <button class="btn btn-p btn-sm" onclick="openM('m-ses')">+ Sesión</button>
     </div>
@@ -669,7 +633,7 @@ select.fi{appearance:none;cursor:pointer;}
       <div style="font-size:12px;color:var(--t3);font-family:var(--fm);margin-bottom:16px">Selecciona tu nombre para ver tu plan</div>
       <div class="al-grid" id="s-al-grid"></div>
       <button style="width:100%;padding:12px;border-radius:9px;border:1px solid var(--bor);background:transparent;color:var(--t3);font-family:var(--fm);font-size:11px;text-transform:uppercase;letter-spacing:1.5px;cursor:pointer;margin-top:6px;min-height:48px" onclick="launchMode()">← Volver</button>
-    <div style="margin-top:16px;padding:14px;background:var(--bg3);border:1px solid var(--bor);border-radius:12px;text-align:center"><div style="font-size:12px;color:var(--t2);margin-bottom:10px">📥 ¿Primera vez o no ves tus datos?</div><button onclick="document.getElementById('stu-file').click()" style="width:100%;padding:13px;border-radius:10px;background:var(--gr);border:none;color:#000;font-family:var(--fd);font-size:14px;font-weight:700;cursor:pointer;min-height:48px">⬇ Descargar mi rutina</button><input type="file" id="stu-file" accept=".json" style="display:none" onchange="importStu(this)"><div style="font-size:10px;color:var(--t3);margin-top:8px">Tu entrenador te envía el archivo por WhatsApp</div></div>
+    <div style="margin-top:14px;padding:12px;background:var(--bg3);border:1px solid var(--bor);border-radius:10px;text-align:center"><div style="font-size:12px;color:var(--t2);margin-bottom:8px">📥 ¿Primera vez?</div><button onclick="document.getElementById('stu-f').click()" style="width:100%;padding:12px;border-radius:8px;background:var(--gr);border:none;color:#000;font-family:var(--fd);font-size:13px;font-weight:700;cursor:pointer">⬇ Descargar mi rutina</button><input type="file" id="stu-f" accept=".json" style="display:none" onchange="importStu(this)"><div style="font-size:10px;color:var(--t3);margin-top:6px">Tu entrenador te envía el archivo por WhatsApp</div></div>
     </div>
   </div>
   <div class="ss active" id="s-hoy">
@@ -721,7 +685,6 @@ select.fi{appearance:none;cursor:pointer;}
     </div>
   </div>
   <div class="s-bnav">
-    <div class="s-tab" onclick="sLogout()" style="flex:0.7"><div class="s-tab-icon" style="font-size:17px">↩</div><div class="s-tab-lbl">Salir</div></div>
     <div class="s-tab active" id="ntab-hoy" onclick="sGo('hoy')"><div class="s-tab-icon">⚡</div><div class="s-tab-lbl">Hoy</div></div>
     <div class="s-tab" id="ntab-plan" onclick="sGo('plan')"><div class="s-tab-icon">💪</div><div class="s-tab-lbl">Mi plan</div></div>
     <div class="s-tab" id="ntab-prog" onclick="sGo('prog')"><div class="s-tab-icon">📈</div><div class="s-tab-lbl">Progreso</div></div>
@@ -771,7 +734,6 @@ select.fi{appearance:none;cursor:pointer;}
 <!-- MODAL NUTRICION (en eval) embebido más abajo -->
 <input type="file" id="import-input" accept=".json" style="display:none" onchange="processImport(this)">
 
-<div class="mo" id="m-ej-picker"><div class="md md-w" style="max-height:92vh"><div class="mt">Seleccionar ejercicio</div><div class="srch" style="margin-bottom:11px"><span style="color:var(--t3)">⌕</span><input id="picker-search" placeholder="Buscar..." oninput="filterPicker(this.value)" style="background:none;border:none;outline:none;color:var(--tx);font-family:var(--fb);font-size:14px;flex:1"></div><div class="trow" id="picker-tags" style="margin-bottom:10px"></div><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:9px;max-height:52vh;overflow-y:auto" id="picker-grid"></div><div class="macts"><button class="btn btn-g" onclick="closeM('m-ej-picker')">Cancelar</button></div></div></div>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -914,20 +876,8 @@ function selRut(id){
   SEL_RUT_ID=id;tRuts();tRutsDetail(id);
 }
 
-// ── resolveCalItem ──
-function resolveCalItem(item){
-  var ejs=DB.get('ejercicios')||[];
-  if(!item)return{n:'',fo:'',m:'',series:'',reps:'',tiempo:''};
-  if(typeof item==='string'){var ej=ejs.find(function(e){return e.id===item;});return ej?{n:ej.n,fo:ej.fo||'',m:ej.m||'',series:'',reps:'',tiempo:''}:{n:item,fo:'',m:'',series:'',reps:'',tiempo:''};}
-  if(item.ref){var ej2=ejs.find(function(e){return e.id===item.ref;});return{n:ej2?ej2.n:item.ref,fo:ej2?ej2.fo||'':'',m:ej2?ej2.m||'':'',series:item.series||'',reps:item.reps||'',tiempo:item.tiempo||''};}
-  if(item.txt!==undefined)return{n:item.txt||'',fo:'',m:'',series:item.series||'',reps:item.reps||'',tiempo:item.tiempo||''};
-  return{n:'',fo:'',m:'',series:'',reps:'',tiempo:''};
-}
-
-
 function tRutsDetail(id){
   if(!id){set('rut-detail-title','Selecciona una rutina');set('rut-detail-sub','—');set('rut-detail-body','<p style="color:var(--t3);font-size:13px;padding:20px 0;text-align:center">Toca una rutina de la lista</p>');return;}
-  try{
   const ruts=DB.get('rutinas')||[],als=DB.get('alumnos')||[],ejs=DB.get('ejercicios')||[];
   const r=ruts.find(x=>x.id===id);if(!r)return;
   const al=als.find(a=>a.id===r.alId)||{n:'Sin asignar'};
@@ -939,12 +889,7 @@ function tRutsDetail(id){
     html+=`<div style="font-family:var(--fd);font-size:17px;font-weight:700;letter-spacing:2px;color:var(--si);text-transform:uppercase;margin-bottom:11px">${dia.label}</div>`;
     if(dia.calentamiento?.length){
       html+=`<div style="margin-bottom:11px"><div style="font-family:var(--fm);font-size:9px;color:var(--s2);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:7px">🔥 Calentamiento</div>`;
-      html+=[...(dia.calentamiento||[]),...(dia.calCore||[])].map(function(item){
-      var r=resolveCalItem(item);
-      var extra=(r.series?r.series+' series ':'')+(r.reps?r.reps+' reps ':'')+( r.tiempo||'');
-      var img=r.fo?('<img src="'+r.fo+'" style="width:44px;height:44px;border-radius:6px;object-fit:cover;flex-shrink:0;margin-right:8px" onerror="this.style.display=none">') :'';
-      return '<div style="display:flex;align-items:center;font-size:13px;color:var(--t2);padding:7px 0;border-bottom:1px solid var(--bor)">'+img+'<div>'+r.n+(extra?'<div style="font-size:10px;color:var(--t3);margin-top:2px">'+extra+'</div>':'')+'</div></div>';
-    }).join('');
+      html+=dia.calentamiento.map(c=>`<div style="font-size:13px;color:var(--t2);padding:5px 0;border-bottom:1px solid var(--bor)">${c}</div>`).join('');
       html+='</div>';
     }
     dia.bloques?.forEach(b=>{
@@ -959,7 +904,6 @@ function tRutsDetail(id){
     html+='</div>';
   });
   set('rut-detail-body',html);
-  }catch(e){console.warn('tRutsDetail:',e);set('rut-detail-body','<p style="color:var(--re);padding:16px">Error: '+e.message+'</p>');}
 }
 
 function renderFb(){
@@ -1178,11 +1122,11 @@ function delEjById(id){if(!confirm('¿Eliminar?'))return;DB.set('ejercicios',(DB
 function prevImg(url){const img=document.getElementById('m-ej-prev');if(!img)return;if(url){img.src=url;img.style.display='block';img.onerror=()=>img.style.display='none';}else img.style.display='none';}
 
 // RUTINAS BUILDER
-function openMRut(){set('m-rut-t','Nueva rutina');document.getElementById('m-rut-id').value='';document.getElementById('m-rut-n').value='Plan Semana Actual';R_DIAS=[];document.getElementById('m-rut-del').style.display='none';openM('m-rut');setTimeout(function(){addDiaR();},50);}
+function openMRut(){set('m-rut-t','Nueva rutina');document.getElementById('m-rut-id').value='';document.getElementById('m-rut-n').value='Plan Semana Actual';R_DIAS=[];addDiaR();document.getElementById('m-rut-del').style.display='none';openM('m-rut');}
 function editRut(id){
   const r=(DB.get('rutinas')||[]).find(x=>x.id===id);if(!r)return;
   set('m-rut-t','Editar rutina');document.getElementById('m-rut-id').value=r.id;document.getElementById('m-rut-n').value=r.nombre||'';document.getElementById('m-rut-al').value=r.alId||'';
-  R_DIAS=JSON.parse(JSON.stringify(r.dias||[]));R_DIAS.forEach(function(d){if(!d.calentamiento)d.calentamiento=[];if(!d.calCore)d.calCore=[];if(!d.bloques)d.bloques=[];d.bloques.forEach(function(b){if(!b.ejerIds)b.ejerIds=[];if(!b.series)b.series=[];if(!b.reps)b.reps=[];if(!b.descanso)b.descanso=[];if(!b.kgs)b.kgs=[];});});document.getElementById('m-rut-del').style.display='inline-flex';openM('m-rut');setTimeout(function(){try{renderRDias();}catch(e){console.warn(e);}},50);
+  R_DIAS=JSON.parse(JSON.stringify(r.dias||[]));renderRDias();document.getElementById('m-rut-del').style.display='inline-flex';openM('m-rut');
 }
 function addDiaR(){R_DIAS.push({label:`Día ${R_DIAS.length+1}`,calentamiento:[''],bloques:[{nombre:'Bloque 1 — Parte Principal',ejerIds:[],series:[],reps:[],descanso:[]}]});renderRDias();}
 function renderRDias(){
@@ -1262,7 +1206,7 @@ function tGo(s){
   document.querySelectorAll('.t-tab').forEach(x=>x.classList.remove('active'));
   document.getElementById('t-'+s)?.classList.add('active');
   document.getElementById('tt-'+s)?.classList.add('active');
-  if(s==='cal')tCal();if(s==='ruts'){tRuts();tRutsDetail(SEL_RUT_ID||null);}if(s==='ruts'||s==='eval')populateMods();if(s==='hist'){fillHistSels();loadHist();}if(s==='fb')renderFb();if(s==='stats')renderStats();if(s==='medidas'){fillMedSel();loadMedidas();}if(s==='notas'){fillNotaSels();renderNotas();}
+  if(s==='cal')tCal();if(s==='ruts'||s==='eval')populateMods();if(s==='hist'){fillHistSels();loadHist();}if(s==='fb')renderFb();if(s==='stats')renderStats();if(s==='medidas'){fillMedSel();loadMedidas();}if(s==='notas'){fillNotaSels();renderNotas();}
 }
 
 // BACKUP
@@ -1292,7 +1236,7 @@ function stopTimer(){if(T_INT){clearInterval(T_INT);T_INT=null;}document.getElem
 // ═══ STUDENT ═══
 function buildSLogin(){
   const als=DB.get('alumnos')||[];
-  set('s-al-grid',als.map(a=>`<div class="al-btn" onclick="sLoginById('${a.id}')"><div class="al-btn-n">${a.n}</div><div class="al-btn-m">${a.obj} · ${a.nivel}</div></div>`).join('')||'<p style="color:var(--t3);font-size:13px;text-align:center;padding:20px;grid-column:1/-1">Sin alumnos.</p>');
+  set('s-al-grid',als.map(a=>`<div class="al-btn" onclick="checkPinStudent('${a.id}')"><div class="al-btn-n">${a.n}</div><div class="al-btn-m">${a.obj} · ${a.nivel}</div></div>`).join('')||'<p style="color:var(--t3);font-size:13px;text-align:center;padding:20px;grid-column:1/-1">Sin alumnos.</p>');
 }
 function sLoginById(id){const a=(DB.get('alumnos')||[]).find(x=>x.id===id);if(a)sLogin(a);}
 function sLogin(a){ALUMNO=a;localStorage.setItem('rt6_student',a.id);const ruts=DB.get('rutinas')||[];PLAN=ruts.find(r=>r.alId===a.id)||null;CCOMP={};ECOMP={};CDIA=0;h('s-login');sAll();}
@@ -1311,7 +1255,11 @@ function sHoy(){
   set('s-st1',a.sesiones||0);set('s-st2',a.semanas||1);set('s-st3',Math.min(a.sesiones||0,5));
   const dia0=PLAN?.dias?.[0];
   const ejs=DB.get('ejercicios')||[];
-  set('s-hoy-prev', buildHoyPreview(dia0, ejs));
+  set('s-hoy-prev',dia0?`
+    <div class="sblq" style="cursor:pointer" onclick="sGo('plan')"><div class="sblq-hdr"><div class="sblq-ico">🔥</div><div class="sblq-t">Calentamiento</div><div class="sblq-m">${dia0.calentamiento.length} ítems</div></div><div class="sblq-body">${dia0.calentamiento.slice(0,2).map(c=>`<div style="font-size:12px;color:var(--t2);padding:6px 0;border-bottom:1px solid var(--bor)">${c}</div>`).join('')}<div style="font-size:11px;color:var(--t3);font-family:var(--fm);margin-top:5px">Ver plan completo →</div></div></div>
+    ${(dia0.bloques?.[0]?.ejerIds||[]).slice(0,2).map(ejId=>{const ej=ejs.find(e=>e.id===ejId)||{n:ejId,m:'',fo:''};return `<div class="excard" style="cursor:pointer" onclick="sGo('plan')">${ej.fo?`<div class="ex-media" style="height:100px"><img src="${ej.fo}" onerror="this.style.display='none'"><div class="ex-badge">${ej.m}</div></div>`:''}<div class="ex-body" style="padding:10px 13px"><div class="ex-name" style="font-size:17px">${ej.n}</div></div></div>`;}).join('')}
+    <div style="text-align:center;padding:7px 0;font-family:var(--fm);font-size:11px;color:var(--t3);cursor:pointer" onclick="sGo('plan')">Ver ${dia0.bloques?.reduce((s,b)=>s+(b.ejerIds?.length||0),0)||0} ejercicios completos →</div>`:'<p style="color:var(--t3);font-size:13px;text-align:center;padding:20px">Rubén aún no asignó tu plan.</p>');
+}
 
 function sPlan(){
   const dias=PLAN?.dias||[];
@@ -1321,78 +1269,37 @@ function sPlan(){
 }
 function sDia(idx){CDIA=idx;document.querySelectorAll('.dtab').forEach((t,i)=>t.classList.toggle('active',i===idx));sDiaC(idx);}
 function sDiaC(idx){
-  try{
   const dia=PLAN?.dias?.[idx];if(!dia)return;
-  if(!dia.calCore)dia.calCore=[];if(!dia.calentamiento)dia.calentamiento=[];
   if(!CCOMP[idx])CCOMP[idx]=new Set();if(!ECOMP[idx])ECOMP[idx]=new Set();
   const ejs=DB.get('ejercicios')||[];const fb=DB.get('feedback')||[];
-
-  // Calentamiento block
-  var calItems=[...(dia.calentamiento||[]),...(dia.calCore||[])];
-  var calRows=calItems.map(function(item,ci){
-    var r=resolveCalItem(item);
-    var extra=(r.series?r.series+' series ':'')+(r.reps?r.reps+' reps ':'')+( r.tiempo||'');
-    var done2=CCOMP[idx].has(ci);
-    var imgB=r.fo?('<div data-s="'+r.fo+'" data-n="'+r.n.replace(/"/g,'')+'" onclick="tapImg(this)" style="height:150px;overflow:hidden;border-radius:9px;margin-bottom:9px;position:relative;cursor:pointer"><img src="'+r.fo+'" style="width:100%;height:100%;object-fit:cover"><div style="position:absolute;bottom:7px;right:7px;background:rgba(0,0,0,.6);border-radius:4px;padding:3px 9px;font-size:9px;color:#fff">toca para ampliar</div></div>'):'';
-    var extB=extra?('<div style="font-size:13px;color:var(--t2);font-family:var(--fm);margin-top:4px">'+extra+'</div>'):'';
-    return '<div class="ci '+(done2?'done':'')+'" id="ci-'+idx+'-'+ci+'" style="flex-direction:column;align-items:stretch;padding:10px 0">'+imgB+'<div style="display:flex;align-items:center;gap:10px"><div class="ci-chk '+(done2?'done':'')+'" onclick="sCal('+idx+','+ci+')"><span class="ci-chk-i">✓</span></div><div class="ci-txt" style="flex:1">'+r.n+extB+'</div></div></div>';
-  }).join('');
-
-  var calBlock='<div class="sblq" id="sbc-'+idx+'">'
-    +'<div class="sblq-hdr" onclick="this.parentElement.classList.toggle(\'collapsed\')">'
-    +'<div class="sblq-ico">🔥</div><div class="sblq-t">Calentamiento</div>'
-    +'<div class="sblq-m">'+calItems.length+' ítems</div></div>'
-    +'<div class="sblq-body">'+calRows+'</div></div>';
-
-  var _planC=document.getElementById('s-plan-c');if(_planC)_planC.innerHTML=calBlock;
-
-  // Bloques
-  dia.bloques?.forEach((bloque,bi)=>{
-    var myFb=fb.filter(f=>f.alumnoId===ALUMNO.id);
-    var kgRef=bloque.kgs&&bloque.kgs.length?bloque.kgs:[];
-    var bHtml='<div class="sblq" id="sbb-'+idx+'-'+bi+'"><div class="sblq-hdr" onclick="this.parentElement.classList.toggle(\'collapsed\')"><div class="sblq-ico">💪</div><div class="sblq-t">'+bloque.nombre+'</div><div class="sblq-m">'+(bloque.ejerIds?.length||0)+' ej.</div></div><div class="sblq-body">';
-    (bloque.ejerIds||[]).forEach((ejId,ei)=>{
-      const ej=ejs.find(e=>e.id===ejId)||{n:ejId,m:'',fo:'',no:'',vi:''};
-      const series=bloque.series?.[ei]||3,reps=bloque.reps?.[ei]||'10',desc=bloque.descanso?.[ei]||90;
-      const kgR=kgRef[ei]||'';
-      const myEjFb=myFb.filter(f=>f.ejercicio===ej.n).slice(0,5);
-      const lastKg=myEjFb[0]?.entries?.[0]?.kg||'';
-      const bestKg=myEjFb.length?Math.max(...myEjFb.flatMap(f=>f.entries?.map(e=>parseFloat(e.kg)||0)||[])):0;
+  let html=`<div class="sblq" id="sbc-${idx}"><div class="sblq-hdr" onclick="this.parentElement.classList.toggle('collapsed')"><div class="sblq-ico">🔥</div><div class="sblq-t">Calentamiento</div><div class="sblq-m">${dia.calentamiento.length} ítems</div></div><div class="sblq-body">${dia.calentamiento.map((c,ci)=>`<div class="ci ${CCOMP[idx].has(ci)?'done':''}" id="ci-${idx}-${ci}"><div class="ci-chk ${CCOMP[idx].has(ci)?'done':''}" onclick="sCal(${idx},${ci})"><span class="ci-chk-i">✓</span></div><div class="ci-txt">${c}</div></div>`).join('')}</div></div>`;
+  dia.bloques.forEach((bloque,bi)=>{
+    html+=`<div class="sblq" id="sbb-${idx}-${bi}"><div class="sblq-hdr" onclick="this.parentElement.classList.toggle('collapsed')"><div class="sblq-ico">💪</div><div class="sblq-t">${bloque.nombre}</div><div class="sblq-m">${bloque.ejerIds?.length||0} ej.</div></div><div class="sblq-body">${(bloque.ejerIds||[]).map((ejId,ei)=>{
+      const ej=ejs.find(e=>e.id===ejId)||{n:ejId,m:'',fo:'',vi:'',no:''};
+      const key=`${bi}-${ei}`;const done=ECOMP[idx].has(key);
+      const series=bloque.series[ei]||3;const reps=bloque.reps[ei]||'10';const desc=bloque.descanso[ei]||90;
+      const myFb=fb.filter(f=>f.alumnoId===ALUMNO.id&&f.ejercicio===ej.n).slice(0,5);
+      const lastKg=myFb[0]?.entries?.[0]?.kg||'';const bestKg=myFb.length?Math.max(...myFb.flatMap(f=>f.entries?.map(e=>parseFloat(e.kg)||0)||[])):0;
       let mediaHtml='';
-      if(ej.vi&&ej.vi.includes('youtu')){try{const vid=ej.vi.includes('youtu.be/')?ej.vi.split('youtu.be/')[1].split('?')[0]:new URL(ej.vi).searchParams.get('v');if(vid)mediaHtml='<div class="ex-media"><iframe src="https://www.youtube.com/embed/'+vid+'" allowfullscreen></iframe><div class="ex-badge">'+ej.m+'</div></div>';}catch{}}
-      else if(ej.fo)mediaHtml='<div class="ex-media"><img src="'+ej.fo+'" alt="'+ej.n+'" onerror="this.style.display=\'none\'"><div class="ex-badge">'+ej.m+'</div></div>';
+      if(ej.vi&&ej.vi.includes('youtu')){try{const vid=ej.vi.includes('youtu.be/')?ej.vi.split('youtu.be/')[1].split('?')[0]:new URL(ej.vi).searchParams.get('v');if(vid)mediaHtml=`<div class="ex-media"><iframe src="https://www.youtube.com/embed/${vid}" allowfullscreen></iframe><div class="ex-badge">${ej.m}</div></div>`;}catch{}}
+      else if(ej.fo)mediaHtml=`<div class="ex-media"><img src="${ej.fo}" alt="${ej.n}" onerror="this.style.display='none'"><div class="ex-badge">${ej.m}</div></div>`;
       let histHtml='';
-      if(myEjFb.length){
-        const chartData=myEjFb.slice(0,5).reverse().map(f=>parseFloat(f.entries?.[0]?.kg)||0);
-        const maxV=Math.max(...chartData)||1;
-        histHtml='<div class="ex-hist"><div class="ex-hist-t"><span>Historial</span>'+(bestKg?'<span class="ex-hist-best">🏆 '+bestKg+'kg</span>':'')+'</div><div style="display:flex;align-items:flex-end;gap:5px;height:52px">'+chartData.map((v,i)=>'<div class="hcol"><div class="hbv">'+(v||'—')+'</div><div class="hbar'+(i===chartData.length-1?' latest':'')+'" style="height:'+(v?Math.round(v/maxV*42)+8:4)+'px"></div></div>').join('')+'</div></div>';
-      }
-      const serRows=Array.from({length:series}).map((_,si)=>{
-        const kKey='kg-'+idx+'-'+bi+'-'+ei+'-'+si;
-        const rKey='rp-'+idx+'-'+bi+'-'+ei+'-'+si;
-        const preFill=si===0&&lastKg?lastKg:'';
-        return '<tr><td style="font-family:var(--fm);font-size:11px;color:var(--s2);padding:6px 5px">'+(si+1)+'</td>'
-          +'<td><input class="ex-inp'+(preFill?' prefill':'')+'" type="number" placeholder="'+(preFill||kgR||'—')+'" '+(preFill?'value="'+preFill+'"':'')+' data-k="'+kKey+'" onchange="autoSaveSerie('+idx+','+bi+','+ei+','+si+','+series+',\''+ej.n.replace(/'/g,'')+'\')"></td>'
-          +'<td><input class="ex-inp" placeholder="'+reps+'" data-k="'+rKey+'" onchange="autoSaveSerie('+idx+','+bi+','+ei+','+si+','+series+',\''+ej.n.replace(/'/g,'')+'\')"></td>'
-          +'<td><span style="font-family:var(--fm);font-size:11px;color:var(--s2)">'+(si+1)+'</span></td>'
-          +'<td><input class="ex-inp fb" placeholder="Sensaciones..." data-k="fb-'+idx+'-'+bi+'-'+ei+'-'+si+'"></td></tr>';
-      }).join('');
-      bHtml+='<div class="excard" id="ec-'+idx+'-'+bi+'-'+ei+'">'
-        +mediaHtml
-        +'<div class="ex-body"><div class="ex-name">'+ej.n+(kgR?'<span style="font-family:var(--fm);font-size:10px;color:var(--gr);margin-left:8px;background:rgba(74,222,128,.1);padding:2px 8px;border-radius:4px;border:1px solid rgba(74,222,128,.2)">meta: '+kgR+'kg</span>':'')+'</div>'
-        +(ej.no?'<div class="ex-note">'+ej.no+'</div>':'')+histHtml
-        +'<table class="ex-tabla"><thead><tr><th>Serie</th><th>Kg</th><th>Reps</th><th>N°</th><th>Sensaciones</th></tr></thead><tbody>'+serRows+'</tbody></table>'
-        +'<button class="ex-done-btn" id="edb-'+idx+'-'+bi+'-'+ei+'" onclick="sTogEj('+idx+','+bi+','+ei+','+series+','+desc+',\''+ej.n.replace(/'/g,'')+'\')">✓ Marcar completado</button>'
-        +'</div></div>';
-    });
-    bHtml+='</div></div>';
-    var _planC2=document.getElementById('s-plan-c');if(_planC2)_planC2.insertAdjacentHTML('beforeend',bHtml);
+      if(myFb.length){const chartData=myFb.slice(0,4).reverse().map(f=>parseFloat(f.entries?.[0]?.kg)||0);const maxV=Math.max(...chartData)||1;histHtml=`<div class="ex-hist"><div class="ex-hist-t"><span>Mis registros</span>${bestKg?`<span class="ex-hist-best">🏆 ${bestKg}kg</span>`:''}</div><div style="display:flex;align-items:flex-end;gap:4px;height:52px">${chartData.map((v,i)=>`<div class="hcol"><div class="hbv">${v||'—'}</div><div class="hbar${i===chartData.length-1?' latest':''}" style="height:${v?Math.round(v/maxV*42)+8:4}px"></div></div>`).join('')}</div></div>`;}
+      return `<div class="excard ${done?'done-ej':''}" id="ec-${idx}-${bi}-${ei}">
+        ${mediaHtml}
+        <div class="ex-body">
+          <div class="ex-name">${ej.n}</div>
+          ${ej.no?`<div class="ex-note">${ej.no}</div>`:''}
+          ${histHtml}
+          <table class="ex-tabla"><thead><tr><th style="text-align:left">Ejercicio</th><th>kg</th><th>Reps</th><th>Serie</th><th>Feedback</th></tr></thead>
+          <tbody>${Array.from({length:series}).map((_,si)=>`<tr><td style="font-family:var(--fm);font-size:10px;color:var(--s2)">${si===0?ej.n.substring(0,16)+'...':''}</td><td><input class="ex-inp${si===0&&lastKg?' prefill':''}" type="number" placeholder="${si===0&&lastKg?lastKg:'—'}" ${si===0&&lastKg?`value="${lastKg}"`:''}data-k="kg-${idx}-${bi}-${ei}-${si}"></td><td><input class="ex-inp" placeholder="${reps}" data-k="rp-${idx}-${bi}-${ei}-${si}"></td><td><span style="font-family:var(--fm);font-size:11px;color:var(--s2)">${si+1}</span></td><td><input class="ex-inp fb" placeholder="Sensaciones..." data-k="fb-${idx}-${bi}-${ei}-${si}"></td></tr>`).join('')}
+          </tbody></table>
+          <button class="ex-done-btn ${done?'done':''}" id="edb-${idx}-${bi}-${ei}" onclick="sTogEj(${idx},${bi},${ei},${series},${desc},'${ej.n.replace(/'/g,"\\'")}')">${done?'✓ Completado':'✓ Completar + Timer'}</button>
+        </div>
+      </div>`;
+    }).join('')}</div></div>`;
   });
-  }catch(e){
-    var _planC=document.getElementById('s-plan-c');
-    if(_planC)_planC.innerHTML='<div style="color:var(--re);padding:16px;font-size:12px">Error: '+e.message+'</div>';
-    console.error('sDiaC error:',e);
-  }
+  set('s-plan-c',html);sUpdateBar(idx);sCheckF(idx);setTimeout(()=>sRestoreInp(idx),60);
 }
 
 function sCal(di,ci){
@@ -1435,7 +1342,51 @@ function sProg(){
   set('s-mpeso',`${a.peso||'—'}<em style="font-size:14px;color:var(--t3)">kg</em>`);set('s-mses',a.sesiones||0);
   const fb=DB.get('feedback')||[];const myFb=fb.filter(f=>f.alumnoId===a.id);
   const byEj={};myFb.forEach(f=>{if(!byEj[f.ejercicio])byEj[f.ejercicio]=[];f.entries?.forEach(e=>{if(e.kg&&parseFloat(e.kg)>0)byEj[f.ejercicio].push({kg:parseFloat(e.kg),fecha:f.fecha});});});
-  set('s-hist-pesos', buildProgressCharts(byEj));}
+  set('s-hist-pesos',Object.entries(byEj).filter(([,d])=>d.length>0).slice(0,6).map(([name,data])=>{const best=Math.max(...data.map(d=>d.kg));const last4=data.slice(0,4).reverse();const maxV=Math.max(...last4.map(d=>d.kg))||1;return `<div style="background:var(--card);border:1px solid var(--bor);border-radius:10px;padding:13px;margin-bottom:9px"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px"><div style="font-size:13px;font-weight:600;color:var(--tx)">${name.split('(')[0].trim()}</div><span style="font-family:var(--fm);font-size:11px;color:var(--gr)">🏆 ${best}kg</span></div><div style="display:flex;align-items:flex-end;gap:5px;height:50px">${last4.map((d,i)=>`<div class="hcol"><div class="hbv">${d.kg}</div><div class="hbar${i===last4.length-1?' latest':''}" style="height:${Math.round(d.kg/maxV*42)+7}px"></div><div class="hbl">${d.fecha?.slice(5)||''}</div></div>`).join('')}</div></div>`;}).join('')||'<p style="color:var(--t3);font-size:13px;padding:10px 0">Registra tus kg durante las sesiones y aquí verás tu progreso.</p>');
+  const hist=DB.get('hist_s')||[];set('s-historial',hist.filter(h=>h.alumno===a.n).slice(0,5).map(h=>`<div style="background:var(--card);border:1px solid var(--bor);border-radius:9px;padding:12px;margin-bottom:8px"><div style="display:flex;justify-content:space-between;align-items:center"><div style="font-family:var(--fd);font-size:15px;font-weight:700;color:var(--tx);text-transform:uppercase">${h.dia}</div><span class="badge bok">Completada</span></div><div style="font-family:var(--fm);font-size:10px;color:var(--t3);margin-top:3px">${h.fecha}</div></div>`).join('')||'<p style="color:var(--t3);font-size:13px;padding:10px 0">Completa tu primera sesión.</p>');
+}
+
+function sPerfil(){
+  const a=ALUMNO;const ini=a.n.split(' ').map(x=>x[0]).join('').slice(0,2).toUpperCase();
+  set('s-pav',ini);set('s-pname',a.n.toUpperCase());set('s-prole',`${a.obj} · ${a.nivel}`);
+  set('s-pag-val',`$${(a.tarifa||0).toLocaleString('es-CL')} CLP`);set('s-pag-ses',a.sesiones||0);
+  set('s-pag-tot',`$${((a.tarifa||0)*(a.sesiones||0)).toLocaleString('es-CL')} CLP`);
+  set('s-pag-est',`<span class="badge ${a.pago==='al_dia'?'bok':a.pago==='vencido'?'bred':'bwarn'}">${a.pago==='al_dia'?'Al día':a.pago==='vencido'?'Vencido':'Pendiente'}</span>`);
+  set('s-pd-obj',a.obj);set('s-pd-niv',a.nivel);set('s-pd-obs',a.obs||'—');
+  const ev=(DB.get('eval')||{})[a.id]||{};
+  set('s-alerts-block',ev.alertas?.length?`<div style="margin-bottom:11px"><div style="font-family:var(--fm);font-size:9px;color:var(--re);text-transform:uppercase;letter-spacing:2px;margin-bottom:9px">🚨 Tus alertas activas</div>${ev.alertas.map(al=>`<div style="display:flex;align-items:center;gap:9px;padding:8px;background:rgba(192,64,64,.08);border:1px solid rgba(192,64,64,.2);border-radius:8px;margin-bottom:7px"><span>${al.lvl==='red'?'🔴':al.lvl==='orange'?'🟠':'🟢'}</span><div style="font-size:13px;color:var(--re)">${al.txt}</div></div>`).join('')}</div>`:'');
+  sRenderNotasYMedidas();
+  set('s-eval-view',ev.les||ev['mh']?`<div class="s-psec" style="margin-bottom:11px"><div class="s-pst">📋 Mi evaluación</div>${ev.les?`<div class="s-psr"><span class="s-psk">Lesiones</span><span class="s-psv" style="color:var(--or);font-size:12px">${ev.les}</span></div>`:''}</div>`:'');
+}
+
+function sGo(s){
+  document.querySelectorAll('.ss').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.s-tab').forEach(x=>x.classList.remove('active'));
+  document.getElementById('s-'+s)?.classList.add('active');
+  document.getElementById('ntab-'+s)?.classList.add('active');
+  if(s==='plan')sPlan();
+  if(s==='prog')setTimeout(()=>{const a=ALUMNO;const adh=Math.min(Math.round((a.sesiones||0)/((a.semanas||1)*3)*100),100);document.getElementById('s-ring').style.strokeDashoffset=314-(314*adh/100);set('s-rpct',adh+'%');},120);
+}
+
+// ═══ THEME ═══
+function toggleTheme(){
+  const t=document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark';
+  document.documentElement.setAttribute('data-theme',t);
+  localStorage.setItem('rt6_theme',t);
+  ['ti-mode','ti-t','ti-s'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=t==='dark'?'🌙':'☀️';});
+}
+
+// ═══ PIN ═══
+let PIN_AL=null,PIN_CURR='';
+function checkPinStudent(alId){
+  const a=(DB.get('alumnos')||[]).find(x=>x.id===alId);if(!a)return;
+  if(!a.pin||a.pin.length!==4){sLogin(a);return;}
+  PIN_AL=a;PIN_CURR='';
+  set('pin-al-name',a.n.toUpperCase());renderPinDots();renderPinPad();
+  document.getElementById('s-login').style.display='none';
+  document.getElementById('s-pin').style.display='flex';
+}
+function renderPinDots(){set('pin-dots',[0,1,2,3].map(i=>`<div class="pin-dot ${i<PIN_CURR.length?'filled':''}"></div>`).join(''));}
 function renderPinPad(){
   const nums=[1,2,3,4,5,6,7,8,9,'',0,'del'];
   set('pin-pad',nums.map(n=>{
@@ -1599,179 +1550,49 @@ function sRenderNotasYMedidas(){
 }
 
 
+// ═══ FIREBASE SYNC ═══
+(function(){
+  var FBS1=document.createElement('script');
+  FBS1.src='https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js';
+  FBS1.onload=function(){
+    var FBS2=document.createElement('script');
+    FBS2.src='https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js';
+    FBS2.onload=function(){
+      try{
+        if(!firebase.apps.length) firebase.initializeApp({
+          apiKey:"AIzaSyBDGlSXzoeRJcS_y7Ebjm6QxuaRYEko1aA",
+          authDomain:"rubentrena-433ea.firebaseapp.com",
+          projectId:"rubentrena-433ea",
+          storageBucket:"rubentrena-433ea.firebasestorage.app",
+          messagingSenderId:"544105379170",
+          appId:"1:544105379170:web:b6752a6a670d67454ae83b"
+        });
+        var _d=firebase.firestore().collection('rubentrena').doc('data');
+        window.FB={
+          set:function(k,v){var o={};o[k]=JSON.stringify(v);_d.set(o,{merge:true}).catch(function(){});},
+          syncAll:function(){
+            _d.get().then(function(s){
+              if(!s.exists())return;
+              var d=s.data();
+              ['alumnos','ejercicios','rutinas','sesiones','feedback','pagos','medidas','notas'].forEach(function(k){
+                if(d[k]!==undefined)localStorage.setItem('rt6_'+k,d[k]);
+              });
+              if(typeof tAll==='function')tAll();
+              var dot=document.getElementById('fb-dot');
+              var txt=document.getElementById('fb-txt');
+              if(dot)dot.style.background='#4ade80';
+              if(txt){txt.textContent='en linea';txt.style.color='#4ade80';}
+            }).catch(function(){});
+          }
+        };
+        window.FB.syncAll();
+      }catch(e){console.warn('Firebase:',e);}
+    };
+    document.head.appendChild(FBS2);
+  };
+  document.head.appendChild(FBS1);
+})();
 
-// ── buildCalSection ──
-function buildCalSection(container,di,sk,label,icon,items){
-  var wrap=document.createElement('div');
-  wrap.style.cssText='background:var(--bg2);border:1px solid var(--bor);border-radius:10px;padding:11px;margin-bottom:9px';
-  var hdr=document.createElement('div');
-  hdr.style.cssText='font-family:var(--fm);font-size:10px;color:var(--si);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:9px';
-  hdr.textContent=icon+' '+label;
-  wrap.appendChild(hdr);
-  (items||[]).forEach(function(item,ci){
-    var r=resolveCalItem(item);
-    var row=document.createElement('div');
-    row.style.cssText='background:var(--bg3);border:1px solid var(--bor);border-radius:8px;padding:9px;margin-bottom:7px';
-    var top=document.createElement('div');
-    top.style.cssText='display:flex;align-items:center;gap:8px;margin-bottom:7px';
-    if(r.fo){
-      var img=document.createElement('img');
-      img.src=r.fo;
-      img.style.cssText='width:40px;height:40px;border-radius:6px;object-fit:cover;flex-shrink:0;cursor:pointer';
-      img.setAttribute('data-s',r.fo);img.setAttribute('data-n',r.n);
-      img.addEventListener('click',function(){tapImg(this);});
-      img.addEventListener('error',function(){this.style.display='none';});
-      top.appendChild(img);
-    }
-    if(item&&item.txt!==undefined){
-      var inp=document.createElement('input');inp.className='fi';
-      inp.style.cssText='flex:1;font-size:13px;padding:7px 10px';inp.value=r.n;inp.placeholder='Ej: Movilidad cadera...';
-      (function(d2,s2,c2){inp.addEventListener('change',function(){if(R_DIAS[d2][s2])R_DIAS[d2][s2][c2].txt=this.value;});})(di,sk,ci);
-      top.appendChild(inp);
-    }else{var nm=document.createElement('span');nm.style.cssText='flex:1;font-size:13px;color:var(--tx);font-weight:500';nm.textContent=r.n;top.appendChild(nm);}
-    var del=document.createElement('button');del.className='btn btn-red btn-sm';del.style.cssText='padding:4px 8px;min-height:30px;flex-shrink:0';del.textContent='✕';
-    (function(d2,s2,c2){del.addEventListener('click',function(){if(R_DIAS[d2][s2])R_DIAS[d2][s2].splice(c2,1);renderRDias();});})(di,sk,ci);
-    top.appendChild(del);row.appendChild(top);
-    var grid=document.createElement('div');grid.style.cssText='display:grid;grid-template-columns:repeat(3,1fr);gap:6px';
-    [['series','Series','2'],['reps','Reps','10'],['tiempo','Tiempo','30seg']].forEach(function(f){
-      var cell=document.createElement('div');
-      var lbl=document.createElement('div');lbl.style.cssText='font-family:var(--fm);font-size:8px;color:var(--t3);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px';lbl.textContent=f[1];
-      var finp=document.createElement('input');finp.className='fi';finp.style.cssText='font-size:13px;text-align:center;padding:6px 4px';finp.placeholder=f[2];finp.value=r[f[0]]||'';
-      (function(d2,s2,c2,field){finp.addEventListener('change',function(){if(R_DIAS[d2][s2]&&R_DIAS[d2][s2][c2])R_DIAS[d2][s2][c2][field]=this.value;});})(di,sk,ci,f[0]);
-      cell.appendChild(lbl);cell.appendChild(finp);grid.appendChild(cell);
-    });
-    row.appendChild(grid);wrap.appendChild(row);
-  });
-  var btns=document.createElement('div');btns.style.cssText='display:flex;gap:7px;margin-top:8px';
-  var btnT=document.createElement('button');btnT.className='btn btn-g btn-sm';btnT.style.flex='1';btnT.textContent='+ Texto libre';
-  (function(d2,s2){btnT.addEventListener('click',function(){if(!R_DIAS[d2][s2])R_DIAS[d2][s2]=[];R_DIAS[d2][s2].push({txt:'',series:'',reps:'',tiempo:''});renderRDias();});})(di,sk);
-  var btnL=document.createElement('button');btnL.className='btn btn-g btn-sm';btnL.style.flex='1';btnL.textContent='+ De biblioteca';
-  (function(d2,s2){btnL.addEventListener('click',function(){openEjPicker(d2,s2);});})(di,sk);
-  btns.appendChild(btnT);btns.appendChild(btnL);wrap.appendChild(btns);container.appendChild(wrap);
-}
-
-// ── renderRDias helpers ──
-function addBloque(di){R_DIAS[di].bloques.push({nombre:'Bloque '+(R_DIAS[di].bloques.length+1)+' — Accesorio',ejerIds:[],series:[],reps:[],descanso:[],kgs:[]});renderRDias();}
-function delEjRow(di,bi,ei){['ejerIds','series','reps','descanso','kgs'].forEach(function(k){if(R_DIAS[di].bloques[bi][k])R_DIAS[di].bloques[bi][k].splice(ei,1);});renderRDias();}
-
-// ── renderRDias ──
-function renderRDias(){
-  var ejs=DB.get('ejercicios')||[];
-  var container=document.getElementById('m-rut-dias');
-  if(!container)return;
-  R_DIAS.forEach(function(d){
-    if(!d.calentamiento)d.calentamiento=[];if(!d.calCore)d.calCore=[];if(!d.bloques)d.bloques=[];
-    d.bloques.forEach(function(b){if(!b.ejerIds)b.ejerIds=[];if(!b.series)b.series=[];if(!b.reps)b.reps=[];if(!b.descanso)b.descanso=[];if(!b.kgs)b.kgs=[];});
-  });
-  var html='';
-  R_DIAS.forEach(function(dia,di){
-    html+='<div class="dia-block" id="db-'+di+'">';
-    html+='<div class="dia-block-header">';
-    html+='<input value="'+(dia.label||'Dia '+(di+1)).replace(/"/g,'&quot;')+'" class="fi" style="width:120px;font-family:var(--fd);font-size:15px;font-weight:700" onchange="R_DIAS['+di+'].label=this.value">';
-    html+='<button class="btn btn-red btn-sm" onclick="R_DIAS.splice('+di+',1);renderRDias()">✕ Día</button>';
-    html+='</div><div id="calph-'+di+'"></div>';
-    dia.bloques.forEach(function(b,bi){
-      html+='<div class="bloque-build"><div class="bloque-build-header">';
-      html+='<input value="'+(b.nombre||'Bloque').replace(/"/g,'&quot;')+'" class="fi" style="flex:1;font-size:12px;font-family:var(--fm)" onchange="R_DIAS['+di+'].bloques['+bi+'].nombre=this.value">';
-      html+='<button class="btn btn-red btn-sm" onclick="R_DIAS['+di+'].bloques.splice('+bi+',1);renderRDias()">✕</button></div>';
-      if(b.ejerIds.length>0){
-        html+='<div style="display:grid;grid-template-columns:1fr 50px 60px 60px 50px 34px;gap:4px;padding:4px 0;border-bottom:1px solid var(--bor);margin-bottom:4px">';
-        ['Ejercicio','Series','Reps','Kg ref','Desc',''].forEach(function(h,i){html+='<div style="font-family:var(--fm);font-size:8px;color:var(--t3)'+(i>0?';text-align:center':'')+'">'+(h||'')+'</div>';});
-        html+='</div>';
-      }
-      b.ejerIds.forEach(function(ejId,ei){
-        var ej=ejs.find(function(x){return x.id===ejId;})||{n:ejId,fo:'',m:''};
-        html+='<div style="display:grid;grid-template-columns:1fr 50px 60px 60px 50px 34px;gap:4px;align-items:center;padding:5px 0;border-bottom:1px solid var(--bor)">';
-        html+='<div style="display:flex;align-items:center;gap:6px">';
-        html+=ej.fo?('<img src="'+ej.fo+'" style="width:34px;height:34px;border-radius:5px;object-fit:cover;flex-shrink:0">'):('<div style="width:34px;height:34px;border-radius:5px;background:var(--bg3);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px">'+ejIco(ej.m)+'</div>');
-        html+='<span style="font-size:12px">'+ej.n+'</span></div>';
-        html+='<input class="fi" type="number" style="font-size:12px;text-align:center;padding:4px 2px" value="'+(b.series[ei]||3)+'" onchange="R_DIAS['+di+'].bloques['+bi+'].series['+ei+']=parseInt(this.value)||3">';
-        html+='<input class="fi" style="font-size:12px;text-align:center;padding:4px 2px" value="'+(b.reps[ei]||'10')+'" onchange="R_DIAS['+di+'].bloques['+bi+'].reps['+ei+']=this.value">';
-        html+='<input class="fi" style="font-size:12px;text-align:center;padding:4px 2px" value="'+(b.kgs[ei]||'')+'" placeholder="--" onchange="R_DIAS['+di+'].bloques['+bi+'].kgs['+ei+']=this.value">';
-        html+='<input class="fi" type="number" style="font-size:12px;text-align:center;padding:4px 2px" value="'+(b.descanso[ei]||90)+'" onchange="R_DIAS['+di+'].bloques['+bi+'].descanso['+ei+']=parseInt(this.value)||90">';
-        html+='<button class="btn btn-red btn-sm" style="padding:3px 5px;min-height:30px" onclick="delEjRow('+di+','+bi+','+ei+')">✕</button></div>';
-      });
-      html+='<div style="margin-top:8px"><button class="btn btn-g btn-sm" style="width:100%" onclick="openEjPicker('+di+','+bi+')">+ Agregar ejercicio</button></div></div>';
-    });
-    html+='<button class="btn btn-g btn-sm" style="width:100%;margin-top:7px" onclick="addBloque('+di+')">+ Bloque</button></div>';
-  });
-  container.innerHTML=html;
-  R_DIAS.forEach(function(dia,di){
-    var ph=document.getElementById('calph-'+di);
-    if(!ph)return;
-    var wrap=document.createElement('div');wrap.className='bloque-build';
-    var t=document.createElement('div');t.style.cssText='font-family:var(--fm);font-size:10px;color:var(--s2);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px;padding:5px 0;border-bottom:1px solid var(--bor)';t.textContent='🔥 Calentamiento';
-    wrap.appendChild(t);
-    buildCalSection(wrap,di,'calentamiento','Movilidad articular','🤸',dia.calentamiento||[]);
-    buildCalSection(wrap,di,'calCore','Core / Activación','⚡',dia.calCore||[]);
-    ph.replaceWith(wrap);
-  });
-}
-
-// ── Picker ──
-var PICKER_DI=0,PICKER_BI=0,PICKER_EQ='all';
-function openEjPicker(di,bi){PICKER_DI=di;PICKER_BI=bi;PICKER_EQ='all';var s=document.getElementById('picker-search');if(s)s.value='';renderPickerTags();renderPickerGrid('');openM('m-ej-picker');}
-function renderPickerTags(){var ejs=DB.get('ejercicios')||[];var eqs=Array.from(new Set(ejs.map(function(e){return e.eq;}).filter(Boolean)));var el=document.getElementById('picker-tags');if(!el)return;el.innerHTML='';['all'].concat(eqs).forEach(function(eq){var d=document.createElement('div');d.className='ttag'+(PICKER_EQ===eq?' active':'');d.textContent=eq==='all'?'Todos':eq;d.addEventListener('click',function(){PICKER_EQ=eq;renderPickerTags();var s=document.getElementById('picker-search');renderPickerGrid(s?s.value:'');});el.appendChild(d);});}
-function filterPicker(q){renderPickerGrid(q);}
-function renderPickerGrid(q){var ejs=DB.get('ejercicios')||[];var f=ejs;if(PICKER_EQ!=='all')f=f.filter(function(e){return e.eq===PICKER_EQ;});if(q)f=f.filter(function(e){return(e.n+' '+e.m+' '+(e.eq||'')).toLowerCase().includes(q.toLowerCase());});var el=document.getElementById('picker-grid');if(!el)return;el.innerHTML='';if(!f.length){el.innerHTML='<div style="grid-column:1/-1;text-align:center;color:var(--t3);padding:20px">Sin resultados</div>';return;}f.forEach(function(e){var card=document.createElement('div');card.style.cssText='background:var(--bg3);border:1px solid var(--bor);border-radius:10px;overflow:hidden;cursor:pointer';card.addEventListener('click',function(){selectEj(e.id);});var media=document.createElement('div');media.style.cssText='height:90px;overflow:hidden;background:var(--bg2)';if(e.fo){var img=document.createElement('img');img.src=e.fo;img.style.cssText='width:100%;height:100%;object-fit:cover';media.appendChild(img);}else{var ph=document.createElement('div');ph.style.cssText='width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:28px';ph.textContent=ejIco(e.m);media.appendChild(ph);}card.appendChild(media);var body=document.createElement('div');body.style.cssText='padding:6px 8px';var nm=document.createElement('div');nm.style.cssText='font-size:12px;font-weight:600;color:var(--tx)';nm.textContent=e.n;body.appendChild(nm);card.appendChild(body);el.appendChild(card);});}
-function selectEj(ejId){if(typeof PICKER_BI==='string'){if(!R_DIAS[PICKER_DI][PICKER_BI])R_DIAS[PICKER_DI][PICKER_BI]=[];R_DIAS[PICKER_DI][PICKER_BI].push({ref:ejId,series:'',reps:'',tiempo:''});}else{R_DIAS[PICKER_DI].bloques[PICKER_BI].ejerIds.push(ejId);R_DIAS[PICKER_DI].bloques[PICKER_BI].series.push(3);R_DIAS[PICKER_DI].bloques[PICKER_BI].reps.push('10');R_DIAS[PICKER_DI].bloques[PICKER_BI].descanso.push(90);R_DIAS[PICKER_DI].bloques[PICKER_BI].kgs.push('');}closeM('m-ej-picker');renderRDias();}
-
-// ── Image viewer ──
-function tapImg(el){var src=el.getAttribute('data-s')||el.src||'';var nm=el.getAttribute('data-n')||'';if(src)showImgFull(src,nm);}
-function showImgFull(src,name){var ov=document.createElement('div');ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.93);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;';ov.addEventListener('click',function(){ov.remove();});var img=document.createElement('img');img.src=src;img.style.cssText='max-width:100%;max-height:80vh;border-radius:12px;object-fit:contain;';var lbl=document.createElement('div');lbl.style.cssText='color:#fff;font-family:var(--fd);font-size:20px;font-weight:700;margin-top:14px;text-align:center;text-transform:uppercase;';lbl.textContent=name||'';var cls=document.createElement('div');cls.style.cssText='position:absolute;top:16px;right:20px;color:#fff;font-size:30px;cursor:pointer;';cls.textContent='✕';ov.appendChild(img);ov.appendChild(lbl);ov.appendChild(cls);document.body.appendChild(ov);}
-document.addEventListener('click',function(e){var el=e.target.closest('.ex-media');if(!el)return;var img=el.querySelector('img');if(!img)return;var nm=el.closest('.excard')&&el.closest('.excard').querySelector('.ex-name');showImgFull(img.src,nm?nm.textContent:'');});
-
-// ── Progress charts ──
-function buildProgressCharts(byEj){
-  var entries=Object.entries(byEj).filter(function(e){return e[1].length>0;}).slice(0,8);
-  if(!entries.length)return '<p style="color:var(--t3);font-size:13px;padding:10px 0">Registra tus kg durante las sesiones y aquí verás tu progreso.</p>';
-  return entries.map(function(entry){
-    var name=entry[0],data=entry[1];
-    var best=Math.max.apply(null,data.map(function(d){return d.kg;}));
-    var first=data[data.length-1].kg,latest=data[0].kg;
-    var diff=Math.round((latest-first)*10)/10;
-    var pts=data.slice(0,8).reverse();
-    var maxV=Math.max.apply(null,pts.map(function(d){return d.kg;}))||1;
-    var minV=Math.min.apply(null,pts.map(function(d){return d.kg;}))*0.93;
-    var range=maxV-minV||1,H=70;
-    var coords=pts.map(function(d,i){return{x:pts.length>1?Math.round(i/(pts.length-1)*100):50,y:Math.round(H-((d.kg-minV)/range)*H*0.85)+5,f:d.fecha?d.fecha.slice(5):''};});
-    var line=coords.map(function(p){return p.x+','+p.y;}).join(' ');
-    var area=line+' '+coords[coords.length-1].x+','+H+' 0,'+H;
-    var dots=coords.map(function(p,i){var l=i===coords.length-1;return '<circle cx="'+p.x+'" cy="'+p.y+'" r="'+(l?4:2.5)+'" fill="'+(l?'var(--gr)':'var(--bg2)')+'" stroke="var(--gr)" stroke-width="2"/>';}).join('');
-    var diffColor=diff>0?'var(--gr)':diff<0?'var(--re)':'var(--t3)';
-    var h='<div style="background:var(--card);border:1px solid var(--bor);border-radius:11px;padding:14px;margin-bottom:10px">';
-    h+='<div style="display:flex;justify-content:space-between;margin-bottom:10px"><div><div style="font-size:13px;font-weight:600">'+name.split('(')[0].trim()+'</div><div style="font-size:10px;color:var(--t3);margin-top:2px">'+pts.length+' sesiones</div></div>';
-    h+='<div style="text-align:right"><div style="font-family:var(--fd);font-size:24px;font-weight:900;color:var(--gr)">'+best+'<em style="font-size:12px;color:var(--t3)"> kg</em></div>';
-    if(diff!==0)h+='<div style="font-size:10px;color:'+diffColor+';">'+(diff>0?'+':'')+diff+'kg</div>';
-    h+='</div></div>';
-    h+='<svg viewBox="0 0 100 '+H+'" style="width:100%;height:'+H+'px;overflow:visible" preserveAspectRatio="none">';
-    if(pts.length>1)h+='<polygon points="'+area+'" fill="rgba(58,138,74,0.15)"/>';
-    if(pts.length>1)h+='<polyline points="'+line+'" fill="none" stroke="var(--gr)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>';
-    h+=dots+'</svg>';
-    h+='<div style="display:flex;justify-content:space-between;margin-top:4px"><div style="font-size:9px;color:var(--t3)">'+coords[0].f+'</div><div style="font-size:9px;color:var(--t3)">'+coords[coords.length-1].f+'</div></div></div>';
-    return h;
-  }).join('');
-}
-
-// ── buildHoyPreview ──
-function buildHoyPreview(dia0,ejs){
-  if(!dia0)return '<p style="color:var(--t3);font-size:13px;text-align:center;padding:20px">Rubén aún no asignó tu plan.</p>';
-  var calItems=[].concat(dia0.calentamiento||[]).concat(dia0.calCore||[]);
-  var calHtml=calItems.slice(0,2).map(function(it){var r=resolveCalItem(it);return '<div style="font-size:12px;color:var(--t2);padding:6px 0;border-bottom:1px solid var(--bor)">'+r.n+'</div>';}).join('');
-  var ejIds=dia0.bloques&&dia0.bloques[0]?dia0.bloques[0].ejerIds||[]:[];
-  var ejHtml=ejIds.slice(0,2).map(function(ejId){
-    var ej=ejs.find(function(e){return e.id===ejId;})||{n:ejId,m:'',fo:''};
-    var media=ej.fo?('<div class="ex-media" style="height:100px"><img src="'+ej.fo+'" onerror="this.style.display=\'none\'"><div class="ex-badge">'+ej.m+'</div></div>'):'';
-    return '<div class="excard" style="cursor:pointer" onclick="sGo(\'plan\')">'+media+'<div class="ex-body" style="padding:10px 13px"><div class="ex-name" style="font-size:17px">'+ej.n+'</div></div></div>';
-  }).join('');
-  var total=(dia0.bloques||[]).reduce(function(s,b){return s+(b.ejerIds?b.ejerIds.length:0);},0);
-  return '<div class="sblq" style="cursor:pointer" onclick="sGo(\'plan\')">'
-    +'<div class="sblq-hdr"><div class="sblq-ico">🔥</div><div class="sblq-t">Calentamiento</div><div class="sblq-m">'+calItems.length+' ítems</div></div>'
-    +'<div class="sblq-body">'+calHtml+'<div style="font-size:11px;color:var(--t3);margin-top:5px">Ver plan completo →</div></div></div>'
-    +ejHtml+'<div style="text-align:center;padding:7px 0;font-size:11px;color:var(--t3);cursor:pointer" onclick="sGo(\'plan\')">Ver '+total+' ejercicios →</div>';
-}
-
-// ── importStu ──
 function importStu(input){
   var file=input.files[0];if(!file)return;
   var reader=new FileReader();
@@ -1779,30 +1600,11 @@ function importStu(input){
     try{
       var data=JSON.parse(e.target.result);
       Object.keys(data).forEach(function(k){localStorage.setItem(k,JSON.stringify(data[k]));});
-      showToast('✓ Datos cargados');
-      setTimeout(function(){
-        var als=DB.get('alumnos')||[];
-        var grid=document.getElementById('s-al-grid');
-        buildSLogin();
-      },500);
+      showToast('\u2713 Datos cargados');
+      if(typeof buildSLogin==='function')buildSLogin();
     }catch(err){showToast('Error al cargar');}
   };
   reader.readAsText(file);input.value='';
-}
-
-
-}
-function sGo(s){
-  document.querySelectorAll('.ss').forEach(function(x){x.classList.remove('active');});
-  document.querySelectorAll('.s-tab').forEach(function(x){x.classList.remove('active');});
-  var sc=document.getElementById('s-'+s);
-  var tb=document.getElementById('ntab-'+s);
-  if(sc)sc.classList.add('active');
-  if(tb)tb.classList.add('active');
-  if(s==='hoy')sHoy();
-  else if(s==='plan')sPlan();
-  else if(s==='prog')sProg();
-  else if(s==='perfil')sAll();
 }
 
 </script>
