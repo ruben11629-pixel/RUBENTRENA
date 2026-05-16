@@ -408,7 +408,7 @@ select.fi{appearance:none;cursor:pointer;}
     <div class="t-topbar-date" id="tb-date">—</div>
     <div class="t-topbar-actions">
       <div class="theme-toggle" onclick="toggleTheme()" title="Cambiar tema"><span class="theme-icon" id="ti-t">🌙</span></div>
-      <span id="fb-dot" style="width:7px;height:7px;border-radius:50%;background:var(--t3);display:inline-block;margin-right:3px;vertical-align:middle"></span><span id="fb-txt" style="font-family:var(--fm);font-size:9px;color:var(--t3);margin-right:8px">sync</span><button class="btn btn-g btn-sm" onclick="launchMode()" title="Volver">⇄</button><button class="btn btn-g btn-sm" onclick="importData()">⬆ Importar</button>
+      <span id="fb-dot" style="width:7px;height:7px;border-radius:50%;background:var(--t3);display:inline-block;margin-right:3px;vertical-align:middle"></span><span id="fb-txt" style="font-family:var(--fm);font-size:9px;color:var(--t3);margin-right:8px">sync</span><button class="btn btn-g btn-sm" onclick="launchMode()">⇄</button><button class="btn btn-g btn-sm" onclick="importData()">⬆ Importar</button>
       <button class="btn btn-g btn-sm" onclick="exportData()">⬇ Backup</button>
       <button class="btn btn-p btn-sm" onclick="openM('m-ses')">+ Sesión</button>
     </div>
@@ -734,6 +734,7 @@ select.fi{appearance:none;cursor:pointer;}
 <!-- MODAL NUTRICION (en eval) embebido más abajo -->
 <input type="file" id="import-input" accept=".json" style="display:none" onchange="processImport(this)">
 
+<div class="mo" id="m-ej-picker"><div class="md md-w" style="max-height:92vh"><div class="mt">Seleccionar ejercicio</div><div class="srch" style="margin-bottom:11px"><span style="color:var(--t3)">&#x2315;</span><input id="picker-search" placeholder="Buscar por nombre, músculo..." oninput="filterPicker(this.value)" style="background:none;border:none;outline:none;color:var(--tx);font-family:var(--fb);font-size:14px;flex:1"></div><div class="trow" id="picker-tags" style="margin-bottom:10px;flex-wrap:wrap;gap:6px;"></div><div id="picker-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:9px;max-height:55vh;overflow-y:auto;"></div><div class="macts"><button class="btn btn-g" onclick="closeM('m-ej-picker')">Cancelar</button></div></div></div>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -1148,7 +1149,7 @@ function renderRDias(){
             <button class="btn btn-red btn-sm" onclick="R_DIAS[${di}].bloques.splice(${bi},1);renderRDias()">✕</button>
           </div>
           ${(b.ejerIds||[]).map((ejId,ei)=>{const ej=ejs.find(x=>x.id===ejId)||{n:ejId};return `<div class="ej-row"><span style="flex:1;font-size:13px;color:var(--tx)">${ej.n}</span><input class="fi" style="width:52px;font-size:12px;font-family:var(--fm);text-align:center" value="${b.series[ei]||3}" onchange="R_DIAS[${di}].bloques[${bi}].series[${ei}]=parseInt(this.value)||3" title="Series"><input class="fi" style="width:66px;font-size:12px;font-family:var(--fm);text-align:center" value="${b.reps[ei]||'8'}" onchange="R_DIAS[${di}].bloques[${bi}].reps[${ei}]=this.value" title="Reps"><input class="fi" style="width:52px;font-size:12px;font-family:var(--fm);text-align:center" value="${b.descanso[ei]||90}" onchange="R_DIAS[${di}].bloques[${bi}].descanso[${ei}]=parseInt(this.value)||90" title="Desc(s)"><button class="btn btn-red btn-sm" onclick="['ejerIds','series','reps','descanso'].forEach(k=>R_DIAS[${di}].bloques[${bi}][k].splice(${ei},1));renderRDias()">✕</button></div>`;}).join('')}
-          <select class="fi" style="margin-top:8px;font-size:13px" onchange="if(this.value){R_DIAS[${di}].bloques[${bi}].ejerIds.push(this.value);R_DIAS[${di}].bloques[${bi}].series.push(3);R_DIAS[${di}].bloques[${bi}].reps.push('10');R_DIAS[${di}].bloques[${bi}].descanso.push(90);renderRDias();this.value=''}"><option value="">+ Agregar ejercicio...</option>${ejs.map(e=>`<option value="${e.id}">${e.n} (${e.eq})</option>`).join('')}</select>
+          <button class=\"btn btn-g btn-sm\" style=\"width:100%;margin-top:8px\" onclick=\"openEjPicker(${di},${bi})\">+ Agregar ejercicio...</button>
         </div>`).join('')}
       <button class="btn btn-g btn-sm" style="width:100%;margin-top:7px" onclick="R_DIAS[${di}].bloques.push({nombre:\`Bloque \${R_DIAS[${di}].bloques.length+1} — Accesorio\`,ejerIds:[],series:[],reps:[],descanso:[]});renderRDias()">+ Bloque</button>
     </div>`).join('');
@@ -1550,62 +1551,34 @@ function sRenderNotasYMedidas(){
 }
 
 
-// ═══ FIREBASE SYNC ═══
+// FIREBASE
 (function(){
-  var FBS1=document.createElement('script');
-  FBS1.src='https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js';
-  FBS1.onload=function(){
-    var FBS2=document.createElement('script');
-    FBS2.src='https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js';
-    FBS2.onload=function(){
+  function addS(url,cb){var s=document.createElement("script");s.src=url;s.onload=cb;document.head.appendChild(s);}
+  addS("https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js",function(){
+    addS("https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js",function(){
       try{
-        if(!firebase.apps.length) firebase.initializeApp({
-          apiKey:"AIzaSyBDGlSXzoeRJcS_y7Ebjm6QxuaRYEko1aA",
-          authDomain:"rubentrena-433ea.firebaseapp.com",
-          projectId:"rubentrena-433ea",
-          storageBucket:"rubentrena-433ea.firebasestorage.app",
-          messagingSenderId:"544105379170",
-          appId:"1:544105379170:web:b6752a6a670d67454ae83b"
-        });
-        var _d=firebase.firestore().collection('rubentrena').doc('data');
+        if(!firebase.apps.length)firebase.initializeApp({apiKey:"AIzaSyBDGlSXzoeRJcS_y7Ebjm6QxuaRYEko1aA",authDomain:"rubentrena-433ea.firebaseapp.com",projectId:"rubentrena-433ea",storageBucket:"rubentrena-433ea.firebasestorage.app",messagingSenderId:"544105379170",appId:"1:544105379170:web:b6752a6a670d67454ae83b"});
+        var _d=firebase.firestore().collection("rubentrena").doc("data");
         window.FB={
           set:function(k,v){var o={};o[k]=JSON.stringify(v);_d.set(o,{merge:true}).catch(function(){});},
-          syncAll:function(){
-            _d.get().then(function(s){
-              if(!s.exists())return;
-              var d=s.data();
-              ['alumnos','ejercicios','rutinas','sesiones','feedback','pagos','medidas','notas'].forEach(function(k){
-                if(d[k]!==undefined)localStorage.setItem('rt6_'+k,d[k]);
-              });
-              if(typeof tAll==='function')tAll();
-              var dot=document.getElementById('fb-dot');
-              var txt=document.getElementById('fb-txt');
-              if(dot)dot.style.background='#4ade80';
-              if(txt){txt.textContent='en linea';txt.style.color='#4ade80';}
-            }).catch(function(){});
-          }
+          syncAll:function(){_d.get().then(function(s){if(!s.exists())return;var d=s.data();["alumnos","ejercicios","rutinas","sesiones","feedback","pagos","medidas","notas"].forEach(function(k){if(d[k]!==undefined)localStorage.setItem("rt6_"+k,d[k]);});if(typeof tAll==="function")tAll();var dot=document.getElementById("fb-dot"),txt=document.getElementById("fb-txt");if(dot)dot.style.background="#4ade80";if(txt){txt.textContent="en linea";txt.style.color="#4ade80";}}).catch(function(){});}
         };
         window.FB.syncAll();
-      }catch(e){console.warn('Firebase:',e);}
-    };
-    document.head.appendChild(FBS2);
-  };
-  document.head.appendChild(FBS1);
+      }catch(e){console.warn("Firebase:",e);}
+    });
+  });
 })();
 
-function importStu(input){
-  var file=input.files[0];if(!file)return;
-  var reader=new FileReader();
-  reader.onload=function(e){
-    try{
-      var data=JSON.parse(e.target.result);
-      Object.keys(data).forEach(function(k){localStorage.setItem(k,JSON.stringify(data[k]));});
-      showToast('\u2713 Datos cargados');
-      if(typeof buildSLogin==='function')buildSLogin();
-    }catch(err){showToast('Error al cargar');}
-  };
-  reader.readAsText(file);input.value='';
-}
+// PICKER
+var PICKER_DI=0,PICKER_BI=0,PICKER_EQ="all";
+function openEjPicker(di,bi){PICKER_DI=di;PICKER_BI=bi;PICKER_EQ="all";var s=document.getElementById("picker-search");if(s)s.value="";renderPickerTags();renderPickerGrid("");openM("m-ej-picker");}
+function renderPickerTags(){var ejs=DB.get("ejercicios")||[];var eqs=Array.from(new Set(ejs.map(function(e){return e.eq;}).filter(Boolean)));var el=document.getElementById("picker-tags");if(!el)return;el.innerHTML="";["all"].concat(eqs).forEach(function(eq){var d=document.createElement("div");d.className="ttag"+(PICKER_EQ===eq?" active":"");d.textContent=eq==="all"?"Todos":eq;d.addEventListener("click",function(){PICKER_EQ=eq;renderPickerTags();var s=document.getElementById("picker-search");renderPickerGrid(s?s.value:"");});el.appendChild(d);});}
+function filterPicker(q){renderPickerGrid(q);}
+function renderPickerGrid(q){var ejs=DB.get("ejercicios")||[];var f=ejs;if(PICKER_EQ!=="all")f=f.filter(function(e){return e.eq===PICKER_EQ;});if(q)f=f.filter(function(e){return(e.n+" "+(e.m||"")+" "+(e.eq||"")).toLowerCase().includes(q.toLowerCase());});var el=document.getElementById("picker-grid");if(!el)return;el.innerHTML="";if(!f.length){el.innerHTML="<div style='grid-column:1/-1;text-align:center;color:var(--t3);padding:20px'>Sin resultados</div>";return;}f.forEach(function(e){var card=document.createElement("div");card.style.cssText="background:var(--bg3);border:1px solid var(--bor);border-radius:10px;overflow:hidden;cursor:pointer;";card.addEventListener("click",function(){selectEjPicker(e.id);});var media=document.createElement("div");media.style.cssText="height:90px;overflow:hidden;background:var(--bg2);";if(e.fo){var img=document.createElement("img");img.src=e.fo;img.style.cssText="width:100%;height:100%;object-fit:cover;";img.onerror=function(){this.style.display="none";};media.appendChild(img);}else{var ph=document.createElement("div");ph.style.cssText="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:28px;";ph.textContent=ejIco(e.m);media.appendChild(ph);}card.appendChild(media);var body=document.createElement("div");body.style.cssText="padding:7px 9px;";var nm=document.createElement("div");nm.style.cssText="font-size:12px;font-weight:600;color:var(--tx);";nm.textContent=e.n;body.appendChild(nm);card.appendChild(body);el.appendChild(card);});}
+function selectEjPicker(ejId){if(!R_DIAS[PICKER_DI].bloques[PICKER_BI].kgs)R_DIAS[PICKER_DI].bloques[PICKER_BI].kgs=[];R_DIAS[PICKER_DI].bloques[PICKER_BI].ejerIds.push(ejId);R_DIAS[PICKER_DI].bloques[PICKER_BI].series.push(3);R_DIAS[PICKER_DI].bloques[PICKER_BI].reps.push("10");R_DIAS[PICKER_DI].bloques[PICKER_BI].descanso.push(90);R_DIAS[PICKER_DI].bloques[PICKER_BI].kgs.push("");closeM("m-ej-picker");renderRDias();}
+
+// IMPORT STUDENT
+function importStu(input){var file=input.files[0];if(!file)return;var reader=new FileReader();reader.onload=function(e){try{var data=JSON.parse(e.target.result);Object.keys(data).forEach(function(k){localStorage.setItem(k,JSON.stringify(data[k]));});showToast("Datos cargados");if(typeof buildSLogin==="function")buildSLogin();}catch(err){showToast("Error al cargar");}};reader.readAsText(file);input.value="";}
 
 </script>
 </body>
