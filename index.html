@@ -1131,28 +1131,81 @@ function editRut(id){
 }
 function addDiaR(){R_DIAS.push({label:`Día ${R_DIAS.length+1}`,calentamiento:[''],bloques:[{nombre:'Bloque 1 — Parte Principal',ejerIds:[],series:[],reps:[],descanso:[]}]});renderRDias();}
 function renderRDias(){
-  const ejs=DB.get('ejercicios')||[];
-  document.getElementById('m-rut-dias').innerHTML=R_DIAS.map((dia,di)=>`
-    <div class="dia-block">
-      <div class="dia-block-header">
-        <input value="${dia.label}" class="fi" style="width:120px;font-family:var(--fd);font-size:15px;font-weight:700;letter-spacing:1px" onchange="R_DIAS[${di}].label=this.value">
-        <button class="btn btn-red btn-sm" onclick="R_DIAS.splice(${di},1);renderRDias()">✕ Día</button>
-      </div>
-      <div class="bloque-build">
-        <div class="bloque-build-header"><span style="font-family:var(--fm);font-size:10px;color:var(--s2);text-transform:uppercase;letter-spacing:1.5px;flex:1">🔥 Calentamiento</span><button class="btn btn-g btn-sm" onclick="R_DIAS[${di}].calentamiento.push('');renderRDias()">+ Ítem</button></div>
-        ${dia.calentamiento.map((c,ci)=>`<div style="display:flex;gap:7px;margin-bottom:7px"><input class="fi" style="flex:1;font-size:13px" value="${c}" placeholder="Movilidad cadera..." onchange="R_DIAS[${di}].calentamiento[${ci}]=this.value"><button class="btn btn-red btn-sm" onclick="R_DIAS[${di}].calentamiento.splice(${ci},1);renderRDias()">✕</button></div>`).join('')}
-      </div>
-      ${dia.bloques.map((b,bi)=>`
-        <div class="bloque-build">
-          <div class="bloque-build-header">
-            <input value="${b.nombre}" class="fi" style="flex:1;font-size:12px;font-family:var(--fm)" onchange="R_DIAS[${di}].bloques[${bi}].nombre=this.value">
-            <button class="btn btn-red btn-sm" onclick="R_DIAS[${di}].bloques.splice(${bi},1);renderRDias()">✕</button>
-          </div>
-          ${(b.ejerIds||[]).map((ejId,ei)=>{const ej=ejs.find(x=>x.id===ejId)||{n:ejId};return `<div class="ej-row"><span style="flex:1;font-size:13px;color:var(--tx)">${ej.n}</span><input class="fi" style="width:52px;font-size:12px;font-family:var(--fm);text-align:center" value="${b.series[ei]||3}" onchange="R_DIAS[${di}].bloques[${bi}].series[${ei}]=parseInt(this.value)||3" title="Series"><input class="fi" style="width:66px;font-size:12px;font-family:var(--fm);text-align:center" value="${b.reps[ei]||'8'}" onchange="R_DIAS[${di}].bloques[${bi}].reps[${ei}]=this.value" title="Reps"><input class="fi" style="width:52px;font-size:12px;font-family:var(--fm);text-align:center" value="${b.descanso[ei]||90}" onchange="R_DIAS[${di}].bloques[${bi}].descanso[${ei}]=parseInt(this.value)||90" title="Desc(s)"><button class="btn btn-red btn-sm" onclick="['ejerIds','series','reps','descanso'].forEach(k=>R_DIAS[${di}].bloques[${bi}][k].splice(${ei},1));renderRDias()">✕</button></div>`;}).join('')}
-          <button class=\"btn btn-g btn-sm\" style=\"width:100%;margin-top:8px\" onclick=\"openEjPicker(${di},${bi})\">+ Agregar ejercicio...</button>
-        </div>`).join('')}
-      <button class="btn btn-g btn-sm" style="width:100%;margin-top:7px" onclick="R_DIAS[${di}].bloques.push({nombre:\`Bloque \${R_DIAS[${di}].bloques.length+1} — Accesorio\`,ejerIds:[],series:[],reps:[],descanso:[]});renderRDias()">+ Bloque</button>
-    </div>`).join('');
+  var ejs=DB.get('ejercicios')||[];
+  var container=document.getElementById('m-rut-dias');
+  if(!container) return;
+  R_DIAS.forEach(function(d){
+    if(!d.calentamiento) d.calentamiento=[];
+    if(!d.calCore) d.calCore=[];
+    if(!d.bloques) d.bloques=[];
+    d.bloques.forEach(function(b){
+      if(!b.ejerIds) b.ejerIds=[];
+      if(!b.series) b.series=[];
+      if(!b.reps) b.reps=[];
+      if(!b.descanso) b.descanso=[];
+      if(!b.kgs) b.kgs=[];
+      if(!b.rir) b.rir=[];
+    });
+  });
+  var html='';
+  R_DIAS.forEach(function(dia,di){
+    html+='<div class="dia-block">';
+    html+='<div class="dia-block-header">';
+    html+='<input value="'+(dia.label||'Dia '+(di+1)).replace(/"/g,'&quot;')+'" class="fi" style="width:120px;font-family:var(--fd);font-size:15px;font-weight:700" onchange="R_DIAS['+di+'].label=this.value">';
+    html+='<button class="btn btn-red btn-sm" onclick="R_DIAS.splice('+di+',1);renderRDias()">x Dia</button>';
+    html+='</div>';
+    html+='<div id="calph-'+di+'"></div>';
+    dia.bloques.forEach(function(b,bi){
+      html+='<div class="bloque-build">';
+      html+='<div class="bloque-build-header">';
+      html+='<input value="'+(b.nombre||'Bloque').replace(/"/g,'&quot;')+'" class="fi" style="flex:1;font-size:12px;font-family:var(--fm)" onchange="R_DIAS['+di+'].bloques['+bi+'].nombre=this.value">';
+      html+='<button class="btn btn-red btn-sm" onclick="R_DIAS['+di+'].bloques.splice('+bi+',1);renderRDias()">x</button>';
+      html+='</div>';
+      if(b.ejerIds.length>0){
+        html+='<div style="display:grid;grid-template-columns:36px 1fr 48px 54px 54px 48px 40px 32px;gap:4px;padding:3px 0;border-bottom:1px solid var(--bor);margin-bottom:4px">';
+        ['','Ejercicio','Ser','Reps','Kg','Desc','RIR',''].forEach(function(h){ html+='<div style="font-family:var(--fm);font-size:8px;color:var(--t3);text-align:center">'+h+'</div>'; });
+        html+='</div>';
+      }
+      b.ejerIds.forEach(function(ejId,ei){
+        var ej=ejs.find(function(x){return x.id===ejId;})||{n:ejId,fo:'',m:''};
+        html+='<div style="display:grid;grid-template-columns:36px 1fr 48px 54px 54px 48px 40px 32px;gap:4px;align-items:center;padding:5px 0;border-bottom:1px solid var(--bor)">';
+        html+=ej.fo?'<img src="'+ej.fo+'" style="width:34px;height:34px;border-radius:5px;object-fit:cover">':'<div style="width:34px;height:34px;border-radius:5px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:14px">'+ejIco(ej.m)+'</div>';
+        html+='<span style="font-size:12px;color:var(--tx);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+ej.n+'</span>';
+        html+='<input class="fi" type="number" style="font-size:12px;text-align:center;padding:4px 2px" value="'+(b.series[ei]||3)+'" onchange="R_DIAS['+di+'].bloques['+bi+'].series['+ei+']=parseInt(this.value)||3">';
+        html+='<input class="fi" style="font-size:12px;text-align:center;padding:4px 2px" value="'+(b.reps[ei]||'10')+'" onchange="R_DIAS['+di+'].bloques['+bi+'].reps['+ei+']=this.value">';
+        html+='<input class="fi" style="font-size:12px;text-align:center;padding:4px 2px" value="'+(b.kgs[ei]||'')+'" placeholder="kg" onchange="R_DIAS['+di+'].bloques['+bi+'].kgs['+ei+']=this.value">';
+        html+='<input class="fi" type="number" style="font-size:12px;text-align:center;padding:4px 2px" value="'+(b.descanso[ei]||90)+'" onchange="R_DIAS['+di+'].bloques['+bi+'].descanso['+ei+']=parseInt(this.value)||90">';
+        html+='<input class="fi" style="font-size:12px;text-align:center;padding:4px 2px" value="'+(b.rir[ei]||'')+'" placeholder="RIR" onchange="R_DIAS['+di+'].bloques['+bi+'].rir['+ei+']=this.value">';
+        html+='<button class="btn btn-red btn-sm" style="padding:3px 5px;min-height:28px" onclick="delEjRow('+di+','+bi+','+ei+')">x</button>';
+        html+='</div>';
+      });
+      html+='<button class="btn btn-g btn-sm" style="width:100%;margin-top:8px" onclick="openEjPicker('+di+','+bi+')">+ Agregar ejercicio...</button>';
+      html+='</div>';
+    });
+    html+='<button class="btn btn-g btn-sm" style="width:100%;margin-top:7px" onclick="addBloque('+di+')">+ Bloque</button>';
+    html+='</div>';
+  });
+  container.innerHTML=html;
+  R_DIAS.forEach(function(dia,di){
+    var ph=document.getElementById('calph-'+di);
+    if(!ph) return;
+    var wr=document.createElement('div');wr.className='bloque-build';
+    buildCalSection(wr,di,'calentamiento','Movilidad articular',dia.calentamiento||[]);
+    buildCalSection(wr,di,'calCore','Core / Activacion',dia.calCore||[]);
+    ph.replaceWith(wr);
+  });
+}
+
+function addBloque(di){
+  R_DIAS[di].bloques.push({nombre:'Bloque '+(R_DIAS[di].bloques.length+1)+' - Accesorio',ejerIds:[],series:[],reps:[],descanso:[],kgs:[],rir:[]});
+  renderRDias();
+}
+
+function delEjRow(di,bi,ei){
+  ['ejerIds','series','reps','descanso','kgs','rir'].forEach(function(k){
+    if(R_DIAS[di].bloques[bi][k]) R_DIAS[di].bloques[bi][k].splice(ei,1);
+  });
+  renderRDias();
 }
 function saveRut(){
   const id=document.getElementById('m-rut-id').value||('r'+Date.now());
