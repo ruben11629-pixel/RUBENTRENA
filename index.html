@@ -1626,7 +1626,13 @@ function initFirebase(){
           var _d=firebase.firestore().collection('rubentrena').doc('data');
           window.FB={
             set:function(k,v){var o={};o[k]=JSON.stringify(v);_d.set(o,{merge:true}).catch(function(){});},
-            syncAll:function(){_d.get().then(function(s){if(!s.exists())return;var d=s.data();['alumnos','ejercicios','rutinas','sesiones','feedback','pagos','medidas','notas'].forEach(function(k){if(d[k]!==undefined)localStorage.setItem('rt6_'+k,d[k]);});if(typeof tAll==='function')tAll();var dot=document.getElementById('fb-dot'),txt=document.getElementById('fb-txt');if(dot)dot.style.background='#4ade80';if(txt){txt.textContent='en linea';txt.style.color='#4ade80';}}).catch(function(){});}
+            syncAll:function(){_d.get().then(function(s){
+              // Connected successfully - show green dot regardless of data
+              var dot=document.getElementById('fb-dot'),txt=document.getElementById('fb-txt');
+              if(dot)dot.style.background='#4ade80';
+              if(txt){txt.textContent='en linea';txt.style.color='#4ade80';}
+              if(!s.exists())return;
+              var d=s.data();['alumnos','ejercicios','rutinas','sesiones','feedback','pagos','medidas','notas'].forEach(function(k){if(d[k]!==undefined)localStorage.setItem('rt6_'+k,d[k]);});if(typeof tAll==='function')tAll();var _dot2=document.getElementById('fb-dot'),_txt2=document.getElementById('fb-txt');if(_dot2)_dot2.style.background='#4ade80';if(_txt2){_txt2.textContent='en linea';_txt2.style.color='#4ade80';}if(txt){txt.textContent='en linea';txt.style.color='#4ade80';}}).catch(function(){});}
           };
           window.FB.syncAll();
         }catch(e){console.warn('Firebase:',e);}
