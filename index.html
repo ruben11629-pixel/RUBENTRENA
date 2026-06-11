@@ -913,7 +913,7 @@ function renderFb(){
   const fb=DB.get('feedback')||[];const hoyStr=today();
   set('fb-hoy',fb.filter(f=>f.fecha===hoyStr).length);set('fb-tot',fb.length);
   set('fb-sets',fb.reduce((s,f)=>s+(f.entries?.length||0),0));
-  set('fb-tbody',fb.slice(0,60).map(f=>`<tr><td style="font-weight:600;color:var(--tx);padding:6px 7px">${f.alumno}</td><td style="color:var(--t2);padding:6px 7px">${f.ejercicio}</td><td style="font-family:var(--fm);color:var(--si);padding:6px 7px">${f.entries?.[0]?.kg||'—'}</td><td style="font-family:var(--fm);padding:6px 7px">${f.entries?.[0]?.rp||'—'}</td><td style="color:var(--t2);font-style:italic;padding:6px 7px;font-size:12px">${f.entries?.[0]?.fb||'—'}</td><td style="color:var(--t3);font-family:var(--fm);font-size:10px;padding:6px 7px">${f.fecha||''} ${f.hora||''}</td></tr>`).join('')||`<tr><td colspan="6" style="text-align:center;color:var(--t3);padding:24px;font-size:13px">Sin feedback registrado aún.</td></tr>`);
+  set('fb-tbody',fb.slice(0,60).map((f,fi)=>`<tr><td style="font-weight:600;color:var(--tx);padding:6px 7px">${f.alumno}</td><td style="color:var(--t2);padding:6px 7px">${f.ejercicio}</td><td style="font-family:var(--fm);color:var(--si);padding:6px 7px">${f.entries?.[0]?.kg||'—'}</td><td style="font-family:var(--fm);padding:6px 7px">${f.entries?.[0]?.rp||'—'}</td><td style="color:var(--t2);font-style:italic;padding:6px 7px;font-size:12px">${f.entries?.[0]?.fb||'—'}</td><td style="color:var(--t3);font-family:var(--fm);font-size:10px;padding:6px 7px">${f.fecha||''} ${f.hora||''}</td><td style="padding:4px"><button onclick="delFbRow(${fi})" style="background:var(--re);border:none;color:#fff;border-radius:5px;padding:3px 8px;cursor:pointer;font-size:11px">✕</button></td></tr>`).join('')||`<tr><td colspan="6" style="text-align:center;color:var(--t3);padding:24px;font-size:13px">Sin feedback registrado aún.</td></tr>`);
   document.getElementById('fb-dot').style.display=fb.filter(f=>f.fecha===hoyStr).length?'block':'none';
 }
 
@@ -1599,6 +1599,16 @@ function buildHoyPrev(dia0,ejs){if(!dia0)return '<p style="color:var(--t3);font-
 
 function importStu(input){var file=input.files[0];if(!file)return;var reader=new FileReader();reader.onload=function(e){try{var data=JSON.parse(e.target.result);Object.keys(data).forEach(function(k){localStorage.setItem(k,JSON.stringify(data[k]));});showToast('Datos cargados');if(typeof buildSLogin==='function')buildSLogin();}catch(err){showToast('Error al cargar');}};reader.readAsText(file);input.value='';}
 
+
+
+function delFbRow(idx){
+  if(!confirm('Eliminar este registro?'))return;
+  var fb=DB.get('feedback')||[];
+  fb.splice(idx,1);
+  DB.set('feedback',fb);
+  renderFb();
+  showToast('Registro eliminado');
+}
 
 </script>
 </body>
