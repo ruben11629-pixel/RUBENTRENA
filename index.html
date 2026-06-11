@@ -167,6 +167,7 @@ html,body{height:100%;background:var(--bg);color:var(--tx);font-family:var(--fb)
 .cal-head{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:4px;}
 .cal-hd{text-align:center;font-family:var(--fm);font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:1px;padding:4px 0;}
 .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
+.mini-cal-cell{height:34px;border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding-top:3px;cursor:pointer;}
 .cday{min-height:90px;background:var(--bg3);border:1px solid var(--bor);border-radius:7px;padding:6px;cursor:pointer;transition:all .13s;}
 .cday:active{border-color:var(--s2);}
 .cday.today{border-color:var(--si);background:rgba(180,210,185,.05);}
@@ -441,24 +442,42 @@ select.fi{appearance:none;cursor:pointer;}
         <div class="hdr">
           <div><div class="htitle">CALEN<em>DARIO</em></div><div class="hsub" id="cal-sub">—</div></div>
           <div class="hacts">
-            <button class="btn btn-g btn-sm" id="vb-m" onclick="setCV('month')">Mes</button>
-            <button class="btn btn-g btn-sm" id="vb-w" onclick="setCV('week')">Semana</button>
             <button class="btn btn-g btn-sm" onclick="prevP()">←</button>
             <button class="btn btn-g btn-sm" onclick="nextP()">→</button>
             <button class="btn btn-p" onclick="openM('m-ses')">+ Sesión</button>
           </div>
         </div>
-        <div class="panel"><div class="pb" style="padding:15px">
-          <div style="font-family:var(--fd);font-size:22px;font-weight:800;letter-spacing:2px;color:var(--tx);text-transform:uppercase;margin-bottom:12px" id="cal-title">—</div>
-          <div class="cal-head"><div class="cal-hd">Lun</div><div class="cal-hd">Mar</div><div class="cal-hd">Mié</div><div class="cal-hd">Jue</div><div class="cal-hd">Vie</div><div class="cal-hd">Sáb</div><div class="cal-hd">Dom</div></div>
-          <div id="cal-body"></div>
-        </div></div>
-        <div id="cal-day-panel" style="display:none;margin-top:12px">
-          <div class="panel"><div class="ph"><div class="pt" id="cal-dp-t">—</div><button class="btn btn-p btn-sm" onclick="openM('m-ses')">+ Agregar</button></div><div class="pb" id="cal-dp-c"></div></div>
+        <div class="panel" style="padding:0">
+          <div style="display:grid;grid-template-columns:300px 1fr;gap:0;min-height:500px">
+            <!-- Mini calendar -->
+            <div style="border-right:1px solid var(--bor);padding:18px">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+                <button class="btn btn-g btn-sm" onclick="prevP()">←</button>
+                <div id="mini-cal-title" style="font-family:var(--fd);font-size:15px;font-weight:700"></div>
+                <button class="btn btn-g btn-sm" onclick="nextP()">→</button>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:6px">
+                <div style="font-family:var(--fm);font-size:9px;color:var(--t3);text-align:center">L</div>
+                <div style="font-family:var(--fm);font-size:9px;color:var(--t3);text-align:center">M</div>
+                <div style="font-family:var(--fm);font-size:9px;color:var(--t3);text-align:center">M</div>
+                <div style="font-family:var(--fm);font-size:9px;color:var(--t3);text-align:center">J</div>
+                <div style="font-family:var(--fm);font-size:9px;color:var(--t3);text-align:center">V</div>
+                <div style="font-family:var(--fm);font-size:9px;color:var(--t3);text-align:center">S</div>
+                <div style="font-family:var(--fm);font-size:9px;color:var(--t3);text-align:center">D</div>
+              </div>
+              <div id="mini-cal-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px"></div>
+              <!-- Alumno legend -->
+              <div id="cal-legend" style="margin-top:16px;border-top:1px solid var(--bor);padding-top:12px"></div>
+            </div>
+            <!-- Day detail -->
+            <div style="padding:18px">
+              <div id="cal-day-title" style="font-family:var(--fd);font-size:18px;font-weight:700;margin-bottom:14px;color:var(--si)"></div>
+              <div id="cal-day-list" style="display:flex;flex-direction:column;gap:8px"></div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
-    <!-- ALUMNOS -->
     <div class="t-screen" id="t-alumnos">
       <div class="t-scroll">
         <div class="hdr"><div><div class="htitle">MIS <em>ALUMNOS</em></div><div class="hsub" id="al-sub">—</div></div><button class="btn btn-p" onclick="openM('m-al')">+ Nuevo alumno</button></div>
@@ -1030,24 +1049,139 @@ function tCal(){
   if(CV==='month')renderMonth(y,m);else renderWeek();
 }
 
-function renderMonth(y,m){
-  set('cal-title',`${MESES[m]} ${y}`);
-  const first=new Date(y,m,1);let dow=first.getDay();if(dow===0)dow=7;
-  const dim=new Date(y,m+1,0).getDate(),prev=new Date(y,m,0).getDate(),todayStr=today();
-  const ses=DB.get('sesiones')||[];
-  let html='<div class="cal-grid">';
-  for(let i=dow-1;i>0;i--){html+=dayC(y,m-1,prev-i+1,ds(y,m-1,prev-i+1),todayStr,ses,true);}
-  for(let d=1;d<=dim;d++){html+=dayC(y,m,d,ds(y,m,d),todayStr,ses,false);}
-  const rem=(7-((dow-1+dim)%7))%7;for(let d=1;d<=rem;d++){html+=dayC(y,m+1,d,ds(y,m+1,d),todayStr,ses,true);}
-  html+='</div>';set('cal-body',html);
+function getAlColor(alId){
+  var COLORS=['#5a9e6a','#5a88cc','#c8943a','#9e5a8a','#5a9e9e','#cc5a5a','#8a9e5a','#7a5acc','#cc8a5a','#5acc8a','#cc5a9e','#5a8acc'];
+  var als=DB.get('alumnos')||[];
+  var idx=als.findIndex(function(a){return a.id===alId;});
+  return COLORS[((idx>=0?idx:0))%COLORS.length];
 }
 
-function dayC(y,m,d,dateStr,todayStr,ses,other){
-  const s2=ses.filter(s=>s.fecha===dateStr);
-  const isT=dateStr===todayStr,isSel=SD===dateStr;
-  let evts=s2.slice(0,3).map(s=>`<div class="cev" style="background:${s.color}22;color:${s.color}">${s.done?'✓ ':''} ${s.hora} ${s.alN.split(' ')[0]}</div>`).join('');
-  if(s2.length>3)evts+=`<div style="font-size:8px;color:var(--t3)">+${s2.length-3}</div>`;
-  return `<div class="cday${other?' other':''}${isT?' today':''}${isSel?' sel':''}" onclick="selDay('${dateStr}')"><div class="cday-n">${d}</div>${evts}</div>`;
+function renderMiniCal(y,m){
+  var MESES2=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  var title=document.getElementById('mini-cal-title');
+  if(title) title.textContent=MESES2[m]+' '+y;
+  set('cal-sub','// '+MESES2[m]+' '+y);
+  var ses=DB.get('sesiones')||[];
+  var todayStr=today();
+  var first=new Date(y,m,1);
+  var dow=first.getDay();if(dow===0)dow=7;
+  var dim=new Date(y,m+1,0).getDate();
+  var prev=new Date(y,m,0).getDate();
+  var grid=document.getElementById('mini-cal-grid');
+  if(!grid)return;
+  grid.innerHTML='';
+  // Prev month filler
+  for(var i=dow-1;i>0;i--){
+    var d=document.createElement('div');
+    d.style.cssText='height:32px;border-radius:6px;opacity:0.2;';
+    d.textContent=prev-i+1;
+    d.style.cssText='height:32px;border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding-top:3px;font-size:11px;color:var(--t3);cursor:default;';
+    grid.appendChild(d);
+  }
+  // Current month
+  for(var d2=1;d2<=dim;d2++){
+    var dateStr=ds(y,m,d2);
+    var daySes=ses.filter(function(s){return s.fecha===dateStr;});
+    var isToday=dateStr===todayStr;
+    var isSel=SD===dateStr;
+    var cell=document.createElement('div');
+    cell.style.cssText='height:34px;border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding-top:3px;cursor:pointer;position:relative;'+(isToday?'background:var(--bg3);border:1px solid var(--si);':'')+(isSel?'background:var(--si20,rgba(184,196,185,0.15));outline:2px solid var(--si);':'');
+    var num=document.createElement('div');
+    num.style.cssText='font-size:11px;font-family:var(--fm);color:'+(isToday?'var(--si)':isSel?'var(--tx)':'var(--t2)')+';font-weight:'+(isToday||isSel?'700':'400')+';';
+    num.textContent=d2;
+    cell.appendChild(num);
+    // Dots
+    if(daySes.length>0){
+      var dots=document.createElement('div');
+      dots.style.cssText='display:flex;gap:2px;margin-top:2px;flex-wrap:wrap;justify-content:center;max-width:28px;';
+      var shown=daySes.slice(0,4);
+      shown.forEach(function(s){
+        var dot=document.createElement('div');
+        dot.style.cssText='width:5px;height:5px;border-radius:50%;background:'+(s.color||getAlColor(s.alId))+';';
+        dots.appendChild(dot);
+      });
+      cell.appendChild(dots);
+    }
+    (function(ds2){cell.addEventListener('click',function(){SD=ds2;renderMiniCal(CD.getFullYear(),CD.getMonth());renderDayList(ds2);});})(dateStr);
+    grid.appendChild(cell);
+  }
+  // Next month filler
+  var rem=(7-((dow-1+dim)%7))%7;
+  for(var r=1;r<=rem;r++){
+    var d3=document.createElement('div');
+    d3.style.cssText='height:32px;border-radius:6px;display:flex;align-items:flex-start;justify-content:center;padding-top:3px;font-size:11px;color:var(--t3);cursor:default;';
+    d3.textContent=r;
+    grid.appendChild(d3);
+  }
+  // Legend
+  renderCalLegend();
+  // Show today or selected day list
+  renderDayList(SD||todayStr);
+}
+
+function renderCalLegend(){
+  var legend=document.getElementById('cal-legend');
+  if(!legend)return;
+  var als=DB.get('alumnos')||[];
+  legend.innerHTML='<div style="font-family:var(--fm);font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Alumnos</div>';
+  als.forEach(function(a){
+    var color=getAlColor(a.id);
+    var item=document.createElement('div');
+    item.style.cssText='display:flex;align-items:center;gap:7px;margin-bottom:6px;';
+    var dot=document.createElement('div');dot.style.cssText='width:8px;height:8px;border-radius:50%;background:'+color+';flex-shrink:0;';
+    var nm=document.createElement('div');nm.style.cssText='font-size:12px;color:var(--t2);';nm.textContent=a.n;
+    item.appendChild(dot);item.appendChild(nm);legend.appendChild(item);
+  });
+}
+
+function renderDayList(dateStr){
+  SD=dateStr;
+  var DIAS=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+  var MESES3=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  var parts=dateStr.split('-');
+  var dt=new Date(parseInt(parts[0]),parseInt(parts[1])-1,parseInt(parts[2]));
+  var title=document.getElementById('cal-day-title');
+  if(title) title.textContent=DIAS[dt.getDay()]+', '+parseInt(parts[2])+' de '+MESES3[parseInt(parts[1])-1]+' '+parts[0];
+  var ses=DB.get('sesiones')||[];
+  var daySes=ses.filter(function(s){return s.fecha===dateStr;});
+  daySes.sort(function(a,b){return (a.hora||'').localeCompare(b.hora||'');});
+  var list=document.getElementById('cal-day-list');
+  if(!list)return;
+  if(!daySes.length){
+    list.innerHTML='<div style="color:var(--t3);font-size:13px;text-align:center;padding:30px 0">Sin sesiones este día.<br><br><button class="btn btn-p" onclick="openM(\'m-ses\')">+ Agregar sesión</button></div>';
+    return;
+  }
+  list.innerHTML='';
+  daySes.forEach(function(s,si){
+    var color=s.color||getAlColor(s.alId);
+    var card=document.createElement('div');
+    card.style.cssText='display:flex;align-items:center;gap:12px;background:var(--bg3);border:1px solid var(--bor);border-radius:10px;padding:12px 16px;border-left:4px solid '+color+';';
+    var hora=document.createElement('div');hora.style.cssText='font-family:var(--fm);font-size:16px;color:var(--si);font-weight:700;min-width:48px;';hora.textContent=s.hora||'—';
+    var info=document.createElement('div');info.style.cssText='flex:1;';
+    var nm=document.createElement('div');nm.style.cssText='font-size:15px;font-weight:600;color:var(--tx);';nm.textContent=s.alN||'—';
+    var tipo=document.createElement('div');tipo.style.cssText='font-size:11px;color:var(--t3);font-family:var(--fm);margin-top:2px;';tipo.textContent=(s.tipo||'Individual')+(s.notas?' · '+s.notas:'');
+    info.appendChild(nm);info.appendChild(tipo);
+    var acts=document.createElement('div');acts.style.cssText='display:flex;gap:6px;';
+    var done=document.createElement('div');
+    done.style.cssText='width:28px;height:28px;border-radius:50%;border:2px solid '+(s.done?color:'var(--bor)')+';background:'+(s.done?color:'transparent')+';display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;';
+    done.textContent=s.done?'✓':'';
+    done.title='Marcar asistencia';
+    (function(sid){done.addEventListener('click',function(){var ses2=DB.get('sesiones')||[];var si2=ses2.findIndex(function(x){return x.id===sid;});if(si2>=0){ses2[si2].done=!ses2[si2].done;DB.set('sesiones',ses2);renderDayList(SD);}});})(s.id);
+    var del=document.createElement('button');del.style.cssText='background:transparent;border:none;color:var(--t3);cursor:pointer;font-size:16px;padding:0 4px;';del.textContent='✕';del.title='Eliminar';
+    (function(sid){del.addEventListener('click',function(){if(!confirm('Eliminar sesión?'))return;var ses2=DB.get('sesiones')||[];DB.set('sesiones',ses2.filter(function(x){return x.id!==sid;}));renderMiniCal(CD.getFullYear(),CD.getMonth());showToast('Sesión eliminada');});})(s.id);
+    acts.appendChild(done);acts.appendChild(del);
+    card.appendChild(hora);card.appendChild(info);card.appendChild(acts);
+    list.appendChild(card);
+  });
+  // Add session button at bottom
+  var addBtn=document.createElement('button');addBtn.className='btn btn-g btn-sm';addBtn.style.cssText='width:100%;margin-top:4px;';addBtn.textContent='+ Agregar sesión este día';
+  addBtn.addEventListener('click',function(){openM('m-ses');});
+  list.appendChild(addBtn);
+}
+
+function tCal(){
+  var y=CD.getFullYear(),m=CD.getMonth();
+  renderMiniCal(y,m);
 }
 
 function selDay(dateStr){
@@ -1079,7 +1213,7 @@ function renderWeek(){
   html+='</div>';set('cal-body',html);document.getElementById('cal-day-panel').style.display='none';
 }
 
-function setCV(v){CV=v;document.getElementById('vb-m').classList.toggle('active',v==='month');document.getElementById('vb-w').classList.toggle('active',v==='week');tCal();}
+function setCV(v){CV=v;tCal();}
 function prevP(){if(CV==='month')CD=new Date(CD.getFullYear(),CD.getMonth()-1,1);else CD=new Date(CD.getTime()-7*86400000);tCal();}
 function nextP(){if(CV==='month')CD=new Date(CD.getFullYear(),CD.getMonth()+1,1);else CD=new Date(CD.getTime()+7*86400000);tCal();}
 function qSes(fecha,hora){document.getElementById('m-ses-fe').value=fecha;document.getElementById('m-ses-ho').value=hora;openM('m-ses');}
