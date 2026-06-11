@@ -417,21 +417,80 @@ select.fi{appearance:none;cursor:pointer;}
   <div class="t-content">
     <!-- DASHBOARD -->
     <div class="t-screen active" id="t-dash">
-      <div class="t-scroll">
-        <div class="stats-row stats-4">
-          <div class="sc" style="--c:var(--si)"><div class="scl">Alumnos</div><div class="scv" id="d-al">0</div><div class="scn" id="d-al-n">activos</div></div>
-          <div class="sc" style="--c:var(--gr)"><div class="scl">Sesiones hoy</div><div class="scv" id="d-ses" style="color:var(--gr)">0</div><div class="scn" id="d-ses-n">—</div></div>
-          <div class="sc" style="--c:var(--or)"><div class="scl">Ingresos mes</div><div class="scv" id="d-ing" style="color:var(--or)">$0</div><div class="scn">CLP cobrado</div></div>
-          <div class="sc" style="--c:var(--bl)"><div class="scl">Ejercicios</div><div class="scv" id="d-ej" style="color:var(--bl)">0</div><div class="scn">en biblioteca</div></div>
-        </div>
-        <div class="g31">
-          <div>
-            <div class="panel" style="margin-bottom:12px"><div class="ph"><div class="pt">✅ Feedback de alumnos hoy</div><button class="btn btn-g btn-sm" onclick="tGo('fb')">Ver todo →</button></div><div class="pb" id="d-fb"></div></div>
-            <div class="panel"><div class="ph"><div class="pt">📅 Agenda de hoy</div><button class="btn btn-g btn-sm" onclick="tGo('cal')">Calendario →</button></div><div class="pb" id="d-agenda"></div></div>
+      <div class="t-scroll" style="padding:28px 32px;max-width:1400px;margin:0 auto">
+
+        <!-- Stats row: 4 numbers clean -->
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px">
+          <div style="background:var(--bg2);border:1px solid var(--bor);border-radius:14px;padding:22px 24px;border-top:3px solid var(--si)">
+            <div style="font-family:var(--fm);font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px">Alumnos</div>
+            <div style="font-family:var(--fd);font-size:42px;font-weight:900;color:var(--tx);line-height:1" id="d-al">0</div>
+            <div style="font-size:12px;color:var(--t3);margin-top:6px" id="d-al-n">activos</div>
           </div>
-          <div>
-            <div class="panel" style="margin-bottom:12px"><div class="ph"><div class="pt">Adherencia</div></div><div class="pb" id="d-prog"></div></div>
-            <div class="panel"><div class="ph"><div class="pt">⚠ Pagos urgentes</div></div><div class="pb" id="d-pag-urg"></div></div>
+          <div style="background:var(--bg2);border:1px solid var(--bor);border-radius:14px;padding:22px 24px;border-top:3px solid var(--gr)">
+            <div style="font-family:var(--fm);font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px">Sesiones hoy</div>
+            <div style="font-family:var(--fd);font-size:42px;font-weight:900;color:var(--gr);line-height:1" id="d-ses">0</div>
+            <div style="font-size:12px;color:var(--t3);margin-top:6px" id="d-ses-n">Sin sesiones</div>
+          </div>
+          <div style="background:var(--bg2);border:1px solid var(--bor);border-radius:14px;padding:22px 24px;border-top:3px solid var(--or)">
+            <div style="font-family:var(--fm);font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px">Ingresos mes</div>
+            <div style="font-family:var(--fd);font-size:42px;font-weight:900;color:var(--or);line-height:1" id="d-ing">$0</div>
+            <div style="font-size:12px;color:var(--t3);margin-top:6px">CLP cobrado</div>
+          </div>
+          <div style="background:var(--bg2);border:1px solid var(--bor);border-radius:14px;padding:22px 24px;border-top:3px solid var(--bl)">
+            <div style="font-family:var(--fm);font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px">Ejercicios</div>
+            <div style="font-family:var(--fd);font-size:42px;font-weight:900;color:var(--bl);line-height:1" id="d-ej">0</div>
+            <div style="font-size:12px;color:var(--t3);margin-top:6px">en biblioteca</div>
+          </div>
+        </div>
+
+        <!-- Main content: 2 columns -->
+        <div style="display:grid;grid-template-columns:1fr 380px;gap:20px">
+
+          <!-- Left column -->
+          <div style="display:flex;flex-direction:column;gap:20px">
+
+            <!-- Agenda hoy -->
+            <div style="background:var(--bg2);border:1px solid var(--bor);border-radius:14px;overflow:hidden">
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid var(--bor)">
+                <div>
+                  <div style="font-family:var(--fd);font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase">Agenda de hoy</div>
+                  <div style="font-size:11px;color:var(--t3);margin-top:2px" id="d-agenda-date"></div>
+                </div>
+                <button class="btn btn-g btn-sm" onclick="tGo('cal')">Calendario →</button>
+              </div>
+              <div style="padding:6px 0" id="d-agenda"></div>
+            </div>
+
+            <!-- Feedback -->
+            <div style="background:var(--bg2);border:1px solid var(--bor);border-radius:14px;overflow:hidden">
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid var(--bor)">
+                <div style="font-family:var(--fd);font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase">Feedback de hoy</div>
+                <button class="btn btn-g btn-sm" onclick="tGo('fb')">Ver todo →</button>
+              </div>
+              <div style="padding:8px 0" id="d-fb"></div>
+            </div>
+
+          </div>
+
+          <!-- Right column -->
+          <div style="display:flex;flex-direction:column;gap:20px">
+
+            <!-- Adherencia -->
+            <div style="background:var(--bg2);border:1px solid var(--bor);border-radius:14px;overflow:hidden">
+              <div style="padding:18px 22px;border-bottom:1px solid var(--bor)">
+                <div style="font-family:var(--fd);font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase">Adherencia</div>
+              </div>
+              <div style="padding:16px 22px" id="d-prog"></div>
+            </div>
+
+            <!-- Pagos urgentes -->
+            <div style="background:var(--bg2);border:1px solid var(--bor);border-radius:14px;overflow:hidden">
+              <div style="padding:18px 22px;border-bottom:1px solid var(--bor)">
+                <div style="font-family:var(--fd);font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase">Pagos pendientes</div>
+              </div>
+              <div style="padding:8px 0" id="d-pag-urg"></div>
+            </div>
+
           </div>
         </div>
       </div>
@@ -861,6 +920,10 @@ function tAll(){tDash();tAlumnos();tEjer();tRuts();tRutsDetail(null);renderFb();
 function tDash(){
   const als=DB.get('alumnos')||[],ejs=DB.get('ejercicios')||[],ses=DB.get('sesiones')||[],pagos=DB.get('pagos')||[],fb=DB.get('feedback')||[];
   const hoyStr=today(),sesH=ses.filter(s=>s.fecha===hoyStr),fbH=fb.filter(f=>f.fecha===hoyStr);
+  const DIAS2=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+  const MESES4=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  const hoyDt=new Date();
+  set('d-agenda-date',DIAS2[hoyDt.getDay()]+', '+hoyDt.getDate()+' de '+MESES4[hoyDt.getMonth()]);
   const cob=pagos.filter(p=>p.est==='pagado').reduce((a,p)=>a+parseFloat(p.mo||0),0);
   set('d-al',als.length);set('d-al-n',`${als.filter(a=>a.pago==='al_dia').length} al día`);
   set('d-ses',sesH.length);set('d-ses-n',sesH[0]?`Próx: ${sesH[0].hora} — ${sesH[0].alN.split(' ')[0]}`:'Sin sesiones');
