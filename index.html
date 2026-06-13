@@ -634,9 +634,42 @@ select.fi{appearance:none;cursor:pointer;}
     <!-- FEEDBACK -->
     <div class="t-screen" id="t-fb">
       <div class="t-scroll">
-        <div class="hdr"><div><div class="htitle">FEED<em>BACK</em></div><div class="hsub">Registros de tus alumnos en tiempo real</div></div><button class="btn btn-g btn-sm" onclick="renderFb()">↺</button></div>
-        <div class="stats-row stats-3"><div class="sc" style="--c:var(--gr)"><div class="scl">Hoy</div><div class="scv" style="color:var(--gr)" id="fb-hoy">0</div><div class="scn">sesiones</div></div><div class="sc" style="--c:var(--si)"><div class="scl">Total</div><div class="scv" id="fb-tot">0</div><div class="scn">registros</div></div><div class="sc" style="--c:var(--bl)"><div class="scl">Sets</div><div class="scv" style="color:var(--bl)" id="fb-sets">0</div><div class="scn">totales</div></div></div>
-        <div class="panel"><div class="ph"><div class="pt">Registro completo</div></div><div class="pb" style="overflow-x:auto"><table style="width:100%;border-collapse:collapse"><thead><tr><th style="font-family:var(--fm);font-size:9px;color:var(--t3);text-transform:uppercase;padding:6px 7px;text-align:left;border-bottom:1px solid var(--bor)">Alumno</th><th style="font-family:var(--fm);font-size:9px;color:var(--t3);text-transform:uppercase;padding:6px 7px;text-align:left;border-bottom:1px solid var(--bor)">Ejercicio</th><th style="font-family:var(--fm);font-size:9px;color:var(--t3);text-transform:uppercase;padding:6px 7px;border-bottom:1px solid var(--bor)">kg</th><th style="font-family:var(--fm);font-size:9px;color:var(--t3);text-transform:uppercase;padding:6px 7px;border-bottom:1px solid var(--bor)">Reps</th><th style="font-family:var(--fm);font-size:9px;color:var(--t3);text-transform:uppercase;padding:6px 7px;text-align:left;border-bottom:1px solid var(--bor)">Sensaciones</th><th style="font-family:var(--fm);font-size:9px;color:var(--t3);text-transform:uppercase;padding:6px 7px;border-bottom:1px solid var(--bor)">Fecha</th></tr></thead><tbody id="fb-tbody"></tbody></table></div></div>
+        <div class="hdr">
+          <div>
+            <div class="htitle">FEED<em>BACK</em></div>
+            <div class="hsub">Sesiones completadas por alumno</div>
+          </div>
+          <button class="btn btn-g btn-sm" onclick="renderFb()">↺</button>
+        </div>
+
+        <!-- KPIs minimalistas -->
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px">
+          <div style="background:var(--c2);border-radius:12px;padding:14px 12px;border-top:2px solid var(--gr)">
+            <div style="font-family:var(--fm);font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">Hoy</div>
+            <div id="fb-hoy" style="font-family:var(--fb);font-size:28px;font-weight:900;color:var(--gr);line-height:1">0</div>
+            <div style="font-size:10px;color:var(--t3);margin-top:4px">sesiones</div>
+          </div>
+          <div style="background:var(--c2);border-radius:12px;padding:14px 12px;border-top:2px solid var(--si)">
+            <div style="font-family:var(--fm);font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">Total</div>
+            <div id="fb-tot" style="font-family:var(--fb);font-size:28px;font-weight:900;color:var(--si);line-height:1">0</div>
+            <div style="font-size:10px;color:var(--t3);margin-top:4px">registros</div>
+          </div>
+          <div style="background:var(--c2);border-radius:12px;padding:14px 12px;border-top:2px solid var(--bl)">
+            <div style="font-family:var(--fm);font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">Sets</div>
+            <div id="fb-sets" style="font-family:var(--fb);font-size:28px;font-weight:900;color:var(--bl);line-height:1">0</div>
+            <div style="font-size:10px;color:var(--t3);margin-top:4px">totales</div>
+          </div>
+        </div>
+
+        <!-- Cards por alumno -->
+        <div id="fb-cards" style="display:flex;flex-direction:column;gap:12px"></div>
+
+        <!-- Empty state -->
+        <div id="fb-empty" style="display:none;text-align:center;padding:48px 24px;color:var(--t3)">
+          <div style="font-size:32px;margin-bottom:12px">📋</div>
+          <div style="font-family:var(--fb);font-size:14px;font-weight:700;margin-bottom:6px">Sin registros aún</div>
+          <div style="font-size:12px">Los alumnos verán sus sesiones aquí</div>
+        </div>
       </div>
     </div>
     <!-- PAGOS -->
@@ -992,11 +1025,96 @@ function tRutsDetail(id){
 }
 
 function renderFb(){
-  const fb=DB.get('feedback')||[];const hoyStr=today();
-  set('fb-hoy',fb.filter(f=>f.fecha===hoyStr).length);set('fb-tot',fb.length);
+  const fb=DB.get('feedback')||[];
+  const hoyStr=today();
+  const hoy=fb.filter(f=>f.fecha===hoyStr).length;
+  set('fb-hoy',hoy);
+  set('fb-tot',fb.length);
   set('fb-sets',fb.reduce((s,f)=>s+(f.entries?.length||0),0));
-  set('fb-tbody',fb.slice(0,60).map((f,fi)=>`<tr><td style="font-weight:600;color:var(--tx);padding:6px 7px">${f.alumno}</td><td style="color:var(--t2);padding:6px 7px">${f.ejercicio}</td><td style="font-family:var(--fm);color:var(--si);padding:6px 7px">${f.entries?.[0]?.kg||'—'}</td><td style="font-family:var(--fm);padding:6px 7px">${f.entries?.[0]?.rp||'—'}</td><td style="color:var(--t2);font-style:italic;padding:6px 7px;font-size:12px">${f.entries?.[0]?.fb||'—'}</td><td style="color:var(--t3);font-family:var(--fm);font-size:10px;padding:6px 7px">${f.fecha||''} ${f.hora||''}</td><td style="padding:4px"><button onclick="delFbRow(${fi})" style="background:var(--re);border:none;color:#fff;border-radius:5px;padding:3px 8px;cursor:pointer;font-size:11px">✕</button></td></tr>`).join('')||`<tr><td colspan="6" style="text-align:center;color:var(--t3);padding:24px;font-size:13px">Sin feedback registrado aún.</td></tr>`);
-  document.getElementById('fb-dot').style.display=fb.filter(f=>f.fecha===hoyStr).length?'block':'none';
+
+  // Agrupar por alumno — más reciente primero
+  const byAl={};
+  fb.forEach((f,fi)=>{
+    if(!byAl[f.alumno]) byAl[f.alumno]={name:f.alumno,sessions:[],indices:[]};
+    byAl[f.alumno].sessions.push(f);
+    byAl[f.alumno].indices.push(fi);
+  });
+
+  const alumnos=Object.values(byAl);
+  const cards=document.getElementById('fb-cards');
+  const empty=document.getElementById('fb-empty');
+
+  if(!alumnos.length){
+    cards.innerHTML='';
+    empty.style.display='block';
+    document.getElementById('fb-dot').style.display='none';
+    return;
+  }
+  empty.style.display='none';
+
+  // Colores de sensación
+  const senColor={'Muy bien':'#4caf50','Bien':'#8bc34a','Regular':'#ff9800','Mal':'#f44336','Muy mal':'#e91e63'};
+
+  cards.innerHTML=alumnos.map(al=>{
+    const sess=al.sessions;
+    const last=sess[0];
+    const totalSets=sess.reduce((s,f)=>s+(f.entries?.length||0),0);
+    const ultFecha=last.fecha||'';
+    const ultHora=last.hora||'';
+    const hoyAl=sess.filter(s=>s.fecha===hoyStr).length;
+
+    // Filas de ejercicios — últimos 5
+    const rows=sess.slice(0,5).map((f,si)=>{
+      const kg=f.entries?.[0]?.kg||'—';
+      const rp=f.entries?.[0]?.rp||'—';
+      const sen=f.entries?.[0]?.fb||'';
+      const senCol=senColor[sen]||'var(--t3)';
+      const esHoy=f.fecha===hoyStr;
+      return `<div style="display:grid;grid-template-columns:1fr auto auto auto;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--bor)">
+        <div>
+          <div style="font-size:12px;font-weight:600;color:var(--tx)">${f.ejercicio||'—'}</div>
+          <div style="font-size:10px;color:var(--t3);margin-top:2px">${f.fecha||''} ${f.hora||''} ${esHoy?'<span style="background:var(--gr);color:#000;border-radius:4px;padding:1px 5px;font-size:9px;font-weight:700">HOY</span>':''}</div>
+        </div>
+        <div style="text-align:center">
+          <div style="font-family:var(--fm);font-size:14px;font-weight:700;color:var(--si)">${kg}</div>
+          <div style="font-size:9px;color:var(--t3)">kg</div>
+        </div>
+        <div style="text-align:center">
+          <div style="font-family:var(--fm);font-size:14px;font-weight:700;color:var(--tx)">${rp}</div>
+          <div style="font-size:9px;color:var(--t3)">reps</div>
+        </div>
+        <div style="text-align:right">
+          ${sen?`<span style="font-size:10px;color:${senCol};font-weight:600">${sen}</span>`:'<span style="color:var(--t3);font-size:10px">—</span>'}
+        </div>
+      </div>`;
+    }).join('');
+
+    return `<div style="background:var(--c2);border-radius:14px;overflow:hidden;border:1px solid var(--bor)">
+      <!-- Header de la card -->
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--bor)">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:36px;height:36px;border-radius:50%;background:var(--gr);display:flex;align-items:center;justify-content:center;font-family:var(--fb);font-size:14px;font-weight:900;color:#000">${al.name.charAt(0).toUpperCase()}</div>
+          <div>
+            <div style="font-family:var(--fb);font-size:14px;font-weight:800;color:var(--tx);text-transform:uppercase;letter-spacing:.04em">${al.name}</div>
+            <div style="font-size:10px;color:var(--t3);margin-top:1px">Última sesión: ${ultFecha} ${ultHora}</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          ${hoyAl?`<span style="background:var(--gr);color:#000;border-radius:6px;padding:3px 8px;font-family:var(--fm);font-size:10px;font-weight:700">${hoyAl} hoy</span>`:''}
+          <div style="text-align:right">
+            <div style="font-family:var(--fm);font-size:18px;font-weight:700;color:var(--t2)">${totalSets}</div>
+            <div style="font-size:9px;color:var(--t3)">sets</div>
+          </div>
+        </div>
+      </div>
+      <!-- Ejercicios -->
+      <div style="padding:0 16px">
+        ${rows}
+      </div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('fb-dot').style.display=hoy?'block':'none';
 }
 
 function tPagos(){
