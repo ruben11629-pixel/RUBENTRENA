@@ -783,14 +783,41 @@ select.fi{appearance:none;cursor:pointer;}
     <div class="s-ptop"><div class="s-pav" id="s-pav">—</div><div class="s-pname" id="s-pname">—</div><div class="s-prole" id="s-prole">—</div></div>
     <div class="ssec">
       <div id="s-alerts-block"></div>
-      <div class="pago-s"><div style="margin-bottom:10px"><div style="font-size:9px;color:var(--t3);font-family:var(--fm);text-transform:uppercase;letter-spacing:1px">Valor por sesión · Final del mes</div><div style="font-family:var(--fd);font-size:32px;font-weight:900;color:var(--or)" id="s-pag-val">—</div></div><div class="s-psr" style="padding:8px 0;border-bottom:1px solid var(--bor)"><span class="s-psk">Sesiones realizadas</span><span class="s-psv" id="s-pag-ses">—</span></div><div class="s-psr" style="padding:8px 0;border-bottom:1px solid var(--bor)"><span class="s-psk">Total estimado</span><span class="s-psv" style="color:var(--or)" id="s-pag-tot">—</span></div><div class="s-psr" style="padding:8px 0"><span class="s-psk">Estado</span><span id="s-pag-est">—</span></div></div>
-      <div class="s-psec"><div class="s-pst">Mis datos</div><div class="s-psr"><span class="s-psk">Objetivo</span><span class="s-psv" id="s-pd-obj">—</span></div><div class="s-psr"><span class="s-psk">Nivel</span><span class="s-psv" id="s-pd-niv">—</span></div><div class="s-psr"><span class="s-psk">Observación</span><span class="s-psv" style="font-size:12px;max-width:170px;text-align:right;font-family:var(--fb)" id="s-pd-obs">—</span></div></div>
-      <div id="s-notas-block"></div>
-      <div id="s-nutri-block"></div>
+
+      <!-- Mis datos -->
+      <div class="s-psec"><div class="s-pst">Mis datos</div>
+        <div class="s-psr"><span class="s-psk">Objetivo</span><span class="s-psv" id="s-pd-obj">—</span></div>
+        <div class="s-psr"><span class="s-psk">Nivel</span><span class="s-psv" id="s-pd-niv">—</span></div>
+        <div class="s-psr"><span class="s-psk">Observación</span><span class="s-psv" style="font-size:12px;max-width:170px;text-align:right;font-family:var(--fb)" id="s-pd-obs">—</span></div>
+      </div>
+
+      <!-- Medidas recientes -->
       <div id="s-medidas-top"></div>
+
+      <!-- Notas del entrenador -->
+      <div id="s-notas-block"></div>
+
+      <!-- NUTRICIÓN + HÁBITOS -->
+      <div id="s-nutri-habitos-block"></div>
+
+      <!-- Evaluación -->
       <div id="s-eval-view"></div>
-      <div class="s-trainer"><div style="font-family:var(--fm);font-size:9px;color:var(--s2);text-transform:uppercase;letter-spacing:2px;margin-bottom:8px">Tu entrenador</div><div style="display:flex;align-items:center;gap:12px"><div style="width:42px;height:42px;border-radius:50%;background:var(--bg3);border:2px solid var(--s3);display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-size:18px;font-weight:700;color:var(--si)">R</div><div><div style="font-family:var(--fd);font-size:20px;font-weight:800;text-transform:uppercase;letter-spacing:2px">Rubén</div><div style="font-size:12px;color:var(--t2);font-family:var(--fm)">RubenTrena Spotters</div></div></div></div>
-      <button style="width:100%;padding:12px;border-radius:9px;border:1px solid var(--bor);background:transparent;color:var(--t3);font-family:var(--fm);font-size:11px;text-transform:uppercase;letter-spacing:1.5px;cursor:pointer;margin-top:11px;min-height:48px" onclick="sLogout()">Cambiar alumno</button>
+
+      <!-- Entrenador -->
+      <div class="s-trainer">
+        <div style="font-family:var(--fm);font-size:9px;color:var(--s2);text-transform:uppercase;letter-spacing:2px;margin-bottom:8px">Tu entrenador</div>
+        <div style="display:flex;align-items:center;gap:12px">
+          <div style="width:42px;height:42px;border-radius:50%;background:var(--bg3);border:2px solid var(--s3);display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-size:18px;font-weight:700;color:var(--si)">R</div>
+          <div><div style="font-family:var(--fd);font-size:20px;font-weight:800;text-transform:uppercase;letter-spacing:2px">Rubén</div><div style="font-size:12px;color:var(--t2);font-family:var(--fm)">RubenTrena Spotters</div></div>
+        </div>
+      </div>
+      <button style="width:100%;padding:12px;border-radius:20px;border:1px solid var(--bor);background:transparent;color:var(--t3);font-family:var(--fm);font-size:11px;text-transform:uppercase;letter-spacing:1.5px;cursor:pointer;margin-top:11px;min-height:48px" onclick="sLogout()">Cambiar alumno</button>
+
+      <!-- IDs ocultos para sPerfil() — no se muestran -->
+      <span id="s-pag-val" style="display:none"></span>
+      <span id="s-pag-ses" style="display:none"></span>
+      <span id="s-pag-tot" style="display:none"></span>
+      <span id="s-pag-est" style="display:none"></span>
     </div>
   </div>
   <div class="s-bnav">
@@ -1082,7 +1109,25 @@ function tPagos(){
   set('p-cob',`$${cob.toLocaleString('es-CL')}`);set('p-cob-n',`${pagOk.length} pagos`);
   set('p-pen',`$${pend.reduce((s,a)=>s+a.tarifa,0).toLocaleString('es-CL')}`);set('p-pen-n',`${pend.length} alumnos`);
   set('p-ven',`$${ven.reduce((s,a)=>s+a.tarifa,0).toLocaleString('es-CL')}`);set('p-ven-n',`${ven.length} alumnos`);
-  const pr=(a,b)=>`<div class="lr" onclick="editAl('${a.id}')"><div class="lav">${a.n[0]}</div><div style="flex:1"><div class="ln" style="font-size:13px">${a.n}</div></div><div style="font-family:var(--fm);font-size:12px;color:var(--or)">$${a.tarifa.toLocaleString('es-CL')}</div><span class="badge ${b}">${a.pago==='vencido'?'Vencido':'Pendiente'}</span></div>`;
+  const pr=(a,b)=>{
+    const monto=(a.tarifa*a.sesiones).toLocaleString('es-CL');
+    const msg=`Hola ${a.n.split(' ')[0]}! ${a.pago==='vencido'?'🔴':'🟠'} Tu pago de este mes está ${a.pago==='vencido'?'vencido':'pendiente'}. Valor: $${a.tarifa.toLocaleString('es-CL')} × ${a.sesiones} sesiones = $${monto} CLP. Cualquier consulta me avisas. 💪 — Rubén`;
+    const waUrl=`https://wa.me/?text=${encodeURIComponent(msg)}`;
+    return `<div style="background:var(--card);border:1px solid var(--bor);border-radius:14px;padding:12px 14px;margin-bottom:8px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+        <div class="lav">${a.n[0]}</div>
+        <div style="flex:1"><div class="ln" style="font-size:13px">${a.n}</div><div style="font-size:10px;color:var(--t3);font-family:var(--fm)">${a.sesiones} ses. × $${a.tarifa.toLocaleString('es-CL')}</div></div>
+        <div style="text-align:right"><div style="font-family:var(--fm);font-size:14px;font-weight:700;color:var(--or)">$${monto}</div><span class="badge ${b}" style="margin-top:3px;display:inline-block">${a.pago==='vencido'?'Vencido':'Pendiente'}</span></div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button onclick="editAl('${a.id}')" style="flex:1;padding:8px;border-radius:20px;border:1px solid var(--bor);background:transparent;color:var(--t2);font-family:var(--fm);font-size:10px;text-transform:uppercase;letter-spacing:.06em;cursor:pointer">Ver alumno</button>
+        <a href="${waUrl}" target="_blank" style="flex:1;padding:8px;border-radius:20px;background:#25d366;border:none;color:#fff;font-family:var(--fm);font-size:10px;text-transform:uppercase;letter-spacing:.06em;cursor:pointer;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:5px;font-weight:700">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.123.555 4.116 1.527 5.845L.057 23.885a.5.5 0 0 0 .615.613l6.155-1.615A11.945 11.945 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.891 0-3.667-.524-5.18-1.433l-.371-.22-3.853 1.011 1.027-3.748-.241-.386A9.959 9.959 0 0 1 2 12c0-5.514 4.486-10 10-10s10 4.486 10 10-4.486 10-10 10z"/></svg>
+          WhatsApp
+        </a>
+      </div>
+    </div>`;
+  };
   set('p-pend',[...ven.map(a=>pr(a,'bred')),...pend.map(a=>pr(a,'bwarn'))].join('')||'<p style="color:var(--t3);font-size:13px;padding:12px 0">✓ Sin urgentes</p>');
   set('p-ok',pagOk.slice(0,8).map(p=>{const al=als.find(a=>a.id===p.alId)||{n:p.alN||'—'};return `<div class="lr"><div class="lav">${al.n[0]}</div><div style="flex:1;font-size:13px;font-weight:500">${al.n}</div><div style="font-family:var(--fm);color:var(--si);font-size:13px">$${parseFloat(p.mo||0).toLocaleString('es-CL')}</div></div>`}).join('')||'<p style="color:var(--t3);font-size:13px;padding:12px 0">Sin pagos.</p>');
   set('p-res',als.map(a=>`<div class="lr"><div class="lav">${a.n[0]}</div><div style="flex:1;font-size:13px;font-weight:500">${a.n}</div><div style="font-family:var(--fm);font-size:11px;color:var(--t2)">${a.sesiones}×$${a.tarifa.toLocaleString('es-CL')}</div><div style="font-family:var(--fm);font-size:12px;color:var(--or)">$${(a.tarifa*a.sesiones).toLocaleString('es-CL')}</div><span class="badge ${a.pago==='al_dia'?'bok':a.pago==='vencido'?'bred':'bwarn'}">${a.pago==='al_dia'?'Al día':a.pago==='vencido'?'Vencido':'Pendiente'}</span></div>`).join(''));
@@ -1659,6 +1704,7 @@ function sPerfil(){
   const ev=(DB.get('eval')||{})[a.id]||{};
   set('s-alerts-block',ev.alertas?.length?`<div style="margin-bottom:11px"><div style="font-family:var(--fm);font-size:9px;color:var(--re);text-transform:uppercase;letter-spacing:2px;margin-bottom:9px">🚨 Tus alertas activas</div>${ev.alertas.map(al=>`<div style="display:flex;align-items:center;gap:9px;padding:8px;background:rgba(192,64,64,.08);border:1px solid rgba(192,64,64,.2);border-radius:8px;margin-bottom:7px"><span>${al.lvl==='red'?'🔴':al.lvl==='orange'?'🟠':'🟢'}</span><div style="font-size:13px;color:var(--re)">${al.txt}</div></div>`).join('')}</div>`:'');
   sRenderNotasYMedidas();
+  sRenderNutriHabitos();
   set('s-eval-view',ev.les||ev['mh']?`<div class="s-psec" style="margin-bottom:11px"><div class="s-pst">📋 Mi evaluación</div>${ev.les?`<div class="s-psr"><span class="s-psk">Lesiones</span><span class="s-psv" style="color:var(--or);font-size:12px">${ev.les}</span></div>`:''}</div>`:'');
 }
 
@@ -1834,6 +1880,94 @@ function processImport(input){
 }
 
 // ═══ STUDENT: notas y medidas en perfil ═══
+function sRenderNutriHabitos(){
+  const a = ALUMNO;
+  const peso = parseFloat(a.peso) || 70;
+  const prot = Math.round(peso * 1.8);
+  const obj = (a.obj || '').toLowerCase();
+  const isHiper = obj.includes('hipertrofia') || obj.includes('fuerza');
+  const isSalud = obj.includes('salud');
+  const kcal = isHiper ? Math.round(peso * 35) : isSalud ? Math.round(peso * 28) : Math.round(peso * 30);
+
+  const preEnt = isHiper
+    ? 'Carbohidratos + proteína moderada: avena con fruta y huevos, o arroz con pollo. 1–2h antes.'
+    : 'Algo liviano: fruta, yogur o tostadas con huevo. 45–60 min antes.';
+  const postEnt = 'Proteína + carbohidratos dentro de los primeros 60 min: batido de proteína + plátano, o pollo con arroz y verduras.';
+
+  const html = `
+  <div style="margin-bottom:14px">
+
+    <!-- HEADER -->
+    <div style="font-family:var(--fm);font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:12px">Nutrición · Hábitos</div>
+
+    <!-- KPIs NUTRICIÓN -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:12px">
+      <div style="background:var(--card);border-radius:14px;padding:13px;border-top:2px solid var(--gr)">
+        <div style="font-family:var(--fm);font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px">Proteína total</div>
+        <div style="font-family:var(--fm);font-size:26px;font-weight:700;color:var(--gr);line-height:1">${prot}g</div>
+        <div style="font-size:10px;color:var(--t3);margin-top:4px">1.8g × ${peso}kg / día</div>
+      </div>
+      <div style="background:var(--card);border-radius:14px;padding:13px;border-top:2px solid var(--or)">
+        <div style="font-family:var(--fm);font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px">Calorías est.</div>
+        <div style="font-family:var(--fm);font-size:26px;font-weight:700;color:var(--or);line-height:1">${kcal}</div>
+        <div style="font-size:10px;color:var(--t3);margin-top:4px">kcal / día</div>
+      </div>
+    </div>
+
+    <!-- PRE / POST ENTRENO -->
+    <div style="background:var(--card);border-radius:14px;padding:14px;margin-bottom:10px">
+      <div style="font-family:var(--fm);font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">Alimentación y entreno</div>
+      <div style="margin-bottom:9px">
+        <div style="display:flex;align-items:center;gap:7px;margin-bottom:5px">
+          <div style="width:6px;height:6px;border-radius:50%;background:var(--bl);flex-shrink:0"></div>
+          <div style="font-size:11px;font-weight:600;color:var(--tx)">Antes de entrenar</div>
+        </div>
+        <div style="font-size:12px;color:var(--t2);line-height:1.5;padding-left:13px">${preEnt}</div>
+      </div>
+      <div>
+        <div style="display:flex;align-items:center;gap:7px;margin-bottom:5px">
+          <div style="width:6px;height:6px;border-radius:50%;background:var(--gr);flex-shrink:0"></div>
+          <div style="font-size:11px;font-weight:600;color:var(--tx)">Después de entrenar</div>
+        </div>
+        <div style="font-size:12px;color:var(--t2);line-height:1.5;padding-left:13px">${postEnt}</div>
+      </div>
+    </div>
+
+    <!-- SUPLEMENTOS CON EVIDENCIA -->
+    <div style="background:var(--card);border-radius:14px;padding:14px;margin-bottom:10px">
+      <div style="font-family:var(--fm);font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">Suplementos con evidencia</div>
+      ${[
+        {ico:'💊', n:'Proteína de suero', d:'20–40g post entrenamiento. Base de la recuperación muscular.', c:'var(--gr)'},
+        {ico:'⚡', n:'Creatina monohidrato', d:'3–5g diarios. Mejora fuerza y masa muscular. Tómala siempre, no solo en días de entrenamiento.', c:'var(--bl)'},
+        {ico:'🐟', n:'Omega 3', d:'2–3g EPA+DHA por día. Reduce inflamación y mejora recuperación.', c:'var(--or)'},
+        {ico:'🌙', n:'Magnesio (Glycinato)', d:'300–400mg antes de dormir. Mejora calidad del sueño y recuperación muscular.', c:'var(--si)'},
+      ].map(s=>`<div style="display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid var(--bor)">
+        <div style="width:32px;height:32px;border-radius:8px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">${s.ico}</div>
+        <div><div style="font-size:12px;font-weight:600;color:var(--tx);margin-bottom:2px">${s.n}</div><div style="font-size:11px;color:var(--t2);line-height:1.5">${s.d}</div></div>
+      </div>`).join('')}
+    </div>
+
+    <!-- HÁBITOS SALUDABLES -->
+    <div style="background:var(--card);border-radius:14px;padding:14px;margin-bottom:10px">
+      <div style="font-family:var(--fm);font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">Hábitos esenciales</div>
+      ${[
+        {ico:'💧', n:'Hidratación', d:'2–3 litros de agua al día. Más en días de entrenamiento. El rendimiento cae con solo 2% de deshidratación.'},
+        {ico:'😴', n:'Sueño', d:'7–9 horas por noche. El 80% de la recuperación y síntesis muscular ocurre mientras duermes.'},
+        {ico:'🚶', n:'Pasos diarios', d:'Apunta a 7.000–10.000 pasos. Mejora sensibilidad a la insulina y recuperación activa.'},
+        {ico:'📵', n:'Pantallas antes de dormir', d:'Evita pantallas 30–60 min antes de dormir. La luz azul reduce la melatonina y empeora el sueño.'},
+        {ico:'🥗', n:'Verduras cada día', d:'Al menos 3–4 porciones diarias. Micronutrientes esenciales para la recuperación y el sistema inmune.'},
+      ].map(h=>`<div style="display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid var(--bor)">
+        <div style="width:32px;height:32px;border-radius:8px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">${h.ico}</div>
+        <div><div style="font-size:12px;font-weight:600;color:var(--tx);margin-bottom:2px">${h.n}</div><div style="font-size:11px;color:var(--t2);line-height:1.5">${h.d}</div></div>
+      </div>`).join('')}
+    </div>
+
+  </div>`;
+
+  const el = document.getElementById('s-nutri-habitos-block');
+  if(el) el.innerHTML = html;
+}
+
 function sRenderNotasYMedidas(){
   if(!ALUMNO)return;
   // Notas del entrenador (solo las públicas)
