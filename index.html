@@ -773,19 +773,55 @@ select.fi{appearance:none;cursor:pointer;}
   </div>
   <div class="ss" id="s-prog">
     <div class="ssec" style="padding-top:20px">
-      <div class="ssec-t" style="font-size:13px;letter-spacing:3px;color:var(--si)">MI PROGRESO</div>
-      <div style="display:flex;justify-content:center;padding:16px 0 8px">
-        <div style="position:relative;width:130px;height:130px">
-          <svg style="transform:rotate(-90deg)" width="130" height="130" viewBox="0 0 130 130"><defs><linearGradient id="prg" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#3a8a4a"/><stop offset="100%" stop-color="#b8c4b9"/></linearGradient></defs><circle fill="none" stroke="var(--bg3)" stroke-width="10" cx="65" cy="65" r="50"/><circle fill="none" stroke="url(#prg)" stroke-width="10" stroke-linecap="round" cx="65" cy="65" r="50" stroke-dasharray="314" id="s-ring" style="stroke-dashoffset:314;transition:stroke-dashoffset 1.3s ease"/></svg>
-          <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center"><div style="font-family:var(--fd);font-size:30px;font-weight:900;color:var(--si)" id="s-rpct">—</div><div style="font-size:8px;color:var(--t3);font-family:var(--fm);text-transform:uppercase;letter-spacing:1px">Adherencia</div></div>
-        </div>
+      <div style="font-family:var(--fm);font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:12px">Mi progreso</div>
+
+      <!-- Selector de ejercicio -->
+      <div id="s-prog-selector" style="background:var(--card);border-radius:14px;padding:12px 16px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;border:1px solid var(--bor)" onclick="sProgOpenPicker()">
+        <div style="font-size:13px;color:var(--tx);font-weight:500" id="s-prog-ej-lbl">Selecciona un ejercicio</div>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="color:var(--t3)"><polyline points="6 9 12 15 18 9"/></svg>
       </div>
-      <div style="background:var(--card);border:1px solid var(--bor);border-radius:10px;padding:13px;margin-bottom:10px"><div style="font-family:var(--fm);font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:9px">Sesiones por semana</div><div style="display:flex;align-items:flex-end;gap:5px;height:62px" id="s-bchart"></div></div>
-      <div class="g2" style="margin-bottom:10px"><div style="background:var(--card);border:1px solid var(--bor);border-radius:10px;padding:13px"><div style="font-size:9px;color:var(--t3);font-family:var(--fm);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:4px">Peso actual</div><div style="font-family:var(--fd);font-size:26px;font-weight:800" id="s-mpeso">—</div></div><div style="background:var(--card);border:1px solid var(--bor);border-radius:10px;padding:13px"><div style="font-size:9px;color:var(--t3);font-family:var(--fm);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:4px">Sesiones totales</div><div style="font-family:var(--fd);font-size:26px;font-weight:800" id="s-mses">—</div></div></div>
-      <div class="ssec-t">Mis pesos por ejercicio</div>
-      <div id="s-hist-pesos"></div>
-      <div class="ssec-t" style="margin-top:6px">Últimas sesiones</div>
-      <div id="s-historial"></div>
+
+      <!-- Picker ejercicios -->
+      <div id="s-prog-picker" style="display:none;background:var(--card);border-radius:14px;border:1px solid var(--bor);margin-bottom:12px;max-height:200px;overflow-y:auto"></div>
+
+      <!-- Gráfico SVG -->
+      <div id="s-prog-chart-wrap" style="display:none;background:var(--card);border-radius:18px;padding:16px;margin-bottom:12px;border:1px solid var(--bor)">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px">
+          <div>
+            <div style="font-size:13px;font-weight:600;color:var(--tx)" id="s-prog-chart-title">—</div>
+            <div style="font-size:10px;color:var(--t3);margin-top:2px;font-family:var(--fm)" id="s-prog-chart-sub">—</div>
+          </div>
+          <div style="font-size:11px;color:var(--gr);font-family:var(--fm);font-weight:700" id="s-prog-pr">—</div>
+        </div>
+        <div style="position:relative;height:120px;margin-bottom:6px">
+          <svg id="s-prog-svg" width="100%" height="120" viewBox="0 0 280 120" preserveAspectRatio="none"></svg>
+        </div>
+        <div style="display:flex;justify-content:space-between" id="s-prog-dates"></div>
+        <!-- Stats -->
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px" id="s-prog-stats"></div>
+      </div>
+
+      <!-- Últimas sesiones del ejercicio -->
+      <div id="s-prog-sessions" style="display:none">
+        <div style="font-family:var(--fm);font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px">Últimas sesiones</div>
+        <div id="s-prog-sessions-list" style="background:var(--card);border-radius:14px;overflow:hidden;border:1px solid var(--bor)"></div>
+      </div>
+
+      <!-- Empty state -->
+      <div id="s-prog-empty" style="text-align:center;padding:48px 24px;color:var(--t3)">
+        <div style="font-size:32px;margin-bottom:12px">📊</div>
+        <div style="font-size:13px;font-weight:600;color:var(--t2);margin-bottom:6px">Sin datos aún</div>
+        <div style="font-size:12px">Registra tus kg en las sesiones y aquí verás tu curva de progreso</div>
+      </div>
+
+      <!-- IDs ocultos para compatibilidad con sProg -->
+      <span id="s-ring" style="display:none"></span>
+      <span id="s-rpct" style="display:none"></span>
+      <span id="s-bchart" style="display:none"></span>
+      <span id="s-mpeso" style="display:none"></span>
+      <span id="s-mses" style="display:none"></span>
+      <span id="s-hist-pesos" style="display:none"></span>
+      <span id="s-historial" style="display:none"></span>
     </div>
   </div>
   <div class="ss" id="s-perfil">
@@ -1736,14 +1772,138 @@ function sRestoreInp(idx){
 }
 
 function sProg(){
-  if(!ALUMNO)return;const a=ALUMNO;const adh=Math.min(Math.round((a.sesiones||0)/((a.semanas||1)*3)*100),100);
-  setTimeout(()=>{document.getElementById('s-ring').style.strokeDashoffset=314-(314*adh/100);set('s-rpct',adh+'%');},150);
-  const sem=a.semanas||1;set('s-bchart',[2,3,2,3,1].map((v,i)=>`<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px"><div style="width:100%;border-radius:3px 3px 0 0;min-height:3px;background:${i===4?'linear-gradient(180deg,var(--gr),var(--g2))':'linear-gradient(180deg,var(--si),var(--s3))'};height:${Math.round(v/3*54)+7}px"></div><div style="font-size:8px;color:var(--t3);font-family:var(--fm)">S${Math.max(1,sem-4+i)}</div></div>`).join(''));
-  set('s-mpeso',`${a.peso||'—'}<em style="font-size:14px;color:var(--t3)">kg</em>`);set('s-mses',a.sesiones||0);
-  const fb=DB.get('feedback')||[];const myFb=fb.filter(f=>f.alumnoId===a.id);
-  const byEj={};myFb.forEach(f=>{if(!byEj[f.ejercicio])byEj[f.ejercicio]=[];f.entries?.forEach(e=>{if(e.kg&&parseFloat(e.kg)>0)byEj[f.ejercicio].push({kg:parseFloat(e.kg),fecha:f.fecha});});});
-  set('s-hist-pesos',Object.entries(byEj).filter(([,d])=>d.length>0).slice(0,6).map(([name,data])=>{const best=Math.max(...data.map(d=>d.kg));const last4=data.slice(0,4).reverse();const maxV=Math.max(...last4.map(d=>d.kg))||1;return `<div style="background:var(--card);border:1px solid var(--bor);border-radius:10px;padding:13px;margin-bottom:9px"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px"><div style="font-size:13px;font-weight:600;color:var(--tx)">${name.split('(')[0].trim()}</div><span style="font-family:var(--fm);font-size:11px;color:var(--gr)">🏆 ${best}kg</span></div><div style="display:flex;align-items:flex-end;gap:5px;height:50px">${last4.map((d,i)=>`<div class="hcol"><div class="hbv">${d.kg}</div><div class="hbar${i===last4.length-1?' latest':''}" style="height:${Math.round(d.kg/maxV*42)+7}px"></div><div class="hbl">${d.fecha?.slice(5)||''}</div></div>`).join('')}</div></div>`;}).join('')||'<p style="color:var(--t3);font-size:13px;padding:10px 0">Registra tus kg durante las sesiones y aquí verás tu progreso.</p>');
-  const hist=DB.get('hist_s')||[];set('s-historial',hist.filter(h=>h.alumno===a.n).slice(0,5).map(h=>`<div style="background:var(--card);border:1px solid var(--bor);border-radius:9px;padding:12px;margin-bottom:8px"><div style="display:flex;justify-content:space-between;align-items:center"><div style="font-family:var(--fd);font-size:15px;font-weight:700;color:var(--tx);text-transform:uppercase">${h.dia}</div><span class="badge bok">Completada</span></div><div style="font-family:var(--fm);font-size:10px;color:var(--t3);margin-top:3px">${h.fecha}</div></div>`).join('')||'<p style="color:var(--t3);font-size:13px;padding:10px 0">Completa tu primera sesión.</p>');
+  if(!ALUMNO)return;
+  const a=ALUMNO;
+  const fb=DB.get('feedback')||[];
+  const myFb=fb.filter(f=>f.alumnoId===a.id||f.alumno===a.n);
+
+  // Agrupar por ejercicio con datos de kg
+  const byEj={};
+  myFb.forEach(f=>{
+    if(!byEj[f.ejercicio])byEj[f.ejercicio]=[];
+    f.entries?.forEach(e=>{
+      if(e.kg&&parseFloat(e.kg)>0)
+        byEj[f.ejercicio].push({kg:parseFloat(e.kg),fecha:f.fecha,hora:f.hora||''});
+    });
+  });
+
+  const ejercicios=Object.entries(byEj).filter(([,d])=>d.length>0).sort((a,b)=>b[1].length-a[1].length);
+
+  if(!ejercicios.length){
+    document.getElementById('s-prog-empty').style.display='block';
+    document.getElementById('s-prog-selector').style.display='none';
+    return;
+  }
+
+  document.getElementById('s-prog-empty').style.display='none';
+  document.getElementById('s-prog-selector').style.display='flex';
+
+  // Guardar ejercicios disponibles globalmente
+  window._progEjercicios=byEj;
+
+  // Mostrar primer ejercicio por defecto si ninguno seleccionado
+  if(!window._progEjActual||!byEj[window._progEjActual]){
+    window._progEjActual=ejercicios[0][0];
+  }
+  sProgRenderChart(window._progEjActual);
+}
+
+function sProgOpenPicker(){
+  const picker=document.getElementById('s-prog-picker');
+  if(picker.style.display==='block'){picker.style.display='none';return;}
+  const ejs=Object.keys(window._progEjercicios||{});
+  picker.innerHTML=ejs.map(ej=>`<div onclick="sProgSelectEj('${ej.replace(/'/g,"\'")}')" style="padding:12px 16px;border-bottom:1px solid var(--bor);font-size:13px;color:var(--tx);cursor:pointer">${ej}</div>`).join('');
+  picker.style.display='block';
+}
+
+function sProgSelectEj(ej){
+  window._progEjActual=ej;
+  document.getElementById('s-prog-picker').style.display='none';
+  sProgRenderChart(ej);
+}
+
+function sProgRenderChart(ej){
+  const data=(window._progEjercicios||{})[ej];
+  if(!data||!data.length)return;
+
+  // Ordenar por fecha
+  const sorted=[...data].sort((a,b)=>a.fecha>b.fecha?1:-1);
+  const maxKg=Math.max(...sorted.map(d=>d.kg));
+  const minKg=Math.min(...sorted.map(d=>d.kg));
+  const primero=sorted[0].kg;
+  const ultimo=sorted[sorted.length-1].kg;
+  const ganado=+(ultimo-primero).toFixed(1);
+
+  // Actualizar selector label
+  set('s-prog-ej-lbl',ej);
+  set('s-prog-chart-title',ej);
+  set('s-prog-chart-sub',`${sorted.length} sesión${sorted.length!==1?'es':''} registrada${sorted.length!==1?'s':''}`);
+  set('s-prog-pr',`🏆 ${maxKg} kg`);
+
+  // Stats
+  document.getElementById('s-prog-stats').innerHTML=[
+    {v:`${primero}kg`,l:'Inicio'},
+    {v:`${maxKg}kg`,l:'Récord'},
+    {v:`${ganado>=0?'+':''}${ganado}kg`,l:'Ganado'},
+  ].map(s=>`<div style="background:var(--bg3);border-radius:12px;padding:10px 8px;text-align:center">
+    <div style="font-family:var(--fm);font-size:16px;font-weight:700;color:${s.l==='Ganado'&&ganado>=0?'var(--gr)':'var(--tx)'}">${s.v}</div>
+    <div style="font-size:9px;color:var(--t3);margin-top:3px;font-family:var(--fm)">${s.l}</div>
+  </div>`).join('');
+
+  // Dibujar SVG
+  const W=280,H=120,PAD=10;
+  const rng=maxKg-minKg||1;
+  const pts=sorted.map((d,i)=>{
+    const x=PAD+(i/(Math.max(sorted.length-1,1)))*(W-PAD*2);
+    const y=H-PAD-(d.kg-minKg)/rng*(H-PAD*2);
+    return {x,y,kg:d.kg,fecha:d.fecha};
+  });
+
+  const pathD=pts.map((p,i)=>`${i===0?'M':'L'}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+  const areaD=pathD+` L${pts[pts.length-1].x.toFixed(1)},${H} L${pts[0].x.toFixed(1)},${H} Z`;
+
+  const circles=pts.map((p,i)=>{
+    const isLast=i===pts.length-1;
+    return `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${isLast?5:3.5}" fill="${isLast?'#fff':'var(--gr)'}" stroke="${isLast?'var(--gr)':'none'}" stroke-width="2"/>`;
+  }).join('');
+
+  document.getElementById('s-prog-svg').innerHTML=`
+    <defs>
+      <linearGradient id="pg" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="var(--gr)" stop-opacity="0.25"/>
+        <stop offset="100%" stop-color="var(--gr)" stop-opacity="0"/>
+      </linearGradient>
+      <linearGradient id="pl" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#1a2e1c" stop-opacity="1"/>
+        <stop offset="100%" stop-color="#1a2e1c" stop-opacity="0.3"/>
+      </linearGradient>
+    </defs>
+    <line x1="${PAD}" y1="${(H-PAD-(maxKg-minKg)/rng*(H-PAD*2)).toFixed(1)}" x2="${W-PAD}" y2="${(H-PAD-(maxKg-minKg)/rng*(H-PAD*2)).toFixed(1)}" stroke="var(--bor)" stroke-width="1" stroke-dasharray="4"/>
+    <line x1="${PAD}" y1="${(H-PAD).toFixed(1)}" x2="${W-PAD}" y2="${(H-PAD).toFixed(1)}" stroke="var(--bor)" stroke-width="1" stroke-dasharray="4"/>
+    <path d="${areaD}" fill="url(#pg)"/>
+    <path d="${pathD}" fill="none" stroke="var(--gr)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    ${circles}`;
+
+  // Fechas
+  const showDates=sorted.length<=6?sorted:[sorted[0],sorted[Math.floor(sorted.length/2)],sorted[sorted.length-1]];
+  document.getElementById('s-prog-dates').innerHTML=showDates.map(d=>`<span style="font-size:9px;color:var(--t3);font-family:var(--fm)">${d.fecha?.slice(5)||''}</span>`).join('');
+
+  // Mostrar chart y sessions
+  document.getElementById('s-prog-chart-wrap').style.display='block';
+  document.getElementById('s-prog-sessions').style.display='block';
+
+  // Lista últimas sesiones
+  const ultimas=[...sorted].reverse().slice(0,5);
+  document.getElementById('s-prog-sessions-list').innerHTML=ultimas.map((d,i)=>{
+    const prev=ultimas[i+1];
+    const delta=prev?+(d.kg-prev.kg).toFixed(1):null;
+    const deltaHtml=delta!==null?`<span style="font-size:10px;color:${delta>=0?'var(--gr)':'var(--re)'};font-family:var(--fm)">${delta>=0?'↑ +':'↓ '}${delta}kg</span>`:'';
+    return `<div style="display:flex;justify-content:space-between;align-items:center;padding:11px 14px;border-bottom:1px solid var(--bor)">
+      <div style="font-size:11px;color:var(--t2);font-family:var(--fm)">${d.fecha||'—'}</div>
+      <div style="font-size:14px;font-weight:700;color:var(--tx);font-family:var(--fm)">${d.kg} kg</div>
+      ${deltaHtml}
+    </div>`;
+  }).join('');
 }
 
 function sPerfil(){
@@ -1767,7 +1927,7 @@ function sGo(s){
   document.getElementById('ntab-'+s)?.classList.add('active');
   if(s==='plan')sPlan();
   if(s==='checkin'){sRenderCheckin();return;}
-  if(s==='prog')setTimeout(()=>{if(!ALUMNO)return;const a=ALUMNO;const adh=Math.min(Math.round((a.sesiones||0)/((a.semanas||1)*3)*100),100);const ring=document.getElementById('s-ring');if(ring)ring.style.strokeDashoffset=314-(314*adh/100);set('s-rpct',adh+'%');},120);
+  if(s==='prog')sProg();
 }
 
 // ═══ THEME ═══
