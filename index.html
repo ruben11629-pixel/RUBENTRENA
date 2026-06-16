@@ -1107,7 +1107,8 @@ function renderFb(){
   const byAl={};
   fb.forEach((f,fi)=>{
     if(!byAl[f.alumno])byAl[f.alumno]={name:f.alumno,sessions:[],indices:[]};
-    byAl[f.alumno].sessions.push(f);byAl[f.alumno].indices.push(fi);
+    byAl[f.alumno].sessions.push(f);
+    byAl[f.alumno].indices.push(fi);
   });
   const alumnos=Object.values(byAl);
   const cards=document.getElementById('fb-cards');
@@ -1115,39 +1116,96 @@ function renderFb(){
   if(!alumnos.length){cards.innerHTML='';empty.style.display='block';document.getElementById('fb-dot').style.display='none';return;}
   empty.style.display='none';
   const senColor={'Muy bien':'var(--gr)','Bien':'var(--gr)','Regular':'var(--or)','Mal':'var(--re)','Muy mal':'var(--re)'};
+
   cards.innerHTML=alumnos.map(al=>{
     const sess=al.sessions;const last=sess[0];
     const totalSets=sess.reduce((s,f)=>s+(f.entries?.length||0),0);
     const hoyAl=sess.filter(s=>s.fecha===hoyStr).length;
-    const rows=sess.slice(0,5).map((f)=>{
-      const kg=f.entries?.[0]?.kg||'—';const rp=f.entries?.[0]?.rp||'—';
-      const sen=f.entries?.[0]?.fb||'';const senCol=senColor[sen]||'var(--t3)';
-      const esHoy=f.fecha===hoyStr;
-      return `<div style="display:grid;grid-template-columns:1fr auto auto auto;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--bor)">
-        <div><div style="font-size:12px;font-weight:600;color:var(--tx)">${f.ejercicio||'—'}</div>
-        <div style="font-size:10px;color:var(--t3);margin-top:2px">${f.fecha||''} ${f.hora||''} ${esHoy?'<span style="background:var(--gr);color:#0a120b;border-radius:4px;padding:1px 5px;font-size:9px;font-weight:700">HOY</span>':''}</div></div>
-        <div style="text-align:center"><div style="font-family:var(--fm);font-size:14px;font-weight:700;color:var(--bl)">${kg}</div><div style="font-size:9px;color:var(--t3)">kg</div></div>
-        <div style="text-align:center"><div style="font-family:var(--fm);font-size:14px;font-weight:700;color:var(--tx)">${rp}</div><div style="font-size:9px;color:var(--t3)">reps</div></div>
-        <div style="text-align:right">${sen?`<span style="font-size:10px;color:${senCol};font-weight:600">${sen}</span>`:'<span style="color:var(--t3);font-size:10px">—</span>'}</div>
+
+    // Agrupar por fecha
+    const byFecha={};
+    sess.forEach((f,si)=>{
+      const key=f.fecha||'sin fecha';
+      if(!byFecha[key])byFecha[key]=[];
+      byFecha[key].push({...f,_origIdx:al.indices[si]});
+    });
+
+    const fechaBlocks=Object.entries(byFecha).slice(0,4).map(([fecha,items])=>{
+      const esHoy=fecha===hoyStr;
+      const rows=items.map(f=>{
+        const kg=f.entries?.[0]?.kg||'—';
+        const rp=f.entries?.[0]?.rp||'—';
+        const sen=f.entries?.[0]?.fb||'';
+        const senCol=senColor[sen]||'var(--t3)';
+        return `<div style="display:grid;grid-template-columns:1fr auto auto auto auto;gap:6px;align-items:center;padding:7px 0;border-bottom:1px solid var(--bor)">
+          <div style="font-size:12px;font-weight:500;color:var(--tx)">${f.ejercicio||'—'}</div>
+          <div style="text-align:center"><div style="font-family:var(--fm);font-size:13px;font-weight:700;color:var(--bl)">${kg}</div><div style="font-size:9px;color:var(--t3)">kg</div></div>
+          <div style="text-align:center"><div style="font-family:var(--fm);font-size:13px;font-weight:700;color:var(--tx)">${rp}</div><div style="font-size:9px;color:var(--t3)">reps</div></div>
+          <div>${sen?`<span style="font-size:10px;color:${senCol};font-weight:600">${sen}</span>`:'<span style="color:var(--t3);font-size:10px">—</span>'}</div>
+          <button onclick="fbDelSesion(${f._origIdx})" style="background:transparent;border:none;color:var(--t3);cursor:pointer;font-size:14px;padding:2px 4px" title="Eliminar">✕</button>
+        </div>`;
+      }).join('');
+
+      return `<div style="padding:8px 16px">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;margin-bottom:2px">
+          <div style="display:flex;align-items:center;gap:6px">
+            <div style="font-family:var(--fm);font-size:10px;color:var(--t3)">${fecha}</div>
+            ${esHoy?'<span style="background:var(--gr);color:#0a120b;border-radius:4px;padding:1px 5px;font-size:9px;font-weight:700">HOY</span>':''}
+          </div>
+          <button onclick="fbDelFecha('${al.name}','${fecha}')" style="background:transparent;border:none;color:var(--re);cursor:pointer;font-size:10px;font-family:var(--fm);opacity:.7">Borrar día</button>
+        </div>
+        ${rows}
       </div>`;
     }).join('');
-    return `<div style="background:var(--card);border-radius:18px;overflow:hidden;border:1px solid var(--bor)">
+
+    return `<div style="background:var(--card);border-radius:18px;overflow:hidden;border:1px solid var(--bor);margin-bottom:12px">
       <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--bor)">
         <div style="display:flex;align-items:center;gap:10px">
           <div style="width:36px;height:36px;border-radius:50%;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-family:var(--fb);font-size:14px;font-weight:900;color:var(--si)">${al.name.charAt(0).toUpperCase()}</div>
-          <div><div style="font-family:var(--fb);font-size:14px;font-weight:800;color:var(--tx);text-transform:uppercase;letter-spacing:.04em">${al.name}</div>
-          <div style="font-size:10px;color:var(--t3);margin-top:1px">Última: ${last.fecha||''} ${last.hora||''}</div></div>
+          <div>
+            <div style="font-family:var(--fb);font-size:14px;font-weight:800;color:var(--tx);text-transform:uppercase;letter-spacing:.04em">${al.name}</div>
+            <div style="font-size:10px;color:var(--t3);margin-top:1px">${sess.length} registros · ${totalSets} sets</div>
+          </div>
         </div>
         <div style="display:flex;gap:8px;align-items:center">
           ${hoyAl?`<span style="background:var(--bg3);color:var(--gr);border-radius:20px;padding:3px 10px;font-family:var(--fm);font-size:10px;font-weight:700">${hoyAl} hoy</span>`:''}
-          <div style="text-align:right"><div style="font-family:var(--fm);font-size:18px;font-weight:700;color:var(--t2)">${totalSets}</div><div style="font-size:9px;color:var(--t3)">sets</div></div>
+          <button onclick="fbDelAlumno('${al.name}')" style="background:transparent;border:1px solid var(--re);color:var(--re);border-radius:20px;padding:4px 10px;font-size:10px;font-family:var(--fm);cursor:pointer">Limpiar</button>
         </div>
       </div>
-      <div style="padding:0 16px">${rows}</div>
+      ${fechaBlocks}
     </div>`;
   }).join('');
+
   document.getElementById('fb-dot').style.display=hoy?'block':'none';
   renderCheckins();
+}
+
+// Eliminar una sesión individual
+function fbDelSesion(idx){
+  if(!confirm('¿Eliminar este registro?'))return;
+  const fb=DB.get('feedback')||[];
+  fb.splice(idx,1);
+  DB.set('feedback',fb);
+  renderFb();
+  showToast('Registro eliminado');
+}
+
+// Eliminar todas las sesiones de un alumno en una fecha
+function fbDelFecha(alumno,fecha){
+  if(!confirm(`¿Borrar todos los registros de ${alumno} del ${fecha}?`))return;
+  const fb=DB.get('feedback')||[];
+  DB.set('feedback',fb.filter(f=>!(f.alumno===alumno&&f.fecha===fecha)));
+  renderFb();
+  showToast('Día eliminado');
+}
+
+// Eliminar todos los registros de un alumno
+function fbDelAlumno(alumno){
+  if(!confirm(`¿Limpiar TODO el historial de ${alumno}? Esto no se puede deshacer.`))return;
+  const fb=DB.get('feedback')||[];
+  DB.set('feedback',fb.filter(f=>f.alumno!==alumno));
+  renderFb();
+  showToast('Historial limpiado');
 }
 
 function renderCheckins(){
@@ -1250,13 +1308,55 @@ function loadHist(){
   let filtered=fb;
   if(alId)filtered=filtered.filter(f=>f.alumnoId===alId);
   if(ejId){const ej=ejs.find(e=>e.id===ejId);if(ej)filtered=filtered.filter(f=>f.ejercicio===ej.n);}
+
+  // Agrupar por ejercicio
   const byEj={};
-  filtered.forEach(f=>{if(!byEj[f.ejercicio])byEj[f.ejercicio]=[];f.entries?.forEach(e=>{if(e.kg&&parseFloat(e.kg)>0)byEj[f.ejercicio].push({kg:parseFloat(e.kg),rp:e.rp||'—',fb:e.fb||'',fecha:f.fecha,alumno:f.alumno});});});
+  filtered.forEach(f=>{
+    if(!byEj[f.ejercicio])byEj[f.ejercicio]=[];
+    // Agrupar entradas por fecha — tomar el mayor kg del día
+    const fecha=f.fecha||'sin fecha';
+    const alumno=f.alumno||'—';
+    f.entries?.forEach(e=>{
+      if(e.kg&&parseFloat(e.kg)>0){
+        byEj[f.ejercicio].push({kg:parseFloat(e.kg),rp:e.rp||'—',fb:e.fb||'',fecha,alumno});
+      }
+    });
+  });
+
   const cards=Object.entries(byEj).filter(([,d])=>d.length>0);
+
   set('hist-content',cards.length?cards.map(([name,data])=>{
     const best=Math.max(...data.map(d=>d.kg));
-    const last5=data.slice(0,5).reverse();const maxV=Math.max(...last5.map(d=>d.kg))||1;
-    return `<div class="panel" style="margin-bottom:11px"><div class="ph"><div class="pt">${name.split('(')[0].trim()}</div><div style="font-size:11px;color:var(--gr);font-family:var(--fm)">🏆 Mejor: ${best}kg</div></div><div class="pb"><div style="font-family:var(--fm);font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px">Últimas ${last5.length} sesiones</div><div class="hchart">${last5.map((d,i)=>`<div class="hcol"><div class="hbv">${d.kg}</div><div class="hbar${i===last5.length-1?' latest':''}" style="height:${Math.round(d.kg/maxV*55)+8}px"></div><div class="hbl">${d.fecha?.slice(5)||''}</div></div>`).join('')}</div><div style="margin-top:11px">${data.slice(0,6).map(d=>`<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--bor);font-size:13px"><div style="font-family:var(--fm);font-size:10px;color:var(--t3);min-width:58px">${d.fecha||''}</div><div style="flex:1;color:var(--t2)">${d.alumno}</div><div style="font-family:var(--fm);color:var(--si);font-weight:600">${d.kg}kg</div><div style="font-family:var(--fm);font-size:11px;color:var(--t2)">${d.rp}</div><div style="font-size:12px;color:var(--t2);font-style:italic;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${d.fb}</div></div>`).join('')}</div></div></div>`;
+
+    // Agrupar por fecha — tomar el máximo kg por fecha+alumno
+    const byFechaAl={};
+    data.forEach(d=>{
+      const key=`${d.fecha}__${d.alumno}`;
+      if(!byFechaAl[key]||d.kg>byFechaAl[key].kg) byFechaAl[key]=d;
+    });
+    const unique=Object.values(byFechaAl).sort((a,b)=>b.fecha>a.fecha?1:-1);
+    const last5=[...unique].reverse().slice(-5);
+    const maxV=Math.max(...last5.map(d=>d.kg))||1;
+
+    return `<div class="panel" style="margin-bottom:14px">
+      <div class="ph" style="display:flex;align-items:center;justify-content:space-between">
+        <div class="pt">${name.split('(')[0].trim()}</div>
+        <div style="font-size:11px;color:var(--gr);font-family:var(--fm)">🏆 ${best}kg</div>
+      </div>
+      <div class="pb">
+        <div style="font-family:var(--fm);font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px">Últimas ${last5.length} sesiones</div>
+        <div class="hchart">${last5.map((d,i)=>`<div class="hcol"><div class="hbv">${d.kg}</div><div class="hbar${i===last5.length-1?' latest':''}" style="height:${Math.round(d.kg/maxV*55)+8}px"></div><div class="hbl">${d.fecha?.slice(5)||''}</div></div>`).join('')}</div>
+        <div style="margin-top:12px">
+          ${unique.slice(0,8).map(d=>`
+          <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--bor)">
+            <div style="font-family:var(--fm);font-size:10px;color:var(--t3);min-width:58px">${d.fecha||''}</div>
+            <div style="flex:1;color:var(--t2);font-size:13px">${d.alumno}</div>
+            <div style="font-family:var(--fm);color:var(--si);font-weight:600;font-size:13px">${d.kg}kg</div>
+            <div style="font-family:var(--fm);font-size:11px;color:var(--t3)">${d.rp} reps</div>
+          </div>`).join('')}
+        </div>
+      </div>
+    </div>`;
   }).join(''):'<p style="color:var(--t3);font-size:13px;padding:24px;text-align:center">Sin historial de pesos. Aparecerá cuando los alumnos registren sus kg durante las sesiones.</p>');
 }
 
