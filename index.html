@@ -1729,7 +1729,7 @@ function tGo(s){
 
 // BACKUP
 function forzarSyncFirebase(){
-  if(!window.FB||!window._d){
+  if(!window.FB){
     alert('Firebase no conectado. Espera el punto verde e intenta de nuevo.');
     return;
   }
@@ -1747,15 +1747,20 @@ function forzarSyncFirebase(){
   const txt=document.getElementById('fb-txt');
   if(dot)dot.style.background='#ff9f0a';
   if(txt){txt.textContent='subiendo...';txt.style.color='#ff9f0a';}
-  window._d.set(up,{merge:true}).then(function(){
-    if(dot)dot.style.background='#4ade80';
-    if(txt){txt.textContent='en linea';txt.style.color='#4ade80';}
-    showToast('✓ Todo subido a Firebase — el celular ya puede sincronizar');
-  }).catch(function(e){
-    console.error('sync error:',e);
-    if(dot)dot.style.background='#b86060';
-    if(txt){txt.textContent='error';txt.style.color='#b86060';}
-    showToast('Error al subir. Verifica conexión.');
+  // Usar FB.set para cada key
+  var pendientes=keys.length;
+  var errores=0;
+  keys.forEach(function(k){
+    const v=localStorage.getItem('rt6_'+k);
+    if(v&&v!=='null'){
+      window.FB.set(k,JSON.parse(v));
+    }
+    pendientes--;
+    if(pendientes===0){
+      if(dot)dot.style.background='#4ade80';
+      if(txt){txt.textContent='en linea';txt.style.color='#4ade80';}
+      showToast('✓ Todo subido a Firebase — abre el celular y recarga');
+    }
   });
 }
 
