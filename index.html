@@ -420,6 +420,7 @@ select.fi{appearance:none;cursor:pointer;}
       <div class="theme-toggle" onclick="toggleTheme()" title="Cambiar tema"><span class="theme-icon" id="ti-t">🌙</span></div>
       <span id="fb-dot" style="width:7px;height:7px;border-radius:50%;background:var(--t3);display:inline-block;margin-right:3px;vertical-align:middle"></span><span id="fb-txt" style="font-family:var(--fm);font-size:9px;color:var(--t3);margin-right:8px">sync</span><button class="btn btn-g btn-sm" onclick="launchMode()">⇄</button><button class="btn btn-g btn-sm" onclick="importData()">⬆ Importar</button>
       <button class="btn btn-g btn-sm" onclick="exportData()">⬇ Backup</button>
+      <button class="btn btn-g btn-sm" onclick="forzarSyncFirebase()" title="Subir todo a Firebase" style="background:var(--bg3);border:1px solid var(--bor)">☁ Sync</button>
       <button class="btn btn-p btn-sm" onclick="openM('m-ses')">+ Sesión</button>
     </div>
   </div>
@@ -1727,6 +1728,37 @@ function tGo(s){
 }
 
 // BACKUP
+function forzarSyncFirebase(){
+  if(!window.FB||!window._d){
+    alert('Firebase no conectado. Espera el punto verde e intenta de nuevo.');
+    return;
+  }
+  const keys=['alumnos','ejercicios','rutinas','sesiones','feedback','pagos','medidas','notas','eval'];
+  const up={};
+  keys.forEach(function(k){
+    const v=localStorage.getItem('rt6_'+k);
+    if(v&&v!=='null'&&v!=='[]'&&v!=='{}') up[k]=v;
+  });
+  if(Object.keys(up).length===0){
+    alert('No hay datos para subir.');
+    return;
+  }
+  const dot=document.getElementById('fb-dot');
+  const txt=document.getElementById('fb-txt');
+  if(dot)dot.style.background='#ff9f0a';
+  if(txt){txt.textContent='subiendo...';txt.style.color='#ff9f0a';}
+  window._d.set(up,{merge:true}).then(function(){
+    if(dot)dot.style.background='#4ade80';
+    if(txt){txt.textContent='en linea';txt.style.color='#4ade80';}
+    showToast('✓ Todo subido a Firebase — el celular ya puede sincronizar');
+  }).catch(function(e){
+    console.error('sync error:',e);
+    if(dot)dot.style.background='#b86060';
+    if(txt){txt.textContent='error';txt.style.color='#b86060';}
+    showToast('Error al subir. Verifica conexión.');
+  });
+}
+
 function exportData(){
   const keys=['alumnos','ejercicios','rutinas','sesiones','pagos','feedback','eval'];
   const data={};keys.forEach(k=>data[k]=DB.get(k)||[]);data.exportDate=new Date().toISOString();
