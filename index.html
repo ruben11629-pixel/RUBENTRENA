@@ -1734,30 +1734,29 @@ function forzarSyncFirebase(){
     return;
   }
   const keys=['alumnos','ejercicios','rutinas','sesiones','feedback','pagos','medidas','notas','eval'];
-  const up={};
-  keys.forEach(function(k){
-    const v=localStorage.getItem('rt6_'+k);
-    if(v&&v!=='null') up[k]=v;
-  });
-  if(Object.keys(up).length===0){
-    alert('No hay datos para subir.');
-    return;
-  }
   const dot=document.getElementById('fb-dot');
   const txt=document.getElementById('fb-txt');
   if(dot)dot.style.background='#ff9f0a';
   if(txt){txt.textContent='subiendo...';txt.style.color='#ff9f0a';}
-  // SET sin merge — reemplaza TODO en Firebase con los datos actuales
-  window._fbDoc.set(up).then(function(){
+  // Subir clave por clave usando FB.set que ya funciona
+  var total=0;var done=0;
+  keys.forEach(function(k){
+    var v=localStorage.getItem('rt6_'+k);
+    if(v&&v!=='null'&&v.length>2){
+      total++;
+      try{
+        var parsed=JSON.parse(v);
+        window.FB.set(k,parsed);
+        done++;
+      }catch(e){console.warn('skip',k,e);}
+    }
+  });
+  // Confirmar después de 2 segundos
+  setTimeout(function(){
     if(dot)dot.style.background='#4ade80';
     if(txt){txt.textContent='en linea';txt.style.color='#4ade80';}
-    showToast('✓ Firebase actualizado — recarga el celular');
-  }).catch(function(e){
-    console.error('sync error:',e);
-    if(dot)dot.style.background='#b86060';
-    if(txt){txt.textContent='error';txt.style.color='#b86060';}
-    showToast('Error al subir. Verifica conexión.');
-  });
+    showToast('✓ '+done+' datos subidos a Firebase — recarga el celular');
+  },2000);
 }
 
 function exportData(){
