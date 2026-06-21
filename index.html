@@ -1737,7 +1737,7 @@ function forzarSyncFirebase(){
   const up={};
   keys.forEach(function(k){
     const v=localStorage.getItem('rt6_'+k);
-    if(v&&v!=='null'&&v!=='[]'&&v!=='{}') up[k]=v;
+    if(v&&v!=='null') up[k]=v;
   });
   if(Object.keys(up).length===0){
     alert('No hay datos para subir.');
@@ -1747,20 +1747,16 @@ function forzarSyncFirebase(){
   const txt=document.getElementById('fb-txt');
   if(dot)dot.style.background='#ff9f0a';
   if(txt){txt.textContent='subiendo...';txt.style.color='#ff9f0a';}
-  // Usar FB.set para cada key
-  var pendientes=keys.length;
-  var errores=0;
-  keys.forEach(function(k){
-    const v=localStorage.getItem('rt6_'+k);
-    if(v&&v!=='null'){
-      window.FB.set(k,JSON.parse(v));
-    }
-    pendientes--;
-    if(pendientes===0){
-      if(dot)dot.style.background='#4ade80';
-      if(txt){txt.textContent='en linea';txt.style.color='#4ade80';}
-      showToast('✓ Todo subido a Firebase — abre el celular y recarga');
-    }
+  // SET sin merge — reemplaza TODO en Firebase con los datos actuales
+  _d.set(up).then(function(){
+    if(dot)dot.style.background='#4ade80';
+    if(txt){txt.textContent='en linea';txt.style.color='#4ade80';}
+    showToast('✓ Firebase actualizado — recarga el celular');
+  }).catch(function(e){
+    console.error('sync error:',e);
+    if(dot)dot.style.background='#b86060';
+    if(txt){txt.textContent='error';txt.style.color='#b86060';}
+    showToast('Error al subir. Verifica conexión.');
   });
 }
 
