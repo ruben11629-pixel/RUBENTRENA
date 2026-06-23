@@ -396,6 +396,7 @@ select.fi{appearance:none;cursor:pointer;}
   </div>
   <div style="display:flex;align-items:center;gap:10px">
     <div class="ms-hint">Tablet → Entrenador · Celular alumno → Alumno</div>
+    <button onclick="forzarDescargaFirebase()" style="background:var(--bg2);border:1px solid var(--bor);color:var(--si);border-radius:20px;padding:7px 16px;font-family:var(--fm);font-size:10px;text-transform:uppercase;letter-spacing:.08em;cursor:pointer">↓ Actualizar</button>
     <div class="theme-toggle" onclick="toggleTheme()" title="Cambiar tema"><span class="theme-icon" id="ti-mode">🌙</span></div>
   </div>
 </div>
@@ -1729,6 +1730,46 @@ function tGo(s){
 }
 
 // BACKUP
+function forzarDescargaFirebase(){
+  if(typeof firebase==='undefined'){
+    alert('Sin conexion a internet. Conéctate e intenta de nuevo.');
+    return;
+  }
+  var btn=event.target;
+  btn.textContent='Descargando...';
+  btn.disabled=true;
+  var keys=['alumnos','ejercicios','rutinas','sesiones','feedback','pagos','medidas','notas'];
+  try{
+    var db=firebase.firestore();
+    var d=db.collection('rubentrena').doc('data');
+    d.get().then(function(s){
+      if(s.exists()){
+        var data=s.data();
+        var count=0;
+        keys.forEach(function(k){
+          if(data[k]!==undefined&&data[k]!==null){
+            localStorage.removeItem('rt6_'+k);
+            localStorage.setItem('rt6_'+k,data[k]);
+            count++;
+          }
+        });
+        btn.textContent='✓ Datos actualizados';
+        btn.style.color='#4ade80';
+        setTimeout(function(){location.reload();},1500);
+      } else {
+        btn.textContent='Firebase vacío';
+        btn.disabled=false;
+      }
+    }).catch(function(e){
+      btn.textContent='Error: '+e.message;
+      btn.disabled=false;
+    });
+  }catch(e){
+    btn.textContent='Error de conexion';
+    btn.disabled=false;
+  }
+}
+
 function diagnosticoFirebase(){
   var rutinas=JSON.parse(localStorage.getItem('rt6_rutinas')||'[]');
   var ejercicios=JSON.parse(localStorage.getItem('rt6_ejercicios')||'[]');
