@@ -1732,7 +1732,7 @@ function tGo(s){
 // BACKUP
 function forzarDescargaFirebase(){
   if(typeof firebase==='undefined'){
-    alert('Sin conexion a internet. Conéctate e intenta de nuevo.');
+    alert('Sin conexion. Intenta de nuevo.');
     return;
   }
   var btn=event.target;
@@ -1743,21 +1743,21 @@ function forzarDescargaFirebase(){
     var db=firebase.firestore();
     var d=db.collection('rubentrena').doc('data');
     d.get().then(function(s){
-      if(s.exists()){
+      // v9 compat: .exists es propiedad, no función
+      var existe=typeof s.exists==='function'?s.exists():s.exists;
+      if(existe){
         var data=s.data();
-        var count=0;
         keys.forEach(function(k){
           if(data[k]!==undefined&&data[k]!==null){
             localStorage.removeItem('rt6_'+k);
             localStorage.setItem('rt6_'+k,data[k]);
-            count++;
           }
         });
-        btn.textContent='✓ Datos actualizados';
+        btn.textContent='✓ Listo';
         btn.style.color='#4ade80';
         setTimeout(function(){location.reload();},1500);
       } else {
-        btn.textContent='Firebase vacío';
+        btn.textContent='Firebase vacio';
         btn.disabled=false;
       }
     }).catch(function(e){
@@ -1765,7 +1765,7 @@ function forzarDescargaFirebase(){
       btn.disabled=false;
     });
   }catch(e){
-    btn.textContent='Error de conexion';
+    btn.textContent='Error conexion';
     btn.disabled=false;
   }
 }
@@ -1783,24 +1783,23 @@ function diagnosticoFirebase(){
     lineas.push('Rutinas:');
     rutinas.forEach(function(r){lineas.push('- '+(r.alNombre||r.alId||'?'));});
   }
-  if(window._fbDoc){
-    window._fbDoc.get().then(function(s){
-      if(s.exists()){
+  try{
+    var db=firebase.firestore();
+    db.collection('rubentrena').doc('data').get().then(function(s){
+      var existe=typeof s.exists==='function'?s.exists():s.exists;
+      if(existe){
         var d=s.data();
         var fbRuts=d.rutinas?JSON.parse(d.rutinas):[];
-        lineas.push('');
-        lineas.push('FIREBASE:');
-        lineas.push('Rutinas: '+fbRuts.length);
-        if(fbRuts.length>0){
-          fbRuts.forEach(function(r){lineas.push('- '+(r.alNombre||r.alId||'?'));});
-        }
+        var fbEjs=d.ejercicios?JSON.parse(d.ejercicios):[];
+        lineas.push('FIREBASE: Rutinas:'+fbRuts.length+' Ejercicios:'+fbEjs.length);
+        if(fbRuts.length>0){fbRuts.forEach(function(r){lineas.push('FB- '+(r.alNombre||r.alId||'?'));});}
       } else {
         lineas.push('Firebase: vacio');
       }
       alert(lineas.join(', '));
-    }).catch(function(e){lineas.push('Firebase error');alert(lineas.join(', '));});
-  } else {
-    lineas.push('Firebase: no conectado');
+    }).catch(function(e){lineas.push('FB error:'+e.message);alert(lineas.join(', '));});
+  }catch(e){
+    lineas.push('Firebase no disponible');
     alert(lineas.join(', '));
   }
 }
