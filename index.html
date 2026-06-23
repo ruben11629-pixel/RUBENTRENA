@@ -421,6 +421,7 @@ select.fi{appearance:none;cursor:pointer;}
       <span id="fb-dot" style="width:7px;height:7px;border-radius:50%;background:var(--t3);display:inline-block;margin-right:3px;vertical-align:middle"></span><span id="fb-txt" style="font-family:var(--fm);font-size:9px;color:var(--t3);margin-right:8px">sync</span><button class="btn btn-g btn-sm" onclick="launchMode()">⇄</button><button class="btn btn-g btn-sm" onclick="importData()">⬆ Importar</button>
       <button class="btn btn-g btn-sm" onclick="exportData()">⬇ Backup</button>
       <button class="btn btn-g btn-sm" onclick="forzarSyncFirebase()" title="Subir todo a Firebase" style="background:var(--bg3);border:1px solid var(--bor)">☁ Sync</button>
+      <button class="btn btn-g btn-sm" onclick="diagnosticoFirebase()" style="background:var(--bg3);border:1px solid var(--bor)">🔍 Info</button>
       <button class="btn btn-p btn-sm" onclick="openM('m-ses')">+ Sesión</button>
     </div>
   </div>
@@ -1728,6 +1729,41 @@ function tGo(s){
 }
 
 // BACKUP
+function diagnosticoFirebase(){
+  var rutinas=JSON.parse(localStorage.getItem('rt6_rutinas')||'[]');
+  var ejercicios=JSON.parse(localStorage.getItem('rt6_ejercicios')||'[]');
+  var alumnos=JSON.parse(localStorage.getItem('rt6_alumnos')||'[]');
+  var lineas=[];
+  lineas.push('DISPOSITIVO:');
+  lineas.push('Rutinas: '+rutinas.length);
+  lineas.push('Ejercicios: '+ejercicios.length);
+  lineas.push('Alumnos: '+alumnos.length);
+  if(rutinas.length>0){
+    lineas.push('Rutinas:');
+    rutinas.forEach(function(r){lineas.push('- '+(r.alNombre||r.alId||'?'));});
+  }
+  if(window._fbDoc){
+    window._fbDoc.get().then(function(s){
+      if(s.exists()){
+        var d=s.data();
+        var fbRuts=d.rutinas?JSON.parse(d.rutinas):[];
+        lineas.push('');
+        lineas.push('FIREBASE:');
+        lineas.push('Rutinas: '+fbRuts.length);
+        if(fbRuts.length>0){
+          fbRuts.forEach(function(r){lineas.push('- '+(r.alNombre||r.alId||'?'));});
+        }
+      } else {
+        lineas.push('Firebase: vacio');
+      }
+      alert(lineas.join(', '));
+    }).catch(function(e){lineas.push('Firebase error');alert(lineas.join(', '));});
+  } else {
+    lineas.push('Firebase: no conectado');
+    alert(lineas.join(', '));
+  }
+}
+
 function forzarSyncFirebase(){
   if(!window.FB){
     alert('Firebase no conectado. Espera el punto verde e intenta de nuevo.');
