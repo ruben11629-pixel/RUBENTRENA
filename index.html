@@ -750,6 +750,14 @@ select.fi{appearance:none;cursor:pointer;}
   <div id="s-login">
     <div class="sl-hero"><div class="sl-ov"></div><div class="sl-brand"><svg width="44" height="44" viewBox="0 0 38 38" fill="none" style="margin-bottom:6px"><rect x="2" y="17.5" width="34" height="3" rx="1.5" fill="#8a9e8b"/><rect x="3" y="12" width="3" height="14" rx="1" fill="#b8c4b9"/><rect x="6.5" y="13.5" width="2" height="11" rx="1" fill="#8a9e8b"/><rect x="32" y="12" width="3" height="14" rx="1" fill="#b8c4b9"/><rect x="29.5" y="13.5" width="2" height="11" rx="1" fill="#8a9e8b"/><circle cx="19" cy="19" r="9" stroke="#b8c4b9" stroke-width="2" fill="none"/><rect x="13" y="17.5" width="12" height="2.5" rx="1" fill="#b8c4b9"/><circle cx="19" cy="13" r="2" fill="#8a9e8b"/></svg><div class="sl-t">RUBEN<em>TRENA</em></div><div class="sl-s">— Spotters —</div></div></div>
     <div class="sl-body">
+      <!-- Estado conexión y botón actualizar -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;background:var(--bg3);border-radius:12px;padding:10px 14px;border:1px solid var(--bor)">
+        <div style="display:flex;align-items:center;gap:8px">
+          <div id="s-conn-dot" style="width:8px;height:8px;border-radius:50%;background:var(--t3)"></div>
+          <div id="s-conn-txt" style="font-family:var(--fm);font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.08em">conectando...</div>
+        </div>
+        <button id="s-update-btn" onclick="alumnoActualizar()" disabled style="background:var(--bg2);border:1px solid var(--bor);color:var(--t3);border-radius:20px;padding:6px 14px;font-family:var(--fm);font-size:10px;text-transform:uppercase;letter-spacing:.06em;cursor:not-allowed;opacity:.5">↓ Actualizar</button>
+      </div>
       <div style="font-family:var(--fd);font-size:20px;font-weight:700;letter-spacing:2px;color:var(--si);text-transform:uppercase;margin-bottom:5px">¿Quién eres?</div>
       <div style="font-size:12px;color:var(--t3);font-family:var(--fm);margin-bottom:16px">Selecciona tu nombre para ver tu plan</div>
       <div class="al-grid" id="s-al-grid"></div>
@@ -1730,6 +1738,52 @@ function tGo(s){
 }
 
 // BACKUP
+function alumnoActualizar(){
+  var btn=document.getElementById('s-update-btn');
+  var dot=document.getElementById('s-conn-dot');
+  var txt=document.getElementById('s-conn-txt');
+  if(btn){btn.textContent='Actualizando...';btn.disabled=true;btn.style.opacity='0.7';}
+  var keys=['alumnos','ejercicios','rutinas','sesiones','feedback','pagos','medidas','notas'];
+  try{
+    var db=firebase.firestore();
+    db.collection('rubentrena').doc('data').get().then(function(s){
+      var existe=typeof s.exists==='function'?s.exists():s.exists;
+      if(existe){
+        var data=s.data();
+        keys.forEach(function(k){
+          if(data[k]!==undefined&&data[k]!==null){
+            localStorage.removeItem('rt6_'+k);
+            localStorage.setItem('rt6_'+k,data[k]);
+          }
+        });
+        if(btn){btn.textContent='✓ Listo';btn.style.color='#4ade80';}
+        setTimeout(function(){location.reload();},1200);
+      } else {
+        if(btn){btn.textContent='Sin datos';btn.disabled=false;btn.style.opacity='1';}
+      }
+    }).catch(function(e){
+      if(btn){btn.textContent='Error';btn.disabled=false;btn.style.opacity='1';}
+    });
+  }catch(e){
+    if(btn){btn.textContent='Sin conexión';btn.disabled=false;btn.style.opacity='1';}
+  }
+}
+
+function sActualizarConexion(online){
+  var dot=document.getElementById('s-conn-dot');
+  var txt=document.getElementById('s-conn-txt');
+  var btn=document.getElementById('s-update-btn');
+  if(online){
+    if(dot)dot.style.background='#4ade80';
+    if(txt){txt.textContent='en linea';txt.style.color='#4ade80';}
+    if(btn){btn.disabled=false;btn.style.opacity='1';btn.style.color='var(--tx)';btn.style.cursor='pointer';}
+  } else {
+    if(dot)dot.style.background='#b86060';
+    if(txt){txt.textContent='sin conexión';txt.style.color='#b86060';}
+    if(btn){btn.disabled=true;btn.style.opacity='0.5';btn.style.cursor='not-allowed';}
+  }
+}
+
 function forzarDescargaFirebase(){
   if(typeof firebase==='undefined'){
     alert('Sin conexion. Intenta de nuevo.');
@@ -2502,7 +2556,7 @@ function sRenderNotasYMedidas(){
 }
 
 
-function initFirebase(){try{var s1=document.createElement('script');s1.src='https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js';s1.onload=function(){var s2=document.createElement('script');s2.src='https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js';s2.onload=function(){try{if(!firebase.apps.length)firebase.initializeApp({apiKey:'AIzaSyBDGlSXzoeRJcS_y7Ebjm6QxuaRYEko1aA',authDomain:'rubentrena-433ea.firebaseapp.com',projectId:'rubentrena-433ea',storageBucket:'rubentrena-433ea.firebasestorage.app',messagingSenderId:'544105379170',appId:'1:544105379170:web:b6752a6a670d67454ae83b'});var _d=firebase.firestore().collection('rubentrena').doc('data');window._fbDoc=_d;window.FB={set:function(k,v){var o={};o[k]=JSON.stringify(v);_d.set(o,{merge:true}).catch(function(){});},syncAll:function(){var keys=['alumnos','ejercicios','rutinas','sesiones','feedback','pagos','medidas','notas'];_d.get().then(function(s){var dot=document.getElementById('fb-dot'),txt=document.getElementById('fb-txt');if(dot)dot.style.background='#4ade80';if(txt){txt.textContent='en linea';txt.style.color='#4ade80';}if(!s.exists()){var up={};keys.forEach(function(k){var v=localStorage.getItem('rt6_'+k);if(v)up[k]=v;});if(Object.keys(up).length>0)_d.set(up,{merge:true}).catch(function(){});}else{var d=s.data();keys.forEach(function(k){if(d[k]!==undefined){localStorage.removeItem('rt6_'+k);localStorage.setItem('rt6_'+k,d[k]);}});}if(typeof tAll==='function')tAll();var sg=document.getElementById('s-al-grid');if(sg)buildSLogin&&buildSLogin();}).catch(function(e){console.warn('sync:',e);});}};window.FB.syncAll();}catch(e){console.warn('Firebase:',e);}};document.head.appendChild(s2);};document.head.appendChild(s1);}catch(e){console.warn('Firebase init:',e);}}
+function initFirebase(){try{var s1=document.createElement('script');s1.src='https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js';s1.onload=function(){var s2=document.createElement('script');s2.src='https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js';s2.onload=function(){try{if(!firebase.apps.length)firebase.initializeApp({apiKey:'AIzaSyBDGlSXzoeRJcS_y7Ebjm6QxuaRYEko1aA',authDomain:'rubentrena-433ea.firebaseapp.com',projectId:'rubentrena-433ea',storageBucket:'rubentrena-433ea.firebasestorage.app',messagingSenderId:'544105379170',appId:'1:544105379170:web:b6752a6a670d67454ae83b'});var _d=firebase.firestore().collection('rubentrena').doc('data');window._fbDoc=_d;window.FB={set:function(k,v){var o={};o[k]=JSON.stringify(v);_d.set(o,{merge:true}).catch(function(){});},syncAll:function(){var keys=['alumnos','ejercicios','rutinas','sesiones','feedback','pagos','medidas','notas'];_d.get().then(function(s){var dot=document.getElementById('fb-dot'),txt=document.getElementById('fb-txt');if(dot)dot.style.background='#4ade80';if(txt){txt.textContent='en linea';txt.style.color='#4ade80';}if(typeof sActualizarConexion==='function')sActualizarConexion(true);if(!s.exists()){var up={};keys.forEach(function(k){var v=localStorage.getItem('rt6_'+k);if(v)up[k]=v;});if(Object.keys(up).length>0)_d.set(up,{merge:true}).catch(function(){});}else{var d=s.data();keys.forEach(function(k){if(d[k]!==undefined){localStorage.removeItem('rt6_'+k);localStorage.setItem('rt6_'+k,d[k]);}});}if(typeof tAll==='function')tAll();var sg=document.getElementById('s-al-grid');if(sg)buildSLogin&&buildSLogin();}).catch(function(e){console.warn('sync:',e);});}};window.FB.syncAll();}catch(e){console.warn('Firebase:',e);}};document.head.appendChild(s2);};document.head.appendChild(s1);}catch(e){console.warn('Firebase init:',e);}}
 
 var PICKER_DI=0,PICKER_BI=0,PICKER_EQ='all';
 function openEjPicker(di,bi){PICKER_DI=di;PICKER_BI=bi;PICKER_EQ='all';var s=document.getElementById('picker-search');if(s)s.value='';renderPickerTags();renderPickerGrid('');openM('m-ej-picker');}
