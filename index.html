@@ -1633,7 +1633,7 @@ function qSes(fecha,hora){document.getElementById('m-ses-fe').value=fecha;docume
 // CRUD
 function openM(id){document.getElementById(id)?.classList.add('open');}
 function closeM(id){document.getElementById(id)?.classList.remove('open');}
-document.querySelectorAll('.mo').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');}));
+document.querySelectorAll('.mo').forEach(m=>m.addEventListener('click',e=>{if(e.target===m&&m.id!=='m-pack-picker')m.classList.remove('open');}));
 
 function editAl(id){
   const a=(DB.get('alumnos')||[]).find(x=>x.id===id);if(!a)return;
@@ -2819,9 +2819,11 @@ function insertarPack(pi){
       tiempo: it.kg?it.kg+'kg':''
     });
   });
-  closeM('m-pack-picker');
+  // Solo cerrar el picker, no el modal de rutina
+  var picker = document.getElementById('m-pack-picker');
+  if(picker) picker.classList.remove('open');
   renderRDias();
-  showToast('✓ Pack "'+p.nombre+'" agregado');
+  showToast('Pack "'+p.nombre+'" agregado');
 }
 
 </script>
