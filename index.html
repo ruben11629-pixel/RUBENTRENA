@@ -2783,24 +2783,67 @@ function abrirPickerPack(di, sk){
   PACK_PICKER_DI = di;
   PACK_PICKER_SK = sk;
   const packs = DB.get('packs')||[];
-  const list = document.getElementById('m-pack-picker-list');
-  if(!list) return;
+
+  // Remover picker anterior si existe
+  var old = document.getElementById('inline-pack-picker');
+  if(old) old.remove();
+
+  // Crear picker inline dentro del modal de rutina
+  var picker = document.createElement('div');
+  picker.id = 'inline-pack-picker';
+  picker.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;';
+
+  var inner = document.createElement('div');
+  inner.style.cssText = 'background:var(--bg2);border-radius:20px;padding:20px;width:100%;max-width:480px;max-height:80vh;overflow-y:auto;border:1px solid var(--bor);';
+
+  var title = document.createElement('div');
+  title.style.cssText = 'font-family:var(--fd);font-size:18px;font-weight:800;text-transform:uppercase;letter-spacing:2px;margin-bottom:16px;color:var(--tx);';
+  title.textContent = 'Seleccionar Pack';
+  inner.appendChild(title);
+
   if(!packs.length){
-    list.innerHTML = '<div style="text-align:center;color:var(--t3);padding:24px">Sin packs. Crea uno en la sección Ejercicios.</div>';
+    var empty = document.createElement('div');
+    empty.style.cssText = 'text-align:center;color:var(--t3);padding:24px;font-size:13px;';
+    empty.textContent = 'Sin packs. Crea uno en Ejercicios → Packs.';
+    inner.appendChild(empty);
   } else {
-    list.innerHTML = packs.map((p,pi)=>`
-      <div style="background:var(--card);border-radius:14px;padding:14px 16px;border:1px solid var(--bor);cursor:pointer" onclick="insertarPack(${pi})">
-        <div style="font-size:13px;font-weight:700;color:var(--tx);margin-bottom:3px">${p.nombre}</div>
-        <div style="font-size:10px;color:var(--t3);font-family:var(--fm)">${(p.items||[]).length} ejercicios · ${({movilidad:'Movilidad',core:'Core',calentamiento:'Calentamiento',otro:'Otro'}[p.cat]||p.cat)}</div>
-        <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">
-          ${(p.items||[]).map(it=>{
-            const ej=(DB.get('ejercicios')||[]).find(e=>e.id===it.ref)||{n:it.txt||'—'};
-            return `<span style="font-size:10px;background:var(--bg3);color:var(--t2);padding:2px 8px;border-radius:10px">${ej.n}</span>`;
-          }).join('')}
-        </div>
-      </div>`).join('');
+    packs.forEach(function(p, pi){
+      var card = document.createElement('div');
+      card.style.cssText = 'background:var(--card);border-radius:14px;padding:14px 16px;border:1px solid var(--bor);cursor:pointer;margin-bottom:8px;';
+      var nm = document.createElement('div');
+      nm.style.cssText = 'font-size:13px;font-weight:700;color:var(--tx);margin-bottom:3px;';
+      nm.textContent = p.nombre;
+      var sub = document.createElement('div');
+      sub.style.cssText = 'font-size:10px;color:var(--t3);font-family:var(--fm);margin-bottom:6px;';
+      sub.textContent = (p.items||[]).length+' ejercicios · '+({movilidad:'Movilidad',core:'Core',calentamiento:'Calentamiento',otro:'Otro'}[p.cat]||p.cat);
+      var tags = document.createElement('div');
+      tags.style.cssText = 'display:flex;gap:5px;flex-wrap:wrap;';
+      (p.items||[]).forEach(function(it){
+        var ej=(DB.get('ejercicios')||[]).find(function(e){return e.id===it.ref;})||{n:it.txt||'—'};
+        var tag = document.createElement('span');
+        tag.style.cssText = 'font-size:10px;background:var(--bg3);color:var(--t2);padding:2px 8px;border-radius:10px;';
+        tag.textContent = ej.n;
+        tags.appendChild(tag);
+      });
+      card.appendChild(nm);
+      card.appendChild(sub);
+      card.appendChild(tags);
+      card.addEventListener('click', function(){ insertarPack(pi); });
+      inner.appendChild(card);
+    });
   }
-  openM('m-pack-picker');
+
+  var cancelBtn = document.createElement('button');
+  cancelBtn.className = 'btn btn-g';
+  cancelBtn.style.cssText = 'width:100%;margin-top:12px;';
+  cancelBtn.textContent = 'Cancelar';
+  cancelBtn.addEventListener('click', function(){
+    var p = document.getElementById('inline-pack-picker');
+    if(p) p.remove();
+  });
+  inner.appendChild(cancelBtn);
+  picker.appendChild(inner);
+  document.body.appendChild(picker);
 }
 
 function insertarPack(pi){
@@ -2819,9 +2862,9 @@ function insertarPack(pi){
       tiempo: it.kg?it.kg+'kg':''
     });
   });
-  // Solo cerrar el picker, no el modal de rutina
-  var picker = document.getElementById('m-pack-picker');
-  if(picker) picker.classList.remove('open');
+  // Cerrar el inline picker
+  var picker = document.getElementById('inline-pack-picker');
+  if(picker) picker.remove();
   renderRDias();
   showToast('Pack "'+p.nombre+'" agregado');
 }
