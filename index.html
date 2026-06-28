@@ -2589,7 +2589,20 @@ function sRenderNotasYMedidas(){
 function initFirebase(){try{var s1=document.createElement('script');s1.src='https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js';s1.onload=function(){var s2=document.createElement('script');s2.src='https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js';s2.onload=function(){try{if(!firebase.apps.length)firebase.initializeApp({apiKey:'AIzaSyBDGlSXzoeRJcS_y7Ebjm6QxuaRYEko1aA',authDomain:'rubentrena-433ea.firebaseapp.com',projectId:'rubentrena-433ea',storageBucket:'rubentrena-433ea.firebasestorage.app',messagingSenderId:'544105379170',appId:'1:544105379170:web:b6752a6a670d67454ae83b'});var _d=firebase.firestore().collection('rubentrena').doc('data');window._fbDoc=_d;window.FB={set:function(k,v){var o={};o[k]=JSON.stringify(v);_d.set(o,{merge:true}).catch(function(){});},syncAll:function(){var keys=['alumnos','ejercicios','rutinas','sesiones','feedback','pagos','medidas','notas'];_d.get().then(function(s){var dot=document.getElementById('fb-dot'),txt=document.getElementById('fb-txt');if(dot)dot.style.background='#4ade80';if(txt){txt.textContent='en linea';txt.style.color='#4ade80';}if(typeof sActualizarConexion==='function')sActualizarConexion(true);if(!s.exists()){var up={};keys.forEach(function(k){var v=localStorage.getItem('rt6_'+k);if(v)up[k]=v;});if(Object.keys(up).length>0)_d.set(up,{merge:true}).catch(function(){});}else{var d=s.data();keys.forEach(function(k){if(d[k]!==undefined){localStorage.removeItem('rt6_'+k);localStorage.setItem('rt6_'+k,d[k]);}});}if(typeof tAll==='function')tAll();var sg=document.getElementById('s-al-grid');if(sg)buildSLogin&&buildSLogin();}).catch(function(e){console.warn('sync:',e);});}};window.FB.syncAll();}catch(e){console.warn('Firebase:',e);}};document.head.appendChild(s2);};document.head.appendChild(s1);}catch(e){console.warn('Firebase init:',e);}}
 
 var PICKER_DI=0,PICKER_BI=0,PICKER_EQ='all';
-function openEjPicker(di,bi){PICKER_DI=di;PICKER_BI=bi;PICKER_EQ='all';var s=document.getElementById('picker-search');if(s)s.value='';renderPickerTags();renderPickerGrid('');openM('m-ej-picker');}
+function openEjPicker(di,bi){
+  PICKER_DI=di;PICKER_BI=bi;PICKER_EQ='all';
+  window._pickerModo='ej';
+  // Restaurar título y controles normales
+  var title=document.querySelector('#m-ej-picker .mt');
+  if(title)title.textContent='Seleccionar ejercicio';
+  var search=document.getElementById('picker-search');
+  if(search){search.style.display='';search.value='';}
+  var tags=document.getElementById('picker-tags');
+  if(tags)tags.style.display='';
+  var grid=document.getElementById('picker-grid');
+  if(grid)grid.style.gridTemplateColumns='repeat(auto-fill,minmax(140px,1fr))';
+  renderPickerTags();renderPickerGrid('');openM('m-ej-picker');
+}
 function renderPickerTags(){var ejs=DB.get('ejercicios')||[];var eqs=Array.from(new Set(ejs.map(function(e){return e.eq;}).filter(Boolean)));var el=document.getElementById('picker-tags');if(!el)return;el.innerHTML='';['all'].concat(eqs).forEach(function(eq){var d=document.createElement('div');d.className='ttag'+(PICKER_EQ===eq?' active':'');d.textContent=eq==='all'?'Todos':eq;d.addEventListener('click',function(){PICKER_EQ=eq;renderPickerTags();var s=document.getElementById('picker-search');renderPickerGrid(s?s.value:'');});el.appendChild(d);});}
 function filterPicker(q){renderPickerGrid(q);}
 function renderPickerGrid(q){var ejs=DB.get('ejercicios')||[];var f=ejs;if(PICKER_EQ!=='all')f=f.filter(function(e){return e.eq===PICKER_EQ;});if(q)f=f.filter(function(e){return(e.n+' '+(e.m||'')+' '+(e.eq||'')).toLowerCase().includes(q.toLowerCase());});var el=document.getElementById('picker-grid');if(!el)return;el.innerHTML='';if(!f.length){el.innerHTML='<div style="grid-column:1/-1;text-align:center;color:var(--t3);padding:20px">Sin resultados</div>';return;}f.forEach(function(e){var card=document.createElement('div');card.style.cssText='background:var(--bg3);border:1px solid var(--bor);border-radius:10px;overflow:hidden;cursor:pointer;';card.addEventListener('click',function(){selectEjPicker(e.id);});var media=document.createElement('div');media.style.cssText='height:90px;overflow:hidden;background:var(--bg2);';if(e.fo){var img=document.createElement('img');img.src=e.fo;img.style.cssText='width:100%;height:100%;object-fit:cover;';media.appendChild(img);}else{var ph=document.createElement('div');ph.style.cssText='width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:28px;';ph.textContent=ejIco(e.m);media.appendChild(ph);}card.appendChild(media);var body=document.createElement('div');body.style.cssText='padding:7px 9px;';var nm=document.createElement('div');nm.style.cssText='font-size:12px;font-weight:600;color:var(--tx);';nm.textContent=e.n;body.appendChild(nm);card.appendChild(body);el.appendChild(card);});}
@@ -2783,67 +2796,41 @@ function abrirPickerPack(di, sk){
   PACK_PICKER_DI = di;
   PACK_PICKER_SK = sk;
   const packs = DB.get('packs')||[];
+  const ejs = DB.get('ejercicios')||[];
 
-  // Remover picker anterior si existe
-  var old = document.getElementById('inline-pack-picker');
-  if(old) old.remove();
+  // Usar el mismo modal m-ej-picker pero con contenido de packs
+  var grid = document.getElementById('picker-grid');
+  var tags = document.getElementById('picker-tags');
+  var search = document.getElementById('picker-search');
+  var title = document.querySelector('#m-ej-picker .mt');
 
-  // Crear picker inline dentro del modal de rutina
-  var picker = document.createElement('div');
-  picker.id = 'inline-pack-picker';
-  picker.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;';
+  if(title) title.textContent = 'Seleccionar Pack';
+  if(search) search.style.display = 'none';
+  if(tags) tags.style.display = 'none';
 
-  var inner = document.createElement('div');
-  inner.style.cssText = 'background:var(--bg2);border-radius:20px;padding:20px;width:100%;max-width:480px;max-height:80vh;overflow-y:auto;border:1px solid var(--bor);';
-
-  var title = document.createElement('div');
-  title.style.cssText = 'font-family:var(--fd);font-size:18px;font-weight:800;text-transform:uppercase;letter-spacing:2px;margin-bottom:16px;color:var(--tx);';
-  title.textContent = 'Seleccionar Pack';
-  inner.appendChild(title);
-
-  if(!packs.length){
-    var empty = document.createElement('div');
-    empty.style.cssText = 'text-align:center;color:var(--t3);padding:24px;font-size:13px;';
-    empty.textContent = 'Sin packs. Crea uno en Ejercicios → Packs.';
-    inner.appendChild(empty);
-  } else {
-    packs.forEach(function(p, pi){
-      var card = document.createElement('div');
-      card.style.cssText = 'background:var(--card);border-radius:14px;padding:14px 16px;border:1px solid var(--bor);cursor:pointer;margin-bottom:8px;';
-      var nm = document.createElement('div');
-      nm.style.cssText = 'font-size:13px;font-weight:700;color:var(--tx);margin-bottom:3px;';
-      nm.textContent = p.nombre;
-      var sub = document.createElement('div');
-      sub.style.cssText = 'font-size:10px;color:var(--t3);font-family:var(--fm);margin-bottom:6px;';
-      sub.textContent = (p.items||[]).length+' ejercicios · '+({movilidad:'Movilidad',core:'Core',calentamiento:'Calentamiento',otro:'Otro'}[p.cat]||p.cat);
-      var tags = document.createElement('div');
-      tags.style.cssText = 'display:flex;gap:5px;flex-wrap:wrap;';
-      (p.items||[]).forEach(function(it){
-        var ej=(DB.get('ejercicios')||[]).find(function(e){return e.id===it.ref;})||{n:it.txt||'—'};
-        var tag = document.createElement('span');
-        tag.style.cssText = 'font-size:10px;background:var(--bg3);color:var(--t2);padding:2px 8px;border-radius:10px;';
-        tag.textContent = ej.n;
-        tags.appendChild(tag);
-      });
-      card.appendChild(nm);
-      card.appendChild(sub);
-      card.appendChild(tags);
-      card.addEventListener('click', function(){ insertarPack(pi); });
-      inner.appendChild(card);
-    });
+  if(grid){
+    if(!packs.length){
+      grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--t3);padding:32px;font-size:13px">Sin packs. Crea uno en Ejercicios → Packs.</div>';
+    } else {
+      grid.style.gridTemplateColumns = '1fr';
+      grid.innerHTML = packs.map(function(p, pi){
+        var catLabel = {movilidad:'Movilidad',core:'Core / Activación',calentamiento:'Calentamiento',otro:'Otro'}[p.cat]||p.cat||'';
+        var tagsHtml = (p.items||[]).map(function(it){
+          var ej = ejs.find(function(e){return e.id===it.ref;})||{n:it.txt||'—'};
+          return '<span style="font-size:10px;background:var(--bg3);color:var(--t2);padding:2px 8px;border-radius:10px">'+ej.n+'</span>';
+        }).join('');
+        return '<div onclick="insertarPack('+pi+')" style="background:var(--card);border-radius:14px;padding:14px 16px;border:1px solid var(--bor);cursor:pointer;margin-bottom:4px">'+
+          '<div style="font-size:14px;font-weight:700;color:var(--tx);margin-bottom:3px">'+p.nombre+'</div>'+
+          '<div style="font-size:10px;color:var(--t3);font-family:var(--fm);margin-bottom:8px">'+(p.items||[]).length+' ejercicios · '+catLabel+'</div>'+
+          '<div style="display:flex;gap:5px;flex-wrap:wrap">'+tagsHtml+'</div>'+
+          '</div>';
+      }).join('');
+    }
   }
 
-  var cancelBtn = document.createElement('button');
-  cancelBtn.className = 'btn btn-g';
-  cancelBtn.style.cssText = 'width:100%;margin-top:12px;';
-  cancelBtn.textContent = 'Cancelar';
-  cancelBtn.addEventListener('click', function(){
-    var p = document.getElementById('inline-pack-picker');
-    if(p) p.remove();
-  });
-  inner.appendChild(cancelBtn);
-  picker.appendChild(inner);
-  document.body.appendChild(picker);
+  // Guardar modo actual para restaurar al cerrar
+  window._pickerModo = 'pack';
+  openM('m-ej-picker');
 }
 
 function insertarPack(pi){
@@ -2862,9 +2849,9 @@ function insertarPack(pi){
       tiempo: it.kg?it.kg+'kg':''
     });
   });
-  // Cerrar el inline picker
-  var picker = document.getElementById('inline-pack-picker');
-  if(picker) picker.remove();
+  // Cerrar picker y restaurar estado normal
+  closeM('m-ej-picker');
+  window._pickerModo='ej';
   renderRDias();
   showToast('Pack "'+p.nombre+'" agregado');
 }
