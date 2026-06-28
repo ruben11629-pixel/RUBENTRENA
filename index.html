@@ -607,13 +607,43 @@ select.fi{appearance:none;cursor:pointer;}
     <!-- EJERCICIOS -->
     <div class="t-screen" id="t-ejer">
       <div class="t-scroll">
-        <div class="hdr"><div><div class="htitle">BANCO DE <em>EJERCICIOS</em></div><div class="hsub" id="ej-sub">—</div></div><button class="btn btn-p" onclick="openM('m-ej')">+ Ejercicio</button></div>
+        <div class="hdr"><div><div class="htitle">BANCO DE <em>EJERCICIOS</em></div><div class="hsub" id="ej-sub">—</div></div><div style="display:flex;gap:8px"><button class="btn btn-g btn-sm" id="btn-tab-ejs" onclick="switchEjerTab('ejs')" style="background:var(--si);color:var(--bg)">Ejercicios</button><button class="btn btn-g btn-sm" id="btn-tab-packs" onclick="switchEjerTab('packs')">Packs</button><button class="btn btn-p" id="btn-add-ej" onclick="openM('m-ej')">+ Ejercicio</button></div></div>
+        <div id="tab-ejs-content">
         <div class="srch"><span style="color:var(--t3);font-size:16px">⌕</span><input id="ej-srch" placeholder="Buscar ejercicio, músculo, equipo..." oninput="filterEj(this.value)"></div>
         <div class="trow" id="ej-tags"><div class="ttag active" onclick="filterEjT(this,'all')">Todos</div></div>
         <div class="ej-grid" id="ej-grid"></div>
+      </div><!-- fin tab-ejs-content -->
+
+        <!-- TAB PACKS -->
+        <div id="tab-packs-content" style="display:none;padding:0 16px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;margin-top:4px">
+            <div style="font-family:var(--fm);font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:.1em" id="packs-sub">0 packs</div>
+            <button class="btn btn-p btn-sm" onclick="openPackModal()">+ Pack</button>
+          </div>
+          <div id="packs-grid" style="display:flex;flex-direction:column;gap:10px;padding-bottom:24px"></div>
+        </div>
       </div>
     </div>
-    <!-- RUTINAS (split view) -->
+    <!-- MODAL PACK -->
+    <div class="mo" id="m-pack"><div class="md" style="max-height:92vh;overflow-y:auto">
+      <div class="mt" id="m-pack-t">Nuevo Pack</div>
+      <input type="hidden" id="m-pack-id">
+      <div class="fg"><label class="fl">Nombre del pack</label><input class="fi" id="m-pack-n" placeholder="Ej: Movilidad sentadilla"></div>
+      <div class="fg"><label class="fl">Categoría</label><select class="fi" id="m-pack-cat"><option value="movilidad">Movilidad</option><option value="core">Core / Activación</option><option value="calentamiento">Calentamiento general</option><option value="otro">Otro</option></select></div>
+      <div style="font-family:var(--fm);font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:.1em;margin:12px 0 8px">Ejercicios del pack</div>
+      <div id="m-pack-items"></div>
+      <button class="btn btn-g btn-sm" style="width:100%;margin-bottom:12px" onclick="addPackItem()">+ Agregar ejercicio al pack</button>
+      <div class="macts"><button class="btn btn-g" onclick="closeM('m-pack')">Cancelar</button><button class="btn btn-red btn-sm" id="m-pack-del" onclick="delPack()" style="display:none">Eliminar</button><button class="btn btn-p" onclick="savePack()">Guardar pack →</button></div>
+    </div></div>
+
+    <!-- MODAL PICKER PACK -->
+    <div class="mo" id="m-pack-picker"><div class="md">
+      <div class="mt">Seleccionar Pack</div>
+      <div id="m-pack-picker-list" style="display:flex;flex-direction:column;gap:8px;max-height:60vh;overflow-y:auto;margin-bottom:16px"></div>
+      <div class="macts"><button class="btn btn-g" onclick="closeM('m-pack-picker')">Cancelar</button></div>
+    </div></div>
+
+<!-- RUTINAS (split view) -->
     <div class="t-screen" id="t-ruts">
       <div class="t-scroll" style="overflow:hidden;padding:0;">
         <div style="padding:18px 20px 10px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
@@ -1743,7 +1773,7 @@ function alumnoActualizar(){
   var dot=document.getElementById('s-conn-dot');
   var txt=document.getElementById('s-conn-txt');
   if(btn){btn.textContent='Actualizando...';btn.disabled=true;btn.style.opacity='0.7';}
-  var keys=['alumnos','ejercicios','rutinas','sesiones','feedback','pagos','medidas','notas'];
+  var keys=['alumnos','ejercicios','rutinas','sesiones','feedback','pagos','medidas','notas','packs'];
   try{
     var db=firebase.firestore();
     db.collection('rubentrena').doc('data').get().then(function(s){
@@ -2563,9 +2593,9 @@ function openEjPicker(di,bi){PICKER_DI=di;PICKER_BI=bi;PICKER_EQ='all';var s=doc
 function renderPickerTags(){var ejs=DB.get('ejercicios')||[];var eqs=Array.from(new Set(ejs.map(function(e){return e.eq;}).filter(Boolean)));var el=document.getElementById('picker-tags');if(!el)return;el.innerHTML='';['all'].concat(eqs).forEach(function(eq){var d=document.createElement('div');d.className='ttag'+(PICKER_EQ===eq?' active':'');d.textContent=eq==='all'?'Todos':eq;d.addEventListener('click',function(){PICKER_EQ=eq;renderPickerTags();var s=document.getElementById('picker-search');renderPickerGrid(s?s.value:'');});el.appendChild(d);});}
 function filterPicker(q){renderPickerGrid(q);}
 function renderPickerGrid(q){var ejs=DB.get('ejercicios')||[];var f=ejs;if(PICKER_EQ!=='all')f=f.filter(function(e){return e.eq===PICKER_EQ;});if(q)f=f.filter(function(e){return(e.n+' '+(e.m||'')+' '+(e.eq||'')).toLowerCase().includes(q.toLowerCase());});var el=document.getElementById('picker-grid');if(!el)return;el.innerHTML='';if(!f.length){el.innerHTML='<div style="grid-column:1/-1;text-align:center;color:var(--t3);padding:20px">Sin resultados</div>';return;}f.forEach(function(e){var card=document.createElement('div');card.style.cssText='background:var(--bg3);border:1px solid var(--bor);border-radius:10px;overflow:hidden;cursor:pointer;';card.addEventListener('click',function(){selectEjPicker(e.id);});var media=document.createElement('div');media.style.cssText='height:90px;overflow:hidden;background:var(--bg2);';if(e.fo){var img=document.createElement('img');img.src=e.fo;img.style.cssText='width:100%;height:100%;object-fit:cover;';media.appendChild(img);}else{var ph=document.createElement('div');ph.style.cssText='width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:28px;';ph.textContent=ejIco(e.m);media.appendChild(ph);}card.appendChild(media);var body=document.createElement('div');body.style.cssText='padding:7px 9px;';var nm=document.createElement('div');nm.style.cssText='font-size:12px;font-weight:600;color:var(--tx);';nm.textContent=e.n;body.appendChild(nm);card.appendChild(body);el.appendChild(card);});}
-function selectEjPicker(ejId){if(typeof PICKER_BI==='string'){if(!R_DIAS[PICKER_DI][PICKER_BI])R_DIAS[PICKER_DI][PICKER_BI]=[];R_DIAS[PICKER_DI][PICKER_BI].push({ref:ejId,series:'',reps:'',tiempo:''});}else{var b=R_DIAS[PICKER_DI].bloques[PICKER_BI];if(!b.kgs)b.kgs=[];if(!b.rir)b.rir=[];b.ejerIds.push(ejId);b.series.push(3);b.reps.push('10');b.descanso.push(90);b.kgs.push('');b.rir.push('');}closeM('m-ej-picker');renderRDias();}
+function selectEjPicker(ejId){if(PICKER_BI==='pack'){if(PACK_SEL_IDX>=0&&PACK_SEL_IDX<PACK_EJS_TMP.length){PACK_EJS_TMP[PACK_SEL_IDX].ref=ejId;PACK_EJS_TMP[PACK_SEL_IDX].txt='';}closeM('m-ej-picker');renderPackItems();return;}if(typeof PICKER_BI==='string'){if(!R_DIAS[PICKER_DI][PICKER_BI])R_DIAS[PICKER_DI][PICKER_BI]=[];R_DIAS[PICKER_DI][PICKER_BI].push({ref:ejId,series:'',reps:'',tiempo:''});}else{var b=R_DIAS[PICKER_DI].bloques[PICKER_BI];if(!b.kgs)b.kgs=[];if(!b.rir)b.rir=[];b.ejerIds.push(ejId);b.series.push(3);b.reps.push('10');b.descanso.push(90);b.kgs.push('');b.rir.push('');}closeM('m-ej-picker');renderRDias();}
 
-function buildCalSection(container,di,sk,label,items){var wrap=document.createElement('div');wrap.style.cssText='background:var(--bg2);border:1px solid var(--bor);border-radius:9px;padding:10px;margin-bottom:9px';var hdr=document.createElement('div');hdr.style.cssText='display:flex;align-items:center;justify-content:space-between;margin-bottom:8px';var ttl=document.createElement('span');ttl.style.cssText='font-family:var(--fm);font-size:10px;color:var(--si);text-transform:uppercase;letter-spacing:1.5px';ttl.textContent=label;var btns=document.createElement('div');btns.style.cssText='display:flex;gap:5px';var btnT=document.createElement('button');btnT.className='btn btn-g btn-sm';btnT.textContent='+ Texto';(function(d,s){btnT.addEventListener('click',function(){if(!R_DIAS[d][s])R_DIAS[d][s]=[];R_DIAS[d][s].push({txt:'',series:'',reps:'',tiempo:''});renderRDias();});})(di,sk);var btnL=document.createElement('button');btnL.className='btn btn-g btn-sm';btnL.textContent='+ Biblioteca';(function(d,s){btnL.addEventListener('click',function(){PICKER_DI=d;PICKER_BI=s;PICKER_EQ='all';var sr=document.getElementById('picker-search');if(sr)sr.value='';renderPickerTags();renderPickerGrid('');openM('m-ej-picker');});})(di,sk);btns.appendChild(btnT);btns.appendChild(btnL);hdr.appendChild(ttl);hdr.appendChild(btns);wrap.appendChild(hdr);(items||[]).forEach(function(item,ci){var ejs=DB.get('ejercicios')||[];var nm='',fo='';if(typeof item==='string'){nm=item;}else if(item&&item.txt!==undefined){nm=item.txt;}else if(item&&item.ref){var ej=ejs.find(function(e){return e.id===item.ref;});if(ej){nm=ej.n;fo=ej.fo||'';}}var row=document.createElement('div');row.style.cssText='background:var(--bg3);border:1px solid var(--bor);border-radius:8px;padding:8px;margin-bottom:7px';var top=document.createElement('div');top.style.cssText='display:flex;align-items:center;gap:7px;margin-bottom:6px';if(fo){var img=document.createElement('img');img.src=fo;img.style.cssText='width:36px;height:36px;border-radius:5px;object-fit:cover;flex-shrink:0;cursor:pointer';img.onerror=function(){this.style.display='none';};img.addEventListener('click',(function(s2,n2){return function(){showImgFull(s2,n2);};})(fo,nm));top.appendChild(img);}if(item&&item.txt!==undefined){var inp=document.createElement('input');inp.className='fi';inp.style.cssText='flex:1;font-size:13px;padding:6px 10px';inp.value=nm;inp.placeholder='Ej: Movilidad cadera...';(function(d,s,c2){inp.addEventListener('change',function(){if(R_DIAS[d][s])R_DIAS[d][s][c2].txt=this.value;});})(di,sk,ci);top.appendChild(inp);}else{var sp=document.createElement('span');sp.style.cssText='flex:1;font-size:13px;color:var(--tx);font-weight:500';sp.textContent=nm;top.appendChild(sp);}var del=document.createElement('button');del.className='btn btn-red btn-sm';del.style.cssText='padding:4px 8px;min-height:28px;flex-shrink:0';del.textContent='x';(function(d,s,c2){del.addEventListener('click',function(){if(R_DIAS[d][s])R_DIAS[d][s].splice(c2,1);renderRDias();});})(di,sk,ci);top.appendChild(del);row.appendChild(top);var grid=document.createElement('div');grid.style.cssText='display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px';[{f:'series',l:'Series',p:'2'},{f:'reps',l:'Reps',p:'8'},{f:'tiempo',l:'Tiempo',p:'30s'}].forEach(function(fd){var cell=document.createElement('div');var lbl=document.createElement('div');lbl.style.cssText='font-family:var(--fm);font-size:8px;color:var(--t3);text-transform:uppercase;margin-bottom:3px';lbl.textContent=fd.l;var finp=document.createElement('input');finp.className='fi';finp.style.cssText='font-size:13px;text-align:center;padding:5px 3px';finp.placeholder=fd.p;finp.value=(typeof item==='object'&&item!==null&&item[fd.f])||'';(function(d,s,c2,field){finp.addEventListener('change',function(){if(R_DIAS[d][s]&&typeof R_DIAS[d][s][c2]==='object')R_DIAS[d][s][c2][field]=this.value;});})(di,sk,ci,fd.f);cell.appendChild(lbl);cell.appendChild(finp);grid.appendChild(cell);});row.appendChild(grid);wrap.appendChild(row);});container.appendChild(wrap);}
+function buildCalSection(container,di,sk,label,items){var wrap=document.createElement('div');wrap.style.cssText='background:var(--bg2);border:1px solid var(--bor);border-radius:9px;padding:10px;margin-bottom:9px';var hdr=document.createElement('div');hdr.style.cssText='display:flex;align-items:center;justify-content:space-between;margin-bottom:8px';var ttl=document.createElement('span');ttl.style.cssText='font-family:var(--fm);font-size:10px;color:var(--si);text-transform:uppercase;letter-spacing:1.5px';ttl.textContent=label;var btns=document.createElement('div');btns.style.cssText='display:flex;gap:5px';var btnT=document.createElement('button');btnT.className='btn btn-g btn-sm';btnT.textContent='+ Texto';(function(d,s){btnT.addEventListener('click',function(){if(!R_DIAS[d][s])R_DIAS[d][s]=[];R_DIAS[d][s].push({txt:'',series:'',reps:'',tiempo:''});renderRDias();});})(di,sk);var btnL=document.createElement('button');btnL.className='btn btn-g btn-sm';btnL.textContent='+ Biblioteca';(function(d,s){btnL.addEventListener('click',function(){PICKER_DI=d;PICKER_BI=s;PICKER_EQ='all';var sr=document.getElementById('picker-search');if(sr)sr.value='';renderPickerTags();renderPickerGrid('');openM('m-ej-picker');});})(di,sk);var btnP=document.createElement('button');btnP.className='btn btn-g btn-sm';btnP.textContent='+ Pack';(function(d,s){btnP.addEventListener('click',function(){abrirPickerPack(d,s);});})(di,sk);btns.appendChild(btnT);btns.appendChild(btnL);btns.appendChild(btnP);hdr.appendChild(ttl);hdr.appendChild(btns);wrap.appendChild(hdr);(items||[]).forEach(function(item,ci){var ejs=DB.get('ejercicios')||[];var nm='',fo='';if(typeof item==='string'){nm=item;}else if(item&&item.txt!==undefined){nm=item.txt;}else if(item&&item.ref){var ej=ejs.find(function(e){return e.id===item.ref;});if(ej){nm=ej.n;fo=ej.fo||'';}}var row=document.createElement('div');row.style.cssText='background:var(--bg3);border:1px solid var(--bor);border-radius:8px;padding:8px;margin-bottom:7px';var top=document.createElement('div');top.style.cssText='display:flex;align-items:center;gap:7px;margin-bottom:6px';if(fo){var img=document.createElement('img');img.src=fo;img.style.cssText='width:36px;height:36px;border-radius:5px;object-fit:cover;flex-shrink:0;cursor:pointer';img.onerror=function(){this.style.display='none';};img.addEventListener('click',(function(s2,n2){return function(){showImgFull(s2,n2);};})(fo,nm));top.appendChild(img);}if(item&&item.txt!==undefined){var inp=document.createElement('input');inp.className='fi';inp.style.cssText='flex:1;font-size:13px;padding:6px 10px';inp.value=nm;inp.placeholder='Ej: Movilidad cadera...';(function(d,s,c2){inp.addEventListener('change',function(){if(R_DIAS[d][s])R_DIAS[d][s][c2].txt=this.value;});})(di,sk,ci);top.appendChild(inp);}else{var sp=document.createElement('span');sp.style.cssText='flex:1;font-size:13px;color:var(--tx);font-weight:500';sp.textContent=nm;top.appendChild(sp);}var del=document.createElement('button');del.className='btn btn-red btn-sm';del.style.cssText='padding:4px 8px;min-height:28px;flex-shrink:0';del.textContent='x';(function(d,s,c2){del.addEventListener('click',function(){if(R_DIAS[d][s])R_DIAS[d][s].splice(c2,1);renderRDias();});})(di,sk,ci);top.appendChild(del);row.appendChild(top);var grid=document.createElement('div');grid.style.cssText='display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px';[{f:'series',l:'Series',p:'2'},{f:'reps',l:'Reps',p:'8'},{f:'tiempo',l:'Tiempo',p:'30s'}].forEach(function(fd){var cell=document.createElement('div');var lbl=document.createElement('div');lbl.style.cssText='font-family:var(--fm);font-size:8px;color:var(--t3);text-transform:uppercase;margin-bottom:3px';lbl.textContent=fd.l;var finp=document.createElement('input');finp.className='fi';finp.style.cssText='font-size:13px;text-align:center;padding:5px 3px';finp.placeholder=fd.p;finp.value=(typeof item==='object'&&item!==null&&item[fd.f])||'';(function(d,s,c2,field){finp.addEventListener('change',function(){if(R_DIAS[d][s]&&typeof R_DIAS[d][s][c2]==='object')R_DIAS[d][s][c2][field]=this.value;});})(di,sk,ci,fd.f);cell.appendChild(lbl);cell.appendChild(finp);grid.appendChild(cell);});row.appendChild(grid);wrap.appendChild(row);});container.appendChild(wrap);}
 
 function showImgFull(src,name){var ov=document.createElement('div');ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.93);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;cursor:pointer';ov.addEventListener('click',function(){ov.remove();});var img=document.createElement('img');img.src=src;img.style.cssText='max-width:100%;max-height:80vh;border-radius:12px;object-fit:contain;';var lbl=document.createElement('div');lbl.style.cssText='color:#fff;font-family:var(--fd);font-size:18px;font-weight:700;margin-top:14px;text-align:center;text-transform:uppercase;';lbl.textContent=name||'';ov.appendChild(img);ov.appendChild(lbl);document.body.appendChild(ov);}
 document.addEventListener('click',function(e){var med=e.target.closest('.ex-media');if(!med)return;var img=med.querySelector('img');if(!img)return;var card=med.closest('.excard');var nm=card&&card.querySelector('.ex-name')?card.querySelector('.ex-name').textContent:'';showImgFull(img.src,nm);});
@@ -2583,6 +2613,215 @@ function delFbRow(idx){
   DB.set('feedback',fb);
   renderFb();
   showToast('Registro eliminado');
+}
+
+
+// ═══ PACKS DE CALENTAMIENTO ═══
+
+function openPackModal(){
+  PACK_EJS_TMP=[];
+  document.getElementById('m-pack-t').textContent='Nuevo Pack';
+  document.getElementById('m-pack-id').value='';
+  document.getElementById('m-pack-n').value='';
+  document.getElementById('m-pack-cat').value='movilidad';
+  document.getElementById('m-pack-del').style.display='none';
+  renderPackItems();
+  openM('m-pack');
+}
+
+var PACK_EJS_TMP = []; // ejercicios temporales al editar pack
+
+function switchEjerTab(tab){
+  document.getElementById('tab-ejs-content').style.display = tab==='ejs'?'':'none';
+  document.getElementById('tab-packs-content').style.display = tab==='packs'?'':'none';
+  document.getElementById('btn-tab-ejs').style.background = tab==='ejs'?'var(--si)':'';
+  document.getElementById('btn-tab-ejs').style.color = tab==='ejs'?'var(--bg)':'';
+  document.getElementById('btn-tab-packs').style.background = tab==='packs'?'var(--si)':'';
+  document.getElementById('btn-tab-packs').style.color = tab==='packs'?'var(--bg)':'';
+  document.getElementById('btn-add-ej').style.display = tab==='ejs'?'':'none';
+  if(tab==='packs') renderPacks();
+}
+
+function renderPacks(){
+  const packs = DB.get('packs')||[];
+  set('packs-sub', packs.length+' packs');
+  const grid = document.getElementById('packs-grid');
+  if(!grid) return;
+  if(!packs.length){
+    grid.innerHTML = '<div style="text-align:center;padding:40px;color:var(--t3)"><div style="font-size:28px;margin-bottom:10px">📦</div><div style="font-size:13px">Sin packs aún. Crea tu primero.</div></div>';
+    return;
+  }
+  grid.innerHTML = packs.map((p,pi)=>{
+    const catLabel = {movilidad:'Movilidad',core:'Core / Activación',calentamiento:'Calentamiento',otro:'Otro'}[p.cat]||p.cat||'';
+    const items = (p.items||[]).map(it=>{
+      const ej = (DB.get('ejercicios')||[]).find(e=>e.id===it.ref)||{n:it.txt||'—',fo:''};
+      return `<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--bor)">
+        ${ej.fo?`<img src="${ej.fo}" style="width:32px;height:32px;border-radius:6px;object-fit:cover;flex-shrink:0">`:'<div style="width:32px;height:32px;border-radius:6px;background:var(--bg3);flex-shrink:0"></div>'}
+        <div style="flex:1">
+          <div style="font-size:12px;font-weight:600;color:var(--tx)">${ej.n}</div>
+          <div style="font-size:10px;color:var(--t3);font-family:var(--fm)">${[it.series?it.series+' series':'',it.reps?it.reps+' reps':'',it.kg?it.kg+' kg':''].filter(Boolean).join(' · ')}</div>
+        </div>
+      </div>`;
+    }).join('');
+    return `<div style="background:var(--card);border-radius:16px;overflow:hidden;border:1px solid var(--bor)">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--bor)">
+        <div>
+          <div style="font-family:var(--fb);font-size:14px;font-weight:700;color:var(--tx)">${p.nombre||'Sin nombre'}</div>
+          <div style="font-size:10px;color:var(--t3);margin-top:2px;font-family:var(--fm)">${catLabel} · ${(p.items||[]).length} ejercicios</div>
+        </div>
+        <button class="btn btn-g btn-sm" onclick="editPack(${pi})">Editar</button>
+      </div>
+      <div style="padding:0 16px">${items}</div>
+    </div>`;
+  }).join('');
+}
+
+function openM_pack(){
+  PACK_EJS_TMP = [];
+  document.getElementById('m-pack-t').textContent = 'Nuevo Pack';
+  document.getElementById('m-pack-id').value = '';
+  document.getElementById('m-pack-n').value = '';
+  document.getElementById('m-pack-del').style.display = 'none';
+  renderPackItems();
+  openM('m-pack');
+}
+
+function editPack(idx){
+  const packs = DB.get('packs')||[];
+  const p = packs[idx];
+  if(!p) return;
+  PACK_EJS_TMP = JSON.parse(JSON.stringify(p.items||[]));
+  document.getElementById('m-pack-t').textContent = 'Editar Pack';
+  document.getElementById('m-pack-id').value = idx;
+  document.getElementById('m-pack-n').value = p.nombre||'';
+  document.getElementById('m-pack-cat').value = p.cat||'movilidad';
+  document.getElementById('m-pack-del').style.display = '';
+  renderPackItems();
+  openM('m-pack');
+}
+
+function addPackItem(){
+  PACK_EJS_TMP.push({ref:'',txt:'',series:'2',reps:'10',kg:''});
+  renderPackItems();
+}
+
+function renderPackItems(){
+  const ejs = DB.get('ejercicios')||[];
+  const container = document.getElementById('m-pack-items');
+  if(!container) return;
+  container.innerHTML = PACK_EJS_TMP.map((it,ii)=>{
+    const ej = ejs.find(e=>e.id===it.ref)||null;
+    const foto = ej?.fo||'';
+    const nombre = ej?.n||it.txt||'';
+    return `<div style="background:var(--bg3);border-radius:12px;padding:10px;margin-bottom:8px;border:1px solid var(--bor)">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+        ${foto?`<img src="${foto}" style="width:36px;height:36px;border-radius:6px;object-fit:cover;flex-shrink:0">`:'<div style="width:36px;height:36px;border-radius:6px;background:var(--bg2);flex-shrink:0"></div>'}
+        <div style="flex:1;font-size:12px;color:var(--tx);font-weight:500">${nombre||'Sin ejercicio'}</div>
+        <button class="btn btn-g btn-sm" onclick="selEjPack(${ii})" style="font-size:10px">Cambiar</button>
+        <button class="btn btn-red btn-sm" onclick="PACK_EJS_TMP.splice(${ii},1);renderPackItems()" style="padding:3px 7px;min-height:28px">x</button>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">
+        <div><div style="font-family:var(--fm);font-size:8px;color:var(--t3);text-transform:uppercase;margin-bottom:3px">Series</div>
+          <input class="fi" style="font-size:12px;text-align:center;padding:5px" value="${it.series||''}" placeholder="2" onchange="PACK_EJS_TMP[${ii}].series=this.value"></div>
+        <div><div style="font-family:var(--fm);font-size:8px;color:var(--t3);text-transform:uppercase;margin-bottom:3px">Reps</div>
+          <input class="fi" style="font-size:12px;text-align:center;padding:5px" value="${it.reps||''}" placeholder="10" onchange="PACK_EJS_TMP[${ii}].reps=this.value"></div>
+        <div><div style="font-family:var(--fm);font-size:8px;color:var(--t3);text-transform:uppercase;margin-bottom:3px">Kg</div>
+          <input class="fi" style="font-size:12px;text-align:center;padding:5px" value="${it.kg||''}" placeholder="—" onchange="PACK_EJS_TMP[${ii}].kg=this.value"></div>
+      </div>
+    </div>`;
+  }).join('')||'<div style="text-align:center;color:var(--t3);font-size:12px;padding:16px">Sin ejercicios. Agrega uno.</div>';
+}
+
+var PACK_SEL_IDX = -1;
+function selEjPack(ii){
+  PACK_SEL_IDX = ii;
+  // Reusar el picker de ejercicios existente
+  PICKER_DI = -1; PICKER_BI = 'pack';
+  var sr = document.getElementById('picker-search');
+  if(sr) sr.value='';
+  renderPickerTags();
+  renderPickerGrid('');
+  openM('m-ej-picker');
+}
+
+function savePack(){
+  const nombre = document.getElementById('m-pack-n').value.trim();
+  if(!nombre){alert('Escribe un nombre para el pack');return;}
+  const cat = document.getElementById('m-pack-cat').value;
+  const idxStr = document.getElementById('m-pack-id').value;
+  const packs = DB.get('packs')||[];
+  const pack = {nombre, cat, items: JSON.parse(JSON.stringify(PACK_EJS_TMP))};
+  if(idxStr!==''){
+    packs[parseInt(idxStr)] = pack;
+  } else {
+    if(packs.length>=10){alert('Máximo 10 packs');return;}
+    packs.push(pack);
+  }
+  DB.set('packs', packs);
+  closeM('m-pack');
+  renderPacks();
+  showToast('✓ Pack guardado');
+}
+
+function delPack(){
+  const idxStr = document.getElementById('m-pack-id').value;
+  if(idxStr==='') return;
+  if(!confirm('¿Eliminar este pack?')) return;
+  const packs = DB.get('packs')||[];
+  packs.splice(parseInt(idxStr),1);
+  DB.set('packs', packs);
+  closeM('m-pack');
+  renderPacks();
+  showToast('Pack eliminado');
+}
+
+// Picker de packs para el calentamiento
+var PACK_PICKER_DI = -1;
+var PACK_PICKER_SK = '';
+
+function abrirPickerPack(di, sk){
+  PACK_PICKER_DI = di;
+  PACK_PICKER_SK = sk;
+  const packs = DB.get('packs')||[];
+  const list = document.getElementById('m-pack-picker-list');
+  if(!list) return;
+  if(!packs.length){
+    list.innerHTML = '<div style="text-align:center;color:var(--t3);padding:24px">Sin packs. Crea uno en la sección Ejercicios.</div>';
+  } else {
+    list.innerHTML = packs.map((p,pi)=>`
+      <div style="background:var(--card);border-radius:14px;padding:14px 16px;border:1px solid var(--bor);cursor:pointer" onclick="insertarPack(${pi})">
+        <div style="font-size:13px;font-weight:700;color:var(--tx);margin-bottom:3px">${p.nombre}</div>
+        <div style="font-size:10px;color:var(--t3);font-family:var(--fm)">${(p.items||[]).length} ejercicios · ${({movilidad:'Movilidad',core:'Core',calentamiento:'Calentamiento',otro:'Otro'}[p.cat]||p.cat)}</div>
+        <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">
+          ${(p.items||[]).map(it=>{
+            const ej=(DB.get('ejercicios')||[]).find(e=>e.id===it.ref)||{n:it.txt||'—'};
+            return `<span style="font-size:10px;background:var(--bg3);color:var(--t2);padding:2px 8px;border-radius:10px">${ej.n}</span>`;
+          }).join('')}
+        </div>
+      </div>`).join('');
+  }
+  openM('m-pack-picker');
+}
+
+function insertarPack(pi){
+  const packs = DB.get('packs')||[];
+  const p = packs[pi];
+  if(!p) return;
+  const di = PACK_PICKER_DI;
+  const sk = PACK_PICKER_SK;
+  if(!R_DIAS[di][sk]) R_DIAS[di][sk]=[];
+  p.items.forEach(function(it){
+    R_DIAS[di][sk].push({
+      ref: it.ref||'',
+      txt: it.txt||'',
+      series: it.series||'2',
+      reps: it.reps||'10',
+      tiempo: it.kg?it.kg+'kg':''
+    });
+  });
+  closeM('m-pack-picker');
+  renderRDias();
+  showToast('✓ Pack "'+p.nombre+'" agregado');
 }
 
 </script>
