@@ -380,24 +380,21 @@ select.fi{appearance:none;cursor:pointer;}
   <div>
     <svg width="54" height="54" viewBox="0 0 38 38" fill="none" style="display:block;margin:0 auto 12px"><rect x="2" y="17.5" width="34" height="3" rx="1.5" fill="#8a9e8b"/><rect x="3" y="12" width="3" height="14" rx="1" fill="#b8c4b9"/><rect x="6.5" y="13.5" width="2" height="11" rx="1" fill="#8a9e8b"/><rect x="32" y="12" width="3" height="14" rx="1" fill="#b8c4b9"/><rect x="29.5" y="13.5" width="2" height="11" rx="1" fill="#8a9e8b"/><circle cx="19" cy="19" r="9" stroke="#b8c4b9" stroke-width="2" fill="none"/><rect x="13" y="17.5" width="12" height="2.5" rx="1" fill="#b8c4b9"/><circle cx="19" cy="13" r="2" fill="#8a9e8b"/></svg>
     <div class="ms-title">RUBEN<em>TRENA</em></div>
-    <div class="ms-sub" style="text-align:center;margin-top:6px">— Spotters v5 —</div>
+    <div class="ms-sub" style="text-align:center;margin-top:6px">Entrena con Rubén</div>
   </div>
-  <div class="ms-cards">
-    <div class="ms-card tr" onclick="launchTrainer()">
-      <div class="ms-card-icon">🏋️</div>
-      <div class="ms-card-name">Entrenador</div>
-      <div class="ms-card-desc">Panel completo optimizado para tablet — toca cómodo, planifica rápido</div>
-    </div>
-    <div class="ms-card st" onclick="launchStudent()">
-      <div class="ms-card-icon">💪</div>
-      <div class="ms-card-name">Alumno</div>
-      <div class="ms-card-desc">Mi rutina · fotos/videos · kg/reps/feedback · historial de pesos</div>
+  <div style="max-width:420px;width:100%;margin:0 auto">
+    <div class="ms-card st" onclick="launchStudent()" style="border-width:2px;border-color:var(--gr);padding:36px 22px">
+      <div class="ms-card-icon" style="font-size:40px;margin-bottom:10px">💪</div>
+      <div class="ms-card-name" style="font-size:20px">Ver mi rutina</div>
+      <div class="ms-card-desc">Selecciona tu nombre para empezar</div>
     </div>
   </div>
-  <div style="display:flex;align-items:center;gap:10px">
-    <div class="ms-hint">Tablet → Entrenador · Celular alumno → Alumno</div>
-    <button onclick="forzarDescargaFirebase()" style="background:var(--bg2);border:1px solid var(--bor);color:var(--si);border-radius:20px;padding:7px 16px;font-family:var(--fm);font-size:10px;text-transform:uppercase;letter-spacing:.08em;cursor:pointer">↓ Actualizar</button>
-    <div class="theme-toggle" onclick="toggleTheme()" title="Cambiar tema"><span class="theme-icon" id="ti-mode">🌙</span></div>
+  <div style="display:flex;flex-direction:column;align-items:center;gap:10px;margin-top:4px">
+    <div style="font-size:11px;color:var(--t3);font-family:var(--fm)">¿Eres el entrenador? <span onclick="launchTrainer()" style="color:var(--s2);text-decoration:underline;cursor:pointer">Entra aquí</span></div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <button onclick="forzarDescargaFirebase()" style="background:var(--bg2);border:1px solid var(--bor);color:var(--si);border-radius:20px;padding:7px 16px;font-family:var(--fm);font-size:10px;text-transform:uppercase;letter-spacing:.08em;cursor:pointer">↓ Actualizar</button>
+      <div class="theme-toggle" onclick="toggleTheme()" title="Cambiar tema"><span class="theme-icon" id="ti-mode">🌙</span></div>
+    </div>
   </div>
 </div>
 
