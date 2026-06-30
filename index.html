@@ -1981,7 +1981,7 @@ function sDiaC(idx){
   var ejs=DB.get('ejercicios')||[];var fb=DB.get('feedback')||[];
   var planC=document.getElementById('s-plan-c');if(!planC)return;
   planC.innerHTML='';
-  function res(item){if(!item)return{nm:'',fo:'',extra:''};var nm='',fo='',extra='';if(typeof item==='string'){nm=item;}else if(item.txt!==undefined){nm=item.txt;extra=(item.series?item.series+' ser ':'')+(item.reps?'x'+item.reps+' ':'')+( item.tiempo||'');}else if(item.ref){var e2=ejs.find(function(e){return e.id===item.ref;});if(e2){nm=e2.n;fo=e2.fo||'';}extra=(item.series?item.series+' ser ':'')+(item.reps?'x'+item.reps+' ':'')+( item.tiempo||'');}return{nm:nm,fo:fo,extra:extra.trim()};}
+  function res(item){if(!item)return{nm:'',fo:'',extra:''};var nm='',fo='',extra='';if(typeof item==='string'){nm=item;}else if(item.ref){var e2=ejs.find(function(e){return e.id===item.ref;});if(e2){nm=e2.n;fo=e2.fo||'';}extra=(item.series?item.series+' ser ':'')+(item.reps?'x'+item.reps+' ':'')+( item.tiempo||'');}else if(item.txt!==undefined){nm=item.txt;extra=(item.series?item.series+' ser ':'')+(item.reps?'x'+item.reps+' ':'')+( item.tiempo||'');}return{nm:nm,fo:fo,extra:extra.trim()};}
   var calItems=(dia.calentamiento||[]).concat(dia.calCore||[]);
   if(calItems.length){
     var calDiv=document.createElement('div');calDiv.className='sblq';calDiv.id='sbc-'+idx;
