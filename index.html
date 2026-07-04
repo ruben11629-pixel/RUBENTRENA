@@ -312,14 +312,14 @@ select.fi{appearance:none;cursor:pointer;}
 .dtabs{display:flex;gap:6px;overflow-x:auto;margin-bottom:11px;padding-bottom:3px;}
 .dtab{padding:8px 16px;border-radius:22px;font-family:var(--fm);font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;border:1px solid var(--bor);color:var(--t3);cursor:pointer;white-space:nowrap;flex-shrink:0;transition:all .14s;min-height:38px;}
 .dtab.active{background:var(--si);color:var(--bg);border-color:var(--si);}
-.sblq{background:var(--card);border:1px solid var(--bor);border-radius:11px;overflow:hidden;margin-bottom:10px;}
-.sblq-hdr{padding:13px 15px;border-bottom:1px solid var(--bor);display:flex;align-items:center;gap:8px;cursor:pointer;background:rgba(0,0,0,.1);min-height:50px;}
+.sblq{background:var(--card);border:1px solid var(--bor);border-radius:18px;overflow:hidden;margin-bottom:14px;}
+.sblq-hdr{padding:16px 18px;border-bottom:1px solid var(--bor);display:flex;align-items:center;gap:10px;cursor:pointer;background:rgba(0,0,0,.1);min-height:54px;}
 .sblq-ico{font-size:17px;}
 .sblq-t{font-family:var(--fd);font-size:15px;font-weight:700;letter-spacing:2px;color:var(--si);text-transform:uppercase;}
 .sblq-m{font-size:10px;color:var(--t3);font-family:var(--fm);margin-left:auto;}
 .sblq-body{padding:12px 15px;}
 .sblq.collapsed .sblq-body{display:none;}
-.ci{display:flex;align-items:flex-start;gap:11px;padding:10px 0;border-bottom:1px solid var(--bor);}
+.ci{display:flex;align-items:flex-start;gap:12px;padding:14px 4px;border-bottom:1px solid var(--bor);}
 .ci:last-child{border-bottom:none;}
 .ci-chk{width:22px;height:22px;border-radius:5px;border:2px solid var(--s3);background:transparent;flex-shrink:0;margin-top:2px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .14s;}
 .ci-chk.done{background:var(--g2);border-color:var(--g2);}
@@ -428,27 +428,43 @@ select.fi{appearance:none;cursor:pointer;}
     <div class="t-screen active" id="t-dash">
       <div class="t-scroll" style="padding:28px 32px;max-width:1400px;margin:0 auto">
 
-        <!-- Stats row: 4 numbers clean -->
+        <!-- Stats row: 4 numbers con icono e impacto -->
         <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px">
-          <div style="background:var(--bg2);border:1px solid var(--bor);border-radius:14px;padding:22px 24px;border-top:3px solid var(--si)">
+          <div style="background:var(--card);border-radius:20px;padding:22px 20px;position:relative;overflow:hidden">
+            <div style="position:absolute;top:0;left:0;right:0;height:3px;background:var(--si)"></div>
+            <div style="width:34px;height:34px;border-radius:10px;background:var(--bg3);display:flex;align-items:center;justify-content:center;margin-bottom:14px">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--si)" stroke-width="2"><circle cx="9" cy="7" r="3"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><circle cx="17" cy="9" r="2.5"/></svg>
+            </div>
             <div style="font-family:var(--fm);font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px">Alumnos</div>
-            <div style="font-family:var(--fd);font-size:42px;font-weight:900;color:var(--tx);line-height:1" id="d-al">0</div>
-            <div style="font-size:12px;color:var(--t3);margin-top:6px" id="d-al-n">activos</div>
+            <div style="font-family:var(--fd);font-size:38px;font-weight:900;color:var(--tx);line-height:1" id="d-al">0</div>
+            <div style="font-size:11px;color:var(--t3);margin-top:8px" id="d-al-n">activos</div>
           </div>
-          <div style="background:var(--bg2);border:1px solid var(--bor);border-radius:14px;padding:22px 24px;border-top:3px solid var(--gr)">
+          <div style="background:var(--card);border-radius:20px;padding:22px 20px;position:relative;overflow:hidden">
+            <div style="position:absolute;top:0;left:0;right:0;height:3px;background:var(--gr)"></div>
+            <div style="width:34px;height:34px;border-radius:10px;background:var(--bg3);display:flex;align-items:center;justify-content:center;margin-bottom:14px">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--gr)" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+            </div>
             <div style="font-family:var(--fm);font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px">Sesiones hoy</div>
-            <div style="font-family:var(--fd);font-size:42px;font-weight:900;color:var(--gr);line-height:1" id="d-ses">0</div>
-            <div style="font-size:12px;color:var(--t3);margin-top:6px" id="d-ses-n">Sin sesiones</div>
+            <div style="font-family:var(--fd);font-size:38px;font-weight:900;color:var(--gr);line-height:1" id="d-ses">0</div>
+            <div style="font-size:11px;color:var(--t3);margin-top:8px" id="d-ses-n">Sin sesiones</div>
           </div>
-          <div style="background:var(--bg2);border:1px solid var(--bor);border-radius:14px;padding:22px 24px;border-top:3px solid var(--or)">
+          <div style="background:var(--card);border-radius:20px;padding:22px 20px;position:relative;overflow:hidden">
+            <div style="position:absolute;top:0;left:0;right:0;height:3px;background:var(--or)"></div>
+            <div style="width:34px;height:34px;border-radius:10px;background:var(--bg3);display:flex;align-items:center;justify-content:center;margin-bottom:14px">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--or)" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+            </div>
             <div style="font-family:var(--fm);font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px">Ingresos mes</div>
-            <div style="font-family:var(--fd);font-size:42px;font-weight:900;color:var(--or);line-height:1" id="d-ing">$0</div>
-            <div style="font-size:12px;color:var(--t3);margin-top:6px">CLP cobrado</div>
+            <div style="font-family:var(--fd);font-size:38px;font-weight:900;color:var(--or);line-height:1" id="d-ing">$0</div>
+            <div style="font-size:11px;color:var(--t3);margin-top:8px">CLP cobrado</div>
           </div>
-          <div style="background:var(--bg2);border:1px solid var(--bor);border-radius:14px;padding:22px 24px;border-top:3px solid var(--bl)">
+          <div style="background:var(--card);border-radius:20px;padding:22px 20px;position:relative;overflow:hidden">
+            <div style="position:absolute;top:0;left:0;right:0;height:3px;background:var(--bl)"></div>
+            <div style="width:34px;height:34px;border-radius:10px;background:var(--bg3);display:flex;align-items:center;justify-content:center;margin-bottom:14px">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--bl)" stroke-width="2"><path d="M6 4v16M18 4v16M4 8h2M18 8h2M8 12h8"/></svg>
+            </div>
             <div style="font-family:var(--fm);font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px">Ejercicios</div>
-            <div style="font-family:var(--fd);font-size:42px;font-weight:900;color:var(--bl);line-height:1" id="d-ej">0</div>
-            <div style="font-size:12px;color:var(--t3);margin-top:6px">en biblioteca</div>
+            <div style="font-family:var(--fd);font-size:38px;font-weight:900;color:var(--bl);line-height:1" id="d-ej">0</div>
+            <div style="font-size:11px;color:var(--t3);margin-top:8px">en biblioteca</div>
           </div>
         </div>
 
@@ -1084,7 +1100,7 @@ function tDash(){
 function tAlumnos(data){
   const list=data||(DB.get('alumnos')||[]);
   set('al-sub',`// ${list.length} alumnos`);
-  set('al-list',list.map(a=>`<div class="lr" onclick="editAl('${a.id}')"><div class="lav">${a.n[0]}</div><div style="flex:1"><div class="ln">${a.n}${a.pin?' 🔒':''}</div><div class="lm">${a.obj} · ${a.nivel} · ${a.h||'—'}</div></div><div style="display:flex;align-items:center;gap:9px"><div style="font-family:var(--fm);font-size:11px;color:var(--or)">$${a.tarifa.toLocaleString('es-CL')}</div><span class="badge ${a.pago==='al_dia'?'bok':a.pago==='vencido'?'bred':'bwarn'}">${a.pago==='al_dia'?'Al día':a.pago==='vencido'?'Vencido':'Pendiente'}</span></div></div>`).join('')||'<p style="color:var(--t3);font-size:13px;padding:20px;text-align:center">Sin alumnos.</p>');
+  set('al-list',list.map(a=>{const col=colorAlumno(a.n);return `<div class="lr" onclick="editAl('${a.id}')"><div class="lav" style="background:${col.bg};color:${col.c}">${a.n[0]}</div><div style="flex:1"><div class="ln">${a.n}${a.pin?' 🔒':''}</div><div class="lm">${a.obj} · ${a.nivel} · ${a.h||'—'}</div></div><div style="display:flex;align-items:center;gap:9px"><div style="font-family:var(--fm);font-size:11px;color:var(--or)">$${a.tarifa.toLocaleString('es-CL')}</div><span class="badge ${a.pago==='al_dia'?'bok':a.pago==='vencido'?'bred':'bwarn'}">${a.pago==='al_dia'?'Al día':a.pago==='vencido'?'Vencido':'Pendiente'}</span></div></div>`;}).join('')||'<p style="color:var(--t3);font-size:13px;padding:20px;text-align:center">Sin alumnos.</p>');
 }
 
 function tEjer(data){
@@ -1199,7 +1215,7 @@ function renderFb(){
     return `<div style="background:var(--card);border-radius:18px;overflow:hidden;border:1px solid var(--bor);margin-bottom:12px">
       <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--bor)">
         <div style="display:flex;align-items:center;gap:10px">
-          <div style="width:36px;height:36px;border-radius:50%;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-family:var(--fb);font-size:14px;font-weight:900;color:var(--si)">${al.name.charAt(0).toUpperCase()}</div>
+          <div style="width:36px;height:36px;border-radius:50%;background:${colorAlumno(al.name).bg};display:flex;align-items:center;justify-content:center;font-family:var(--fb);font-size:14px;font-weight:900;color:${colorAlumno(al.name).c}">${al.name.charAt(0).toUpperCase()}</div>
           <div>
             <div style="font-family:var(--fb);font-size:14px;font-weight:800;color:var(--tx);text-transform:uppercase;letter-spacing:.04em">${al.name}</div>
             <div style="font-size:10px;color:var(--t3);margin-top:1px">${sess.length} registros · ${totalSets} sets</div>
@@ -1885,6 +1901,25 @@ function diagnosticoFirebase(){
   }
 }
 
+// ═══ COLOR ÚNICO POR ALUMNO ═══
+var ALUMNO_COLORES = [
+  {bg:'#1e2a3d',c:'#6a8ab8'},
+  {bg:'#2a1e1e',c:'#b86060'},
+  {bg:'#1e2a1e',c:'#7ab882'},
+  {bg:'#2a2a1e',c:'#c09858'},
+  {bg:'#2a1e2a',c:'#a070b8'},
+  {bg:'#1e2a28',c:'#60b8a8'},
+  {bg:'#2a2414',c:'#c0a858'},
+  {bg:'#241e2a',c:'#9068a8'}
+];
+function colorAlumno(nombre){
+  if(!nombre) return ALUMNO_COLORES[0];
+  var hash=0;
+  for(var i=0;i<nombre.length;i++){hash=nombre.charCodeAt(i)+((hash<<5)-hash);}
+  var idx=Math.abs(hash)%ALUMNO_COLORES.length;
+  return ALUMNO_COLORES[idx];
+}
+
 function forzarSyncFirebase(){
   if(!window.FB){
     alert('Firebase no conectado. Espera el punto verde e intenta de nuevo.');
@@ -1987,8 +2022,8 @@ function sDiaC(idx){
     var calBody=document.createElement('div');calBody.className='sblq-body';
     calItems.forEach(function(item,ci){
       var r=res(item);var done2=CCOMP[idx].has(ci);
-      var ciDiv=document.createElement('div');ciDiv.className='ci'+(done2?' done':'');ciDiv.id='ci-'+idx+'-'+ci;ciDiv.style.cssText='flex-direction:column;align-items:stretch;padding:10px 0';
-      if(r.fo){var imgEl=document.createElement('img');imgEl.src=r.fo;imgEl.style.cssText='width:100%;height:140px;object-fit:cover;border-radius:8px;margin-bottom:8px;cursor:pointer';imgEl.onerror=function(){this.style.display='none';};imgEl.addEventListener('click',(function(s,n){return function(){showImgFull(s,n);};})(r.fo,r.nm));ciDiv.appendChild(imgEl);}
+      var ciDiv=document.createElement('div');ciDiv.className='ci'+(done2?' done':'');ciDiv.id='ci-'+idx+'-'+ci;ciDiv.style.cssText='flex-direction:column;align-items:stretch;padding:14px 4px';
+      if(r.fo){var imgEl=document.createElement('img');imgEl.src=r.fo;imgEl.style.cssText='width:100%;height:170px;object-fit:cover;border-radius:14px;margin-bottom:10px;cursor:pointer';imgEl.onerror=function(){this.style.display='none';};imgEl.addEventListener('click',(function(s,n){return function(){showImgFull(s,n);};})(r.fo,r.nm));ciDiv.appendChild(imgEl);}
       var row=document.createElement('div');row.style.cssText='display:flex;align-items:center;gap:10px';
       var chk=document.createElement('div');chk.className='ci-chk'+(done2?' done':'');chk.innerHTML='<span class="ci-chk-i">&#10003;</span>';(function(i2,c2){chk.addEventListener('click',function(){sCal(i2,c2);});})(idx,ci);
       var txt=document.createElement('div');txt.className='ci-txt';txt.style.flex='1';txt.textContent=r.nm;
@@ -2198,6 +2233,7 @@ function sProgRenderChart(ej){
 function sPerfil(){
   if(!ALUMNO)return;const a=ALUMNO;const ini=a.n.split(' ').map(x=>x[0]).join('').slice(0,2).toUpperCase();
   set('s-pav',ini);set('s-pname',a.n.toUpperCase());set('s-prole',`${a.obj} · ${a.nivel}`);
+  const _colAv=colorAlumno(a.n);const _pavEl=document.getElementById('s-pav');if(_pavEl){_pavEl.style.background=_colAv.bg;_pavEl.style.color=_colAv.c;_pavEl.style.borderColor=_colAv.c;}
   set('s-pag-val',`$${(a.tarifa||0).toLocaleString('es-CL')} CLP`);set('s-pag-ses',a.sesiones||0);
   set('s-pag-tot',`$${((a.tarifa||0)*(a.sesiones||0)).toLocaleString('es-CL')} CLP`);
   set('s-pag-est',`<span class="badge ${a.pago==='al_dia'?'bok':a.pago==='vencido'?'bred':'bwarn'}">${a.pago==='al_dia'?'Al día':a.pago==='vencido'?'Vencido':'Pendiente'}</span>`);
