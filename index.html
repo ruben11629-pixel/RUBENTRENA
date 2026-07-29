@@ -400,20 +400,19 @@ select.fi{appearance:none;cursor:pointer;}
 
 <!-- MODAL PIN ENTRENADOR -->
 <div class="mo" id="m-pin-trainer">
-  <div class="md" style="max-width:340px;text-align:center">
-    <div style="font-size:32px;margin-bottom:12px">🔒</div>
-    <div class="mt" style="text-align:center;margin-bottom:6px">Acceso Entrenador</div>
-    <div style="font-size:12px;color:var(--t3);margin-bottom:20px">Ingresa tu PIN de 4 dígitos</div>
+  <div class="md" style="max-width:320px;text-align:center;padding:20px;max-height:95vh;overflow-y:auto">
+    <div class="mt" style="text-align:center;margin-bottom:4px;font-size:16px">🔒 Acceso Entrenador</div>
+    <div style="font-size:11px;color:var(--t3);margin-bottom:12px">Ingresa tu PIN de 4 dígitos</div>
     <input id="pin-input" type="tel" inputmode="numeric" maxlength="4" placeholder="• • • •" autocomplete="off"
-      style="width:100%;text-align:center;font-size:28px;letter-spacing:14px;font-family:var(--fm);background:var(--bg3);border:1px solid var(--bor);border-radius:14px;padding:16px;color:var(--tx);margin-bottom:10px"
+      style="width:100%;text-align:center;font-size:24px;letter-spacing:12px;font-family:var(--fm);background:var(--bg3);border:1px solid var(--bor);border-radius:12px;padding:12px;color:var(--tx);margin-bottom:8px"
       oninput="this.value=this.value.replace(/[^0-9]/g,'');if(this.value.length===4)verificarPin();"
       onkeypress="if(event.key==='Enter')verificarPin()">
-    <div id="pin-error" style="color:var(--re);font-size:11px;margin-bottom:14px;min-height:14px"></div>
-    <div class="macts" style="justify-content:center;gap:10px">
-      <button class="btn btn-g" onclick="closeM('m-pin-trainer')" style="flex:1">Cancelar</button>
-      <button class="btn btn-p" onclick="verificarPin()" style="flex:1">Entrar →</button>
+    <div id="pin-error" style="color:var(--re);font-size:10px;margin-bottom:8px;min-height:12px"></div>
+    <div class="macts" style="justify-content:center;gap:8px;margin-bottom:10px">
+      <button class="btn btn-g" onclick="closeM('m-pin-trainer')" style="flex:1;padding:9px">Cancelar</button>
+      <button class="btn btn-p" onclick="verificarPin()" style="flex:1;padding:9px">Entrar →</button>
     </div>
-    <div style="font-size:11px;color:var(--t3);margin-top:16px;font-family:var(--fm);cursor:pointer;text-decoration:underline" onclick="cambiarPinPrompt()">¿Olvidaste tu PIN? Usa la clave maestra</div>
+    <div style="font-size:10px;color:var(--t3);font-family:var(--fm);cursor:pointer;text-decoration:underline" onclick="cambiarPinPrompt()">¿Olvidaste tu PIN?</div>
   </div>
 </div>
 
