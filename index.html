@@ -390,11 +390,30 @@ select.fi{appearance:none;cursor:pointer;}
     </div>
   </div>
   <div style="display:flex;flex-direction:column;align-items:center;gap:10px;margin-top:4px">
-    <div style="font-size:11px;color:var(--t3);font-family:var(--fm)">¿Eres el entrenador? <span onclick="launchTrainer()" style="color:var(--s2);text-decoration:underline;cursor:pointer">Entra aquí</span></div>
+    <div style="font-size:11px;color:var(--t3);font-family:var(--fm)">¿Eres el entrenador? <span onclick="abrirPinTrainer()" style="color:var(--s2);text-decoration:underline;cursor:pointer">Entra aquí</span></div>
     <div style="display:flex;align-items:center;gap:10px">
       <button onclick="forzarDescargaFirebase()" style="background:var(--bg2);border:1px solid var(--bor);color:var(--si);border-radius:20px;padding:7px 16px;font-family:var(--fm);font-size:10px;text-transform:uppercase;letter-spacing:.08em;cursor:pointer">↓ Actualizar</button>
       <div class="theme-toggle" onclick="toggleTheme()" title="Cambiar tema"><span class="theme-icon" id="ti-mode">🌙</span></div>
     </div>
+  </div>
+</div>
+
+<!-- MODAL PIN ENTRENADOR -->
+<div class="mo" id="m-pin-trainer">
+  <div class="md" style="max-width:340px;text-align:center">
+    <div style="font-size:32px;margin-bottom:12px">🔒</div>
+    <div class="mt" style="text-align:center;margin-bottom:6px">Acceso Entrenador</div>
+    <div style="font-size:12px;color:var(--t3);margin-bottom:20px">Ingresa tu PIN de 4 dígitos</div>
+    <input id="pin-input" type="tel" inputmode="numeric" maxlength="4" placeholder="• • • •" autocomplete="off"
+      style="width:100%;text-align:center;font-size:28px;letter-spacing:14px;font-family:var(--fm);background:var(--bg3);border:1px solid var(--bor);border-radius:14px;padding:16px;color:var(--tx);margin-bottom:10px"
+      oninput="this.value=this.value.replace(/[^0-9]/g,'');if(this.value.length===4)verificarPin();"
+      onkeypress="if(event.key==='Enter')verificarPin()">
+    <div id="pin-error" style="color:var(--re);font-size:11px;margin-bottom:14px;min-height:14px"></div>
+    <div class="macts" style="justify-content:center;gap:10px">
+      <button class="btn btn-g" onclick="closeM('m-pin-trainer')" style="flex:1">Cancelar</button>
+      <button class="btn btn-p" onclick="verificarPin()" style="flex:1">Entrar →</button>
+    </div>
+    <div style="font-size:10px;color:var(--t3);margin-top:14px;font-family:var(--fm)" onclick="cambiarPinPrompt()" style="cursor:pointer">¿Olvidaste tu PIN? Usa la clave maestra</div>
   </div>
 </div>
 
@@ -420,6 +439,7 @@ select.fi{appearance:none;cursor:pointer;}
       <button class="btn btn-g btn-sm" onclick="exportData()">⬇ Backup</button>
       <button class="btn btn-g btn-sm" onclick="forzarSyncFirebase()" title="Subir todo a Firebase" style="background:var(--bg3);border:1px solid var(--bor)">☁ Sync</button>
       <button class="btn btn-g btn-sm" onclick="diagnosticoFirebase()" style="background:var(--bg3);border:1px solid var(--bor)">🔍 Info</button>
+      <button class="btn btn-g btn-sm" onclick="cambiarPinDesdePanel()" style="background:var(--bg3);border:1px solid var(--bor)">🔒 PIN</button>
       <button class="btn btn-p btn-sm" onclick="openM('m-ses')">+ Sesión</button>
     </div>
   </div>
@@ -1898,6 +1918,62 @@ function diagnosticoFirebase(){
   }catch(e){
     lineas.push('Firebase no disponible');
     alert(lineas.join(', '));
+  }
+}
+
+// ═══ PIN ENTRENADOR ═══
+var PIN_MAESTRO = 'RUBEN';
+var PIN_DEFAULT = '1629';
+
+function getPinActual(){
+  return localStorage.getItem('rt6_pin_trainer') || PIN_DEFAULT;
+}
+
+function abrirPinTrainer(){
+  document.getElementById('pin-input').value = '';
+  document.getElementById('pin-error').textContent = '';
+  openM('m-pin-trainer');
+  setTimeout(function(){document.getElementById('pin-input').focus();}, 200);
+}
+
+function verificarPin(){
+  var val = document.getElementById('pin-input').value.trim();
+  var pinActual = getPinActual();
+  if(val === pinActual || val.toUpperCase() === PIN_MAESTRO){
+    closeM('m-pin-trainer');
+    launchTrainer();
+  } else {
+    document.getElementById('pin-error').textContent = 'PIN incorrecto. Intenta de nuevo.';
+    document.getElementById('pin-input').value = '';
+    document.getElementById('pin-input').focus();
+  }
+}
+
+function cambiarPinDesdePanel(){
+  var actual = getPinActual();
+  var nuevo = prompt('Tu PIN actual es: '+actual+'\n\nIngresa el nuevo PIN de 4 dígitos:');
+  if(nuevo && /^[0-9]{4}$/.test(nuevo)){
+    localStorage.setItem('rt6_pin_trainer', nuevo);
+    if(window.DB) DB.set('config_pin', nuevo);
+    alert('✓ PIN actualizado a: '+nuevo);
+  } else if(nuevo){
+    alert('El PIN debe ser exactamente 4 números.');
+  }
+}
+
+function cambiarPinPrompt(){
+  var maestro = prompt('Ingresa la clave maestra para cambiar tu PIN:');
+  if(maestro === PIN_MAESTRO){
+    var nuevo = prompt('Ingresa tu nuevo PIN de 4 dígitos:');
+    if(nuevo && /^[0-9]{4}$/.test(nuevo)){
+      localStorage.setItem('rt6_pin_trainer', nuevo);
+      if(window.DB) DB.set('config_pin', nuevo);
+      alert('PIN actualizado correctamente a: '+nuevo);
+    } else if(nuevo){
+      alert('El PIN debe ser exactamente 4 números.');
+    }
+  } else if(maestro){
+    alert('Clave maestra incorrecta.');
   }
 }
 
