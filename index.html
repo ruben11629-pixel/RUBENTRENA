@@ -406,17 +406,17 @@ select.fi{appearance:none;cursor:pointer;}
 <div class="mo" id="m-pin-trainer">
   <div class="md" style="max-width:320px;text-align:center;padding:20px;max-height:95vh;overflow-y:auto">
     <div class="mt" style="text-align:center;margin-bottom:4px;font-size:16px">🔒 Acceso Entrenador</div>
-    <div style="font-size:11px;color:var(--t3);margin-bottom:12px">Ingresa tu PIN de 4 dígitos</div>
+    <div style="font-size:11px;color:var(--t3);margin-bottom:4px">Ingresa tu PIN de 4 dígitos</div>
+    <div style="font-size:11px;color:var(--s2);font-family:var(--fm);cursor:pointer;text-decoration:underline;margin-bottom:14px" onclick="cambiarPinPrompt()">¿Olvidaste tu PIN? Toca aquí</div>
     <input id="pin-input" name="rt6-secure-field" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="• • • •" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-lpignore="true"
       style="width:100%;text-align:center;font-size:24px;letter-spacing:12px;font-family:var(--fm);background:var(--bg3);border:1px solid var(--bor);border-radius:12px;padding:12px;color:var(--tx);margin-bottom:8px"
       oninput="this.value=this.value.replace(/[^0-9]/g,'');if(this.value.length===4)verificarPin();"
       onkeypress="if(event.key==='Enter')verificarPin()">
     <div id="pin-error" style="color:var(--re);font-size:10px;margin-bottom:8px;min-height:12px"></div>
-    <div class="macts" style="justify-content:center;gap:8px;margin-bottom:10px">
+    <div class="macts" style="justify-content:center;gap:8px">
       <button class="btn btn-g" onclick="closeM('m-pin-trainer')" style="flex:1;padding:9px">Cancelar</button>
       <button class="btn btn-p" onclick="verificarPin()" style="flex:1;padding:9px">Entrar →</button>
     </div>
-    <div style="font-size:10px;color:var(--t3);font-family:var(--fm);cursor:pointer;text-decoration:underline" onclick="cambiarPinPrompt()">¿Olvidaste tu PIN?</div>
   </div>
 </div>
 
