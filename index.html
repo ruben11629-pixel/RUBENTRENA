@@ -2980,6 +2980,9 @@ function insertarPack(pi){
   showToast('Pack "'+p.nombre+'" agregado');
 }
 
+// Iniciar Firebase automáticamente al cargar la app
+if(!window.FB) initFirebase();
+
 </script>
 </body>
 </html>
