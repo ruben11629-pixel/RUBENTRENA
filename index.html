@@ -1776,7 +1776,7 @@ function editSes(id){
   document.getElementById('m-ses-ti').value=s.tipo||'Individual';document.getElementById('m-ses-no').value=s.notas||'';
   document.getElementById('m-ses-del').style.display='inline-flex';openM('m-ses');
 }
-function saveSes(){
+function saveSesSimple(){
   const id=document.getElementById('m-ses-id').value||('s'+Date.now());
   const alId=document.getElementById('m-ses-al').value;const al=(DB.get('alumnos')||[]).find(a=>a.id===alId)||{n:'—'};
   const s={id,alId,alN:al.n,tipo:document.getElementById('m-ses-ti').value,fecha:document.getElementById('m-ses-fe').value||today(),hora:document.getElementById('m-ses-ho').value||'09:00',notas:document.getElementById('m-ses-no').value,color:alColor(alId),done:false};
@@ -2489,11 +2489,10 @@ function renderStats(){
 
 // ═══ SESIONES RECURRENTES ═══
 // Override saveSes to support recurring
-const _origSaveSes = saveSes;
 function saveSes(){
   const repInterval=parseInt(document.getElementById('m-ses-rep')?.value||'0');
   const repN=parseInt(document.getElementById('m-ses-rep-n')?.value||'8');
-  if(!repInterval){_origSaveSes();return;}
+  if(!repInterval){saveSesSimple();return;}
   const id=document.getElementById('m-ses-id').value||('s'+Date.now());
   const alId=document.getElementById('m-ses-al').value;const al=(DB.get('alumnos')||[]).find(a=>a.id===alId)||{n:'—'};
   const fecha=document.getElementById('m-ses-fe').value||today();
