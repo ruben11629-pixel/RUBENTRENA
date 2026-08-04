@@ -1130,8 +1130,6 @@ function tAll(){
     case 't-cal': tCal(); break;
     default: tDash();
   }
-  // Marcar el resto como pendiente de refresco al entrar
-  window._tDirty=true;
 }
 
 // Refresco perezoso: al cambiar de pestaña, redibuja si hubo cambios
@@ -1140,8 +1138,10 @@ function tRefreshScreen(s){
     case 'dash': tDash(); break;
     case 'alumnos': tAlumnos(); break;
     case 'ejer': tEjer(); break;
-    case 'ruts': tRuts(); break;
+    case 'ruts': tRuts(); if(SEL_RUT_ID)tRutsDetail(SEL_RUT_ID); break;
     case 'pagos': tPagos(); break;
+    case 'fb': renderFb(); break;
+    case 'cal': tCal(); break;
   }
 }
 
@@ -1821,7 +1821,7 @@ function tGo(s){
   document.querySelectorAll('.t-tab').forEach(x=>x.classList.remove('active'));
   document.getElementById('t-'+s)?.classList.add('active');
   document.getElementById('tt-'+s)?.classList.add('active');
-  if(window._tDirty){tRefreshScreen(s);window._tDirty=false;}
+  tRefreshScreen(s);
   if(s==='cal')tCal();if(s==='ruts'||s==='eval')populateMods();if(s==='hist'){fillHistSels();loadHist();}if(s==='fb')renderFb();if(s==='stats')renderStats();if(s==='medidas'){fillMedSel();loadMedidas();}if(s==='notas'){fillNotaSels();renderNotas();}
 }
 
