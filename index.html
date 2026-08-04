@@ -1505,11 +1505,7 @@ function printRutinaId(id){
 const MESES=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 function ds(y,m,d){return `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;}
 
-function tCal(){
-  const y=CD.getFullYear(),m=CD.getMonth();
-  set('cal-sub',`// ${MESES[m]} ${y}`);
-  if(CV==='month')renderMonth(y,m);else renderWeek();
-}
+
 
 function getAlColor(alId){
   var COLORS=['#5a9e6a','#5a88cc','#c8943a','#9e5a8a','#5a9e9e','#cc5a5a','#8a9e5a','#7a5acc','#cc8a5a','#5acc8a','#cc5a9e','#5a8acc'];
@@ -1654,27 +1650,9 @@ function selDay(dateStr){
   if(typeof renderDayList==='function')renderDayList(dateStr);
 }
 
-function renderWeek(){
-  const d=new Date(CD);const dow=d.getDay();d.setDate(d.getDate()-(dow===0?6:dow-1));
-  const days=[];for(let i=0;i<7;i++){const nd=new Date(d);nd.setDate(d.getDate()+i);days.push(nd);}
-  const todayStr=today(),ses=DB.get('sesiones')||[];
-  const wdays=['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
-  const hours=['7:00','8:00','9:00','10:00','11:00','14:00','15:00','17:00','19:00','20:00'];
-  set('cal-title',`Semana ${d.getDate()}–${days[6].getDate()} ${MESES[days[6].getMonth()]}`);
-  let html='<div class="wv-grid"><div></div>';
-  days.forEach((day,i)=>{const isT=day.toISOString().split('T')[0]===todayStr;html+=`<div class="wvh${isT?' tc':''}">${wdays[i]}<br><span style="font-size:15px;font-family:var(--fd);font-weight:800">${day.getDate()}</span></div>`;});
-  hours.forEach(h=>{
-    html+=`<div class="wvt">${h}</div>`;
-    days.forEach(day=>{
-      const dateStr=day.toISOString().split('T')[0];const s2=ses.filter(s=>s.fecha===dateStr&&s.hora===h);
-      if(s2.length){const s=s2[0];html+=`<div class="wvs" onclick="editSes('${s.id}')"><div class="wvev" style="background:${s.color}14;border-color:${s.color}44"><div class="wvev-n" style="color:${s.color}">${s.alN.split(' ')[0]}</div><div class="wvev-t" style="color:${s.color}88">${s.tipo}</div>${s.done?`<span style="color:${s.color};font-size:9px">✓</span>`:''}</div></div>`;}
-      else{html+=`<div class="wvs" onclick="qSes('${dateStr}','${h}')"></div>`;}
-    });
-  });
-  html+='</div>';set('cal-body',html);document.getElementById('cal-day-panel').style.display='none';
-}
 
-function setCV(v){CV=v;tCal();}
+
+
 function prevP(){if(CV==='month')CD=new Date(CD.getFullYear(),CD.getMonth()-1,1);else CD=new Date(CD.getTime()-7*86400000);tCal();}
 function nextP(){if(CV==='month')CD=new Date(CD.getFullYear(),CD.getMonth()+1,1);else CD=new Date(CD.getTime()+7*86400000);tCal();}
 function qSes(fecha,hora){document.getElementById('m-ses-fe').value=fecha;document.getElementById('m-ses-ho').value=hora;openM('m-ses');}
@@ -2383,33 +2361,11 @@ function toggleTheme(){
 }
 
 // ═══ PIN ═══
-let PIN_AL=null,PIN_CURR='';
 
-function renderPinDots(){set('pin-dots',[0,1,2,3].map(i=>`<div class="pin-dot ${i<PIN_CURR.length?'filled':''}"></div>`).join(''));}
-function renderPinPad(){
-  const nums=[1,2,3,4,5,6,7,8,9,'',0,'del'];
-  set('pin-pad',nums.map(n=>{
-    if(n==='')return '<div class="pin-btn empty"></div>';
-    if(n==='del')return `<button class="pin-btn del" onclick="pinDel()">⌫</button>`;
-    return `<button class="pin-btn" onclick="pinNum('${n}')">${n}</button>`;
-  }).join(''));
-}
-function pinNum(n){
-  if(PIN_CURR.length>=4)return;
-  PIN_CURR+=n;renderPinDots();set('pin-error','');
-  if(PIN_CURR.length===4){
-    setTimeout(()=>{
-      if(PIN_CURR===PIN_AL.pin){
-        document.getElementById('s-pin').style.display='none';
-        sLogin(PIN_AL);
-      }else{
-        set('pin-error','PIN incorrecto. Inténtalo de nuevo.');
-        PIN_CURR='';renderPinDots();
-      }
-    },180);
-  }
-}
-function pinDel(){if(PIN_CURR.length>0){PIN_CURR=PIN_CURR.slice(0,-1);renderPinDots();set('pin-error','');}}
+
+
+
+
 
 // ═══ MEDIDAS CORPORALES ═══
 function fillMedSel(){
