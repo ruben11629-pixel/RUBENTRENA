@@ -1827,13 +1827,22 @@ function tGo(s){
 // BACKUP
 function alumnoActualizar(){
   var btn=document.getElementById('s-update-btn');
-  var dot=document.getElementById('s-conn-dot');
-  var txt=document.getElementById('s-conn-txt');
   if(btn){btn.textContent='Actualizando...';btn.disabled=true;btn.style.opacity='0.7';}
   var keys=['alumnos','ejercicios','rutinas','sesiones','feedback','pagos','medidas','notas','packs'];
+  var terminado=false;
+  function liberar(msg,color){
+    if(terminado)return;terminado=true;
+    if(btn){btn.textContent=msg;btn.disabled=false;btn.style.opacity='1';if(color)btn.style.color=color;
+      setTimeout(function(){if(btn){btn.textContent='↓ Actualizar';btn.style.color='';}},2500);}
+  }
+  // Seguridad: si Firebase no responde en 12s, liberar el botón
+  var guard=setTimeout(function(){liberar('Sin respuesta — reintenta');},12000);
   try{
+    if(typeof firebase==='undefined'){clearTimeout(guard);liberar('Sin conexión');return;}
     var db=firebase.firestore();
     db.collection('rubentrena').doc('data').get().then(function(s){
+      clearTimeout(guard);
+      if(terminado)return;
       var existe=typeof s.exists==='function'?s.exists():s.exists;
       if(existe){
         var data=s.data();
@@ -1843,16 +1852,19 @@ function alumnoActualizar(){
             localStorage.setItem('rt6_'+k,data[k]);
           }
         });
+        terminado=true;
         if(btn){btn.textContent='✓ Listo';btn.style.color='#4ade80';}
         setTimeout(function(){location.reload();},1200);
       } else {
-        if(btn){btn.textContent='Sin datos';btn.disabled=false;btn.style.opacity='1';}
+        liberar('Sin datos');
       }
     }).catch(function(e){
-      if(btn){btn.textContent='Error';btn.disabled=false;btn.style.opacity='1';}
+      clearTimeout(guard);
+      liberar('Error de conexión');
     });
   }catch(e){
-    if(btn){btn.textContent='Sin conexión';btn.disabled=false;btn.style.opacity='1';}
+    clearTimeout(guard);
+    liberar('Sin conexión');
   }
 }
 
@@ -1872,19 +1884,22 @@ function sActualizarConexion(online){
 }
 
 function forzarDescargaFirebase(){
-  if(typeof firebase==='undefined'){
-    alert('Sin conexion. Intenta de nuevo.');
-    return;
+  var btn=event&&event.target?event.target:null;
+  var terminado=false;
+  function liberar(msg,color){
+    if(terminado)return;terminado=true;
+    if(btn){btn.textContent=msg;btn.disabled=false;if(color)btn.style.color=color;
+      setTimeout(function(){if(btn){btn.textContent='↓ Actualizar';btn.style.color='';}},2500);}
   }
-  var btn=event.target;
-  btn.textContent='Descargando...';
-  btn.disabled=true;
-  var keys=['alumnos','ejercicios','rutinas','sesiones','feedback','pagos','medidas','notas'];
+  if(typeof firebase==='undefined'){liberar('Sin conexión');return;}
+  if(btn){btn.textContent='Descargando...';btn.disabled=true;}
+  var keys=['alumnos','ejercicios','rutinas','sesiones','feedback','pagos','medidas','notas','packs'];
+  var guard=setTimeout(function(){liberar('Sin respuesta — reintenta');},12000);
   try{
     var db=firebase.firestore();
-    var d=db.collection('rubentrena').doc('data');
-    d.get().then(function(s){
-      // v9 compat: .exists es propiedad, no función
+    db.collection('rubentrena').doc('data').get().then(function(s){
+      clearTimeout(guard);
+      if(terminado)return;
       var existe=typeof s.exists==='function'?s.exists():s.exists;
       if(existe){
         var data=s.data();
@@ -1894,20 +1909,19 @@ function forzarDescargaFirebase(){
             localStorage.setItem('rt6_'+k,data[k]);
           }
         });
-        btn.textContent='✓ Listo';
-        btn.style.color='#4ade80';
+        terminado=true;
+        if(btn){btn.textContent='✓ Listo';btn.style.color='#4ade80';}
         setTimeout(function(){location.reload();},1500);
       } else {
-        btn.textContent='Firebase vacio';
-        btn.disabled=false;
+        liberar('Firebase vacío');
       }
     }).catch(function(e){
-      btn.textContent='Error: '+e.message;
-      btn.disabled=false;
+      clearTimeout(guard);
+      liberar('Error de conexión');
     });
   }catch(e){
-    btn.textContent='Error conexion';
-    btn.disabled=false;
+    clearTimeout(guard);
+    liberar('Error');
   }
 }
 
@@ -1979,9 +1993,9 @@ function cambiarPinDesdePanel(){
   if(nuevo && /^[0-9]{4}$/.test(nuevo)){
     localStorage.setItem('rt6_pin_trainer', nuevo);
     if(window.DB) DB.set('config_pin', nuevo);
-    alert('✓ PIN actualizado a: '+nuevo);
+    showToast('✓ PIN actualizado a: '+nuevo);
   } else if(nuevo){
-    alert('El PIN debe ser exactamente 4 números.');
+    showToast('El PIN debe tener 4 números');
   }
 }
 
@@ -1992,12 +2006,12 @@ function cambiarPinPrompt(){
     if(nuevo && /^[0-9]{4}$/.test(nuevo)){
       localStorage.setItem('rt6_pin_trainer', nuevo);
       if(window.DB) DB.set('config_pin', nuevo);
-      alert('PIN actualizado correctamente a: '+nuevo);
+      showToast('✓ PIN actualizado a: '+nuevo);
     } else if(nuevo){
-      alert('El PIN debe ser exactamente 4 números.');
+      showToast('El PIN debe tener 4 números');
     }
   } else if(maestro){
-    alert('Clave maestra incorrecta.');
+    showToast('Clave maestra incorrecta');
   }
 }
 
@@ -2021,34 +2035,47 @@ function colorAlumno(nombre){
 }
 
 function forzarSyncFirebase(){
-  if(!window.FB){
-    alert('Firebase no conectado. Espera el punto verde e intenta de nuevo.');
+  if(!window.FB||!window._fbDoc){
+    showToast('Firebase no conectado — espera el punto verde');
     return;
   }
-  const keys=['alumnos','ejercicios','rutinas','sesiones','feedback','pagos','medidas','notas','eval'];
+  const keys=['alumnos','ejercicios','rutinas','sesiones','feedback','pagos','medidas','notas','eval','packs'];
   const dot=document.getElementById('fb-dot');
   const txt=document.getElementById('fb-txt');
   if(dot)dot.style.background='#ff9f0a';
   if(txt){txt.textContent='subiendo...';txt.style.color='#ff9f0a';}
-  // Subir clave por clave usando FB.set que ya funciona
-  var total=0;var done=0;
+  // Armar payload completo y subir en UNA sola operación (mas rapido y confiable)
+  var up={};var n=0;
   keys.forEach(function(k){
     var v=localStorage.getItem('rt6_'+k);
-    if(v&&v!=='null'&&v.length>2){
-      total++;
-      try{
-        var parsed=JSON.parse(v);
-        window.FB.set(k,parsed);
-        done++;
-      }catch(e){console.warn('skip',k,e);}
-    }
+    if(v&&v!=='null'&&v.length>2){up[k]=v;n++;}
   });
-  // Confirmar después de 2 segundos
-  setTimeout(function(){
+  if(!n){
     if(dot)dot.style.background='#4ade80';
     if(txt){txt.textContent='en linea';txt.style.color='#4ade80';}
-    showToast('✓ '+done+' datos subidos a Firebase — recarga el celular');
-  },2000);
+    showToast('No hay datos para subir');
+    return;
+  }
+  var terminado=false;
+  var guard=setTimeout(function(){
+    if(terminado)return;terminado=true;
+    if(dot)dot.style.background='#b86060';
+    if(txt){txt.textContent='sin respuesta';txt.style.color='#b86060';}
+    showToast('Sin respuesta de Firebase — reintenta');
+  },15000);
+  window._fbDoc.set(up,{merge:true}).then(function(){
+    clearTimeout(guard);
+    if(terminado)return;terminado=true;
+    if(dot)dot.style.background='#4ade80';
+    if(txt){txt.textContent='en linea';txt.style.color='#4ade80';}
+    showToast('✓ '+n+' datos subidos — los alumnos ya pueden actualizar');
+  }).catch(function(e){
+    clearTimeout(guard);
+    if(terminado)return;terminado=true;
+    if(dot)dot.style.background='#b86060';
+    if(txt){txt.textContent='error';txt.style.color='#b86060';}
+    showToast('Error al subir: '+(e&&e.message?e.message:'revisa conexión'));
+  });
 }
 
 function exportData(){
@@ -2874,7 +2901,7 @@ function selEjPack(ii){
 
 function savePack(){
   const nombre = document.getElementById('m-pack-n').value.trim();
-  if(!nombre){alert('Escribe un nombre para el pack');return;}
+  if(!nombre){showToast('Escribe un nombre para el pack');return;}
   const cat = document.getElementById('m-pack-cat').value;
   const idxStr = document.getElementById('m-pack-id').value;
   const packs = DB.get('packs')||[];
@@ -2882,7 +2909,7 @@ function savePack(){
   if(idxStr!==''){
     packs[parseInt(idxStr)] = pack;
   } else {
-    if(packs.length>=10){alert('Máximo 10 packs');return;}
+    if(packs.length>=10){showToast('Máximo 10 packs');return;}
     packs.push(pack);
   }
   DB.set('packs', packs);
