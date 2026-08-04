@@ -841,7 +841,18 @@ select.fi{appearance:none;cursor:pointer;}
     </div>
   </div>
   <div class="ss" id="s-plan">
-    <div class="wbar"><div class="wbar-fill" id="s-wbar" style="width:0%"></div></div>
+    <div style="margin:8px 16px 14px;background:var(--card);border-radius:16px;padding:14px 16px;border:1px solid var(--bor)">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <span style="font-size:12px;font-weight:700;color:var(--tx)">🔥 Progreso de hoy</span>
+        <span id="s-wbar-pct" style="font-size:16px;font-weight:800;color:var(--gr);font-family:var(--fm)">0%</span>
+      </div>
+      <div id="s-wbar-segs" style="display:flex;gap:4px;margin-bottom:8px"></div>
+      <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--t3);font-family:var(--fm)">
+        <span id="s-wbar-done">0 completados</span>
+        <span id="s-wbar-left">— restantes</span>
+      </div>
+      <div class="wbar" style="display:none"><div class="wbar-fill" id="s-wbar" style="width:0%"></div></div>
+    </div>
     <div class="ssec" style="padding-top:8px">
       <div class="dtabs" id="s-dtabs"></div>
       <div id="s-plan-c"></div>
@@ -2080,6 +2091,7 @@ function sHoy(){
 
 function sPlan(){
   if(!ALUMNO)return;const dias=PLAN?.dias||[];
+  setTimeout(function(){if(typeof sUpdateBar==='function')sUpdateBar(CDIA);},60);
   set('s-dtabs',dias.map((d,i)=>`<div class="dtab ${i===CDIA?'active':''}" onclick="sDia(${i})">${d.label}</div>`).join(''));
   if(!dias.length){set('s-plan-c','<p style="color:var(--t3);font-size:13px;padding:24px;text-align:center">Sin plan asignado.</p>');return;}
   sDiaC(CDIA);
@@ -2159,7 +2171,33 @@ function sGuardFb(di,bi,ei,ejNombre,series){
   const entries=[];for(let si=0;si<series;si++){const kg=document.querySelector(`[data-k="kg-${di}-${bi}-${ei}-${si}"]`)?.value||'—';const rp=document.querySelector(`[data-k="rp-${di}-${bi}-${ei}-${si}"]`)?.value||'—';const fb2=document.querySelector(`[data-k="fb-${di}-${bi}-${ei}-${si}"]`)?.value||'';entries.push({kg,rp,serie:si+1,fb:fb2});}
   const fbList=DB.get('feedback')||[];fbList.unshift({alumno:ALUMNO.n,alumnoId:ALUMNO.id,ejercicio:ejNombre,entries,fecha:today(),hora:new Date().toLocaleTimeString('es-CL',{hour:'2-digit',minute:'2-digit'})});DB.set('feedback',fbList.slice(0,500));
 }
-function sUpdateBar(idx){const dia=PLAN?.dias?.[idx];if(!dia)return;const tC=dia.calentamiento.length,tE=dia.bloques?.reduce((s,b)=>s+(b.ejerIds?.length||0),0)||0;const total=tC+tE,done=(CCOMP[idx]?.size||0)+(ECOMP[idx]?.size||0);document.getElementById('s-wbar').style.width=total?Math.round(done/total*100)+'%':'0%';}
+function sUpdateBar(idx){
+  const dia=PLAN?.dias?.[idx];if(!dia)return;
+  const tC=(dia.calentamiento||[]).length+(dia.calCore||[]).length;
+  const tE=dia.bloques?.reduce((s,b)=>s+(b.ejerIds?.length||0),0)||0;
+  const total=tC+tE;
+  const done=(CCOMP[idx]?.size||0)+(ECOMP[idx]?.size||0);
+  const pct=total?Math.round(done/total*100):0;
+  const bar=document.getElementById('s-wbar');
+  if(bar)bar.style.width=pct+'%';
+  const pctEl=document.getElementById('s-wbar-pct');
+  if(pctEl)pctEl.textContent=pct+'%';
+  const doneEl=document.getElementById('s-wbar-done');
+  if(doneEl)doneEl.textContent=done+' completado'+(done===1?'':'s');
+  const leftEl=document.getElementById('s-wbar-left');
+  if(leftEl)leftEl.textContent=(total-done)+' restante'+((total-done)===1?'':'s');
+  const segsEl=document.getElementById('s-wbar-segs');
+  if(segsEl){
+    if(!total){segsEl.innerHTML='';return;}
+    var maxSegs=Math.min(total,14);
+    var html='';
+    for(var i=0;i<maxSegs;i++){
+      var lleno=(i/maxSegs)<(done/total);
+      html+='<div style="flex:1;height:7px;border-radius:6px;background:'+(lleno?'var(--gr)':'var(--bg3)')+';transition:background .3s"></div>';
+    }
+    segsEl.innerHTML=html;
+  }
+}
 function sCheckF(idx){const dia=PLAN?.dias?.[idx];if(!dia)return;const tE=dia.bloques?.reduce((s,b)=>s+(b.ejerIds?.length||0),0)||0;document.getElementById('s-finish').style.display=(ECOMP[idx]?.size||0)>=tE&&tE>0?'block':'none';}
 function sFinish(){
   const dia=PLAN?.dias?.[CDIA];const hist=DB.get('hist_s')||[];hist.unshift({fecha:fmtDate(new Date()),dia:dia?.label||'Sesión',alumno:ALUMNO?.n,completada:true});DB.set('hist_s',hist.slice(0,50));
