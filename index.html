@@ -930,6 +930,9 @@ select.fi{appearance:none;cursor:pointer;}
       <!-- Notas del entrenador -->
       <div id="s-notas-block"></div>
 
+      <!-- NUTRICIÓN PERSONALIZADA DEL ENTRENADOR -->
+      <div id="s-nutri-block"></div>
+
       <!-- NUTRICIÓN + HÁBITOS -->
       <div id="s-nutri-habitos-block"></div>
 
@@ -1368,7 +1371,7 @@ function tPagos(){
   updateBadges();
 }
 
-function updateBadges(){const als=DB.get('alumnos')||[];const u=als.filter(a=>a.pago!=='al_dia').length;document.getElementById('pag-badge')||null;document.getElementById('pag-dot').style.display=u?'block':'none';}
+function updateBadges(){const als=DB.get('alumnos')||[];const u=als.filter(a=>a.pago!=='al_dia').length;const d=document.getElementById('pag-dot');if(d)d.style.display=u?'block':'none';}
 
 // WHATSAPP
 function sendWA(){
@@ -1644,12 +1647,11 @@ function tCal(){
 }
 
 function selDay(dateStr){
-  SD=dateStr;tCal();
-  const ses=(DB.get('sesiones')||[]).filter(s=>s.fecha===dateStr);
-  document.getElementById('cal-day-panel').style.display='block';
-  const dt=new Date(dateStr+'T12:00:00');
-  set('cal-dp-t',dt.toLocaleDateString('es-CL',{weekday:'long',day:'numeric',month:'long'}).toUpperCase());
-  set('cal-dp-c',ses.map(s=>`<div class="lr" onclick="editSes('${s.id}')"><div style="font-family:var(--fm);font-size:11px;color:${s.color};min-width:40px">${s.hora}</div><div class="lav">${s.alN[0]}</div><div style="flex:1"><div class="ln">${s.alN}</div><div class="lm">${s.tipo}</div></div><span class="badge ${s.done?'bok':'bgray'}">${s.done?'✓':'Pendiente'}</span></div>`).join('')||`<p style="color:var(--t3);font-size:13px;padding:10px 0">Sin sesiones. <span style="color:var(--si);cursor:pointer" onclick="openM('m-ses')">+ Agregar →</span></p>`);
+  // Compat: el calendario antiguo usaba paneles que ya no existen.
+  // Ahora delega en el calendario nuevo (mini-cal + lista del dia).
+  SD=dateStr;
+  if(typeof tCal==='function')tCal();
+  if(typeof renderDayList==='function')renderDayList(dateStr);
 }
 
 function renderWeek(){
@@ -2382,14 +2384,7 @@ function toggleTheme(){
 
 // ═══ PIN ═══
 let PIN_AL=null,PIN_CURR='';
-function checkPinStudent(alId){
-  const a=(DB.get('alumnos')||[]).find(x=>x.id===alId);if(!a)return;
-  if(!a.pin||a.pin.length!==4){sLogin(a);return;}
-  PIN_AL=a;PIN_CURR='';
-  set('pin-al-name',a.n.toUpperCase());renderPinDots();renderPinPad();
-  document.getElementById('s-login').style.display='none';
-  document.getElementById('s-pin').style.display='flex';
-}
+
 function renderPinDots(){set('pin-dots',[0,1,2,3].map(i=>`<div class="pin-dot ${i<PIN_CURR.length?'filled':''}"></div>`).join(''));}
 function renderPinPad(){
   const nums=[1,2,3,4,5,6,7,8,9,'',0,'del'];
@@ -2769,14 +2764,7 @@ function importStu(input){var file=input.files[0];if(!file)return;var reader=new
 
 
 
-function delFbRow(idx){
-  if(!confirm('Eliminar este registro?'))return;
-  var fb=DB.get('feedback')||[];
-  fb.splice(idx,1);
-  DB.set('feedback',fb);
-  renderFb();
-  showToast('Registro eliminado');
-}
+
 
 
 // ═══ PACKS DE CALENTAMIENTO ═══
@@ -2839,15 +2827,7 @@ function renderPacks(){
   }).join('');
 }
 
-function openM_pack(){
-  PACK_EJS_TMP = [];
-  document.getElementById('m-pack-t').textContent = 'Nuevo Pack';
-  document.getElementById('m-pack-id').value = '';
-  document.getElementById('m-pack-n').value = '';
-  document.getElementById('m-pack-del').style.display = 'none';
-  renderPackItems();
-  openM('m-pack');
-}
+
 
 function editPack(idx){
   const packs = DB.get('packs')||[];
