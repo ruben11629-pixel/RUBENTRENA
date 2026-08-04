@@ -2095,16 +2095,9 @@ function limpiarSesionesViejas(){
 // No modifica los datos guardados: solo transforma al mostrar.
 // w_=ancho maximo · q_auto=calidad automatica · f_auto=mejor formato (WebP/AVIF)
 function optImg(url, ancho){
-  if(!url || typeof url!=='string') return url||'';
-  // Solo aplica a Cloudinary y si aun no tiene transformaciones
-  if(url.indexOf('res.cloudinary.com')<0) return url;
-  if(url.indexOf('/upload/w_')>=0 || url.indexOf('/upload/q_')>=0 || url.indexOf('/upload/f_')>=0) return url;
-  var w = ancho || 500;
-  var esGif = /\.gif(\?|$)/i.test(url);
-  // Los GIF animados se sirven como video optimizado si el navegador lo permite,
-  // pero para maxima compatibilidad solo redimensionamos y comprimimos.
-  var tr = esGif ? ('w_'+w+',q_auto') : ('w_'+w+',q_auto,f_auto');
-  return url.replace('/upload/', '/upload/'+tr+'/');
+  // DESACTIVADO temporalmente: devolver la URL original sin transformar.
+  // (las transformaciones rompian algunas imagenes de Cloudinary)
+  return url || '';
 }
 
 // ═══ COLOR ÚNICO POR ALUMNO ═══
