@@ -443,6 +443,7 @@ select.fi{appearance:none;cursor:pointer;}
       <button class="btn btn-g btn-sm" onclick="forzarSyncFirebase()" title="Subir todo a Firebase" style="background:var(--bg3);border:1px solid var(--bor)">☁ Sync</button>
       <button class="btn btn-g btn-sm" onclick="diagnosticoFirebase()" style="background:var(--bg3);border:1px solid var(--bor)">🔍 Info</button>
       <button class="btn btn-g btn-sm" onclick="cambiarPinDesdePanel()" style="background:var(--bg3);border:1px solid var(--bor)">🔒 PIN</button>
+      <button class="btn btn-g btn-sm" onclick="recuperarDesdeFirebase()" style="background:#2a1e1e;border:1px solid #b86060;color:#b86060">⟲ Recuperar</button>
       <button class="btn btn-p btn-sm" onclick="openM('m-ses')">+ Sesión</button>
     </div>
   </div>
@@ -1925,6 +1926,41 @@ function forzarDescargaFirebase(){
   }
 }
 
+function recuperarDesdeFirebase(){
+  if(typeof firebase==='undefined'){showToast('Sin conexión a internet');return;}
+  var db=firebase.firestore();
+  db.collection('rubentrena').doc('data').get().then(function(s){
+    var existe=typeof s.exists==='function'?s.exists():s.exists;
+    if(!existe){alert('Firebase está vacío. No hay copia en la nube.');return;}
+    var d=s.data();
+    var ejs=d.ejercicios?JSON.parse(d.ejercicios):[];
+    var ruts=d.rutinas?JSON.parse(d.rutinas):[];
+    var als=d.alumnos?JSON.parse(d.alumnos):[];
+    var pks=d.packs?JSON.parse(d.packs):[];
+    var msg='EN LA NUBE (Firebase) HAY:\n\n'+
+      '• '+ejs.length+' ejercicios\n'+
+      '• '+ruts.length+' rutinas\n'+
+      '• '+als.length+' alumnos\n'+
+      '• '+pks.length+' packs\n\n'+
+      'EN ESTE DISPOSITIVO HAY:\n\n'+
+      '• '+(DB.get('ejercicios')||[]).length+' ejercicios\n'+
+      '• '+(DB.get('rutinas')||[]).length+' rutinas\n'+
+      '• '+(DB.get('alumnos')||[]).length+' alumnos\n'+
+      '• '+(DB.get('packs')||[]).length+' packs\n\n'+
+      '¿Restaurar TODO desde la nube a este dispositivo?';
+    if(!confirm(msg))return;
+    var keys=['alumnos','ejercicios','rutinas','sesiones','feedback','pagos','medidas','notas','eval','packs'];
+    var n=0;
+    keys.forEach(function(k){
+      if(d[k]!==undefined&&d[k]!==null){localStorage.setItem('rt6_'+k,d[k]);n++;}
+    });
+    alert('✓ Restaurados '+n+' bloques de datos. La app se va a recargar.');
+    setTimeout(function(){location.reload();},600);
+  }).catch(function(e){
+    alert('Error al leer Firebase: '+(e&&e.message?e.message:'sin conexión'));
+  });
+}
+
 function diagnosticoFirebase(){
   var rutinas=JSON.parse(localStorage.getItem('rt6_rutinas')||'[]');
   var ejercicios=JSON.parse(localStorage.getItem('rt6_ejercicios')||'[]');
@@ -2040,6 +2076,12 @@ function forzarSyncFirebase(){
     return;
   }
   const keys=['alumnos','ejercicios','rutinas','sesiones','feedback','pagos','medidas','notas','eval','packs'];
+  // PROTECCIÓN: no subir si el dispositivo está vacío (evita borrar la nube por error)
+  var _ej=(DB.get('ejercicios')||[]).length, _al=(DB.get('alumnos')||[]).length;
+  if(_ej===0&&_al===0){
+    alert('⚠ Este dispositivo no tiene ejercicios ni alumnos.\n\nNO se subirá nada para no borrar tu copia en la nube.\n\nUsa el botón "⟲ Recuperar" para traer tus datos desde Firebase.');
+    return;
+  }
   const dot=document.getElementById('fb-dot');
   const txt=document.getElementById('fb-txt');
   if(dot)dot.style.background='#ff9f0a';
