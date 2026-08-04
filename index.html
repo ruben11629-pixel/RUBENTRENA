@@ -1965,15 +1965,25 @@ function diagnosticoFirebase(){
   var rutinas=JSON.parse(localStorage.getItem('rt6_rutinas')||'[]');
   var ejercicios=JSON.parse(localStorage.getItem('rt6_ejercicios')||'[]');
   var alumnos=JSON.parse(localStorage.getItem('rt6_alumnos')||'[]');
+  var packs=JSON.parse(localStorage.getItem('rt6_packs')||'[]');
+  var sesiones=JSON.parse(localStorage.getItem('rt6_sesiones')||'[]');
+  var feedback=JSON.parse(localStorage.getItem('rt6_feedback')||'[]');
+  // Calcular espacio usado
+  var bytes=0;
+  for(var k in localStorage){if(k.indexOf('rt6_')===0)bytes+=localStorage[k].length;}
+  var kb=Math.round(bytes/1024);
+  var pct=Math.round(bytes/(5*1024*1024)*100);
   var lineas=[];
-  lineas.push('DISPOSITIVO:');
-  lineas.push('Rutinas: '+rutinas.length);
-  lineas.push('Ejercicios: '+ejercicios.length);
-  lineas.push('Alumnos: '+alumnos.length);
-  if(rutinas.length>0){
-    lineas.push('Rutinas:');
-    rutinas.forEach(function(r){lineas.push('- '+(r.alNombre||r.alId||'?'));});
-  }
+  lineas.push('ESTE DISPOSITIVO:');
+  lineas.push('• '+ejercicios.length+' ejercicios');
+  lineas.push('• '+rutinas.length+' rutinas');
+  lineas.push('• '+alumnos.length+' alumnos');
+  lineas.push('• '+packs.length+' packs');
+  lineas.push('• '+sesiones.length+' sesiones agendadas');
+  lineas.push('• '+feedback.length+' registros de feedback');
+  lineas.push('');
+  lineas.push('ALMACENAMIENTO: '+kb+' KB usados ('+pct+'% del límite)');
+  if(pct>70)lineas.push('⚠ Cerca del límite — considera limpiar feedback antiguo');
   try{
     var db=firebase.firestore();
     db.collection('rubentrena').doc('data').get().then(function(s){
@@ -1982,16 +1992,27 @@ function diagnosticoFirebase(){
         var d=s.data();
         var fbRuts=d.rutinas?JSON.parse(d.rutinas):[];
         var fbEjs=d.ejercicios?JSON.parse(d.ejercicios):[];
-        lineas.push('FIREBASE: Rutinas:'+fbRuts.length+' Ejercicios:'+fbEjs.length);
-        if(fbRuts.length>0){fbRuts.forEach(function(r){lineas.push('FB- '+(r.alNombre||r.alId||'?'));});}
+        var fbPks=d.packs?JSON.parse(d.packs):[];
+        lineas.push('');
+        lineas.push('EN LA NUBE:');
+        lineas.push('• '+fbEjs.length+' ejercicios');
+        lineas.push('• '+fbRuts.length+' rutinas');
+        lineas.push('• '+fbPks.length+' packs');
+        var sincronizado=(fbEjs.length===ejercicios.length&&fbRuts.length===rutinas.length);
+        lineas.push('');
+        lineas.push(sincronizado?'✓ Todo sincronizado':'⚠ Hay diferencias — usa Sync o Recuperar');
       } else {
-        lineas.push('Firebase: vacio');
+        lineas.push('');
+        lineas.push('Nube: vacía');
       }
-      alert(lineas.join(', '));
-    }).catch(function(e){lineas.push('FB error:'+e.message);alert(lineas.join(', '));});
+      alert(lineas.join('\n'));
+    }).catch(function(e){
+      lineas.push('');lineas.push('Nube: error de conexión');
+      alert(lineas.join('\n'));
+    });
   }catch(e){
-    lineas.push('Firebase no disponible');
-    alert(lineas.join(', '));
+    lineas.push('');lineas.push('Nube: no disponible');
+    alert(lineas.join('\n'));
   }
 }
 
@@ -2049,6 +2070,24 @@ function cambiarPinPrompt(){
   } else if(maestro){
     showToast('Clave maestra incorrecta');
   }
+}
+
+// ═══ MANTENIMIENTO AUTOMÁTICO ═══
+// Evita que el almacenamiento se llene con sesiones muy antiguas
+function limpiarSesionesViejas(){
+  try{
+    var ses=DB.get('sesiones')||[];
+    if(ses.length<400)return; // solo actuar si ya son muchas
+    var limite=new Date();
+    limite.setMonth(limite.getMonth()-6); // conservar ultimos 6 meses
+    var corte=limite.toISOString().split('T')[0];
+    var antes=ses.length;
+    var filtradas=ses.filter(function(s){return !s.fecha||s.fecha>=corte;});
+    if(filtradas.length<antes){
+      DB.set('sesiones',filtradas);
+      console.log('Limpieza: '+(antes-filtradas.length)+' sesiones antiguas archivadas');
+    }
+  }catch(e){console.warn('limpieza:',e);}
 }
 
 // ═══ COLOR ÚNICO POR ALUMNO ═══
@@ -3052,6 +3091,8 @@ function insertarPack(pi){
   showToast('Pack "'+p.nombre+'" agregado');
 }
 
+// Mantenimiento y arranque
+if(typeof limpiarSesionesViejas==='function') limpiarSesionesViejas();
 // Iniciar Firebase automáticamente al cargar la app
 if(!window.FB) initFirebase();
 
