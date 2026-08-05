@@ -588,7 +588,7 @@ select.fi{appearance:none;cursor:pointer;}
     </div>
     <div class="t-screen" id="t-alumnos">
       <div class="t-scroll">
-        <div class="hdr"><div><div class="htitle">MIS <em>ALUMNOS</em></div><div class="hsub" id="al-sub">—</div></div><button class="btn btn-p" onclick="openM('m-al')">+ Nuevo alumno</button></div>
+        <div class="hdr"><div><div class="htitle">MIS <em>ALUMNOS</em></div><div class="hsub" id="al-sub">—</div></div><button class="btn btn-p" onclick="nuevoAlumno()">+ Nuevo alumno</button></div>
         <div class="srch"><span style="color:var(--t3);font-size:16px">⌕</span><input placeholder="Buscar alumno..." oninput="filterAl(this.value)"></div>
         <div class="trow"><div class="ttag active" onclick="filterAlT(this,'all')">Todos</div><div class="ttag" onclick="filterAlT(this,'Hipertrofia')">Hipertrofia</div><div class="ttag" onclick="filterAlT(this,'Fuerza')">Fuerza</div><div class="ttag" onclick="filterAlT(this,'Salud')">Salud</div><div class="ttag" onclick="filterAlT(this,'Rendimiento')">Rendimiento</div></div>
         <div class="panel"><div class="pb" id="al-list"></div></div>
@@ -825,12 +825,39 @@ select.fi{appearance:none;cursor:pointer;}
         </div>
         <button id="s-update-btn" onclick="alumnoActualizar()" disabled style="background:var(--bg2);border:1px solid var(--bor);color:var(--t3);border-radius:20px;padding:6px 14px;font-family:var(--fm);font-size:10px;text-transform:uppercase;letter-spacing:.06em;cursor:not-allowed;opacity:.5">↓ Actualizar</button>
       </div>
-      <div style="font-family:var(--fd);font-size:20px;font-weight:700;letter-spacing:2px;color:var(--si);text-transform:uppercase;margin-bottom:5px">¿Quién eres?</div>
-      <div style="font-size:12px;color:var(--t3);font-family:var(--fm);margin-bottom:16px">Selecciona tu nombre para ver tu plan</div>
-      <div class="al-grid" id="s-al-grid"></div>
+      <!-- ACCESO POR CÓDIGO -->
+      <div id="s-cod-box">
+        <div style="font-family:var(--fd);font-size:20px;font-weight:700;letter-spacing:2px;color:var(--si);text-transform:uppercase;margin-bottom:5px">Tu código de acceso</div>
+        <div style="font-size:12px;color:var(--t3);font-family:var(--fm);margin-bottom:14px">Escríbelo una sola vez — después entras directo</div>
+        <input id="s-cod-input" type="text" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false"
+          placeholder="EJ: CAMILA24"
+          style="width:100%;text-align:center;font-size:20px;letter-spacing:3px;font-family:var(--fm);text-transform:uppercase;background:var(--bg3);border:1px solid var(--bor);border-radius:14px;padding:14px;color:var(--tx);margin-bottom:8px"
+          onkeypress="if(event.key==='Enter')entrarConCodigo()">
+        <div id="s-cod-error" style="color:var(--re);font-size:11px;min-height:14px;margin-bottom:8px"></div>
+        <button class="btn btn-p" onclick="entrarConCodigo()" style="width:100%;padding:13px;font-size:15px">Entrar a mi rutina →</button>
+        <div style="font-size:11px;color:var(--t3);font-family:var(--fm);margin-top:16px;text-align:center">
+          ¿No tienes tu código? <span onclick="mostrarListaAlumnos()" style="color:var(--s2);text-decoration:underline;cursor:pointer">Busca tu nombre</span>
+        </div>
+      </div>
+
+      <!-- LISTA DE RESPALDO -->
+      <div id="s-lista-box" style="display:none">
+        <div style="font-family:var(--fd);font-size:20px;font-weight:700;letter-spacing:2px;color:var(--si);text-transform:uppercase;margin-bottom:5px">¿Quién eres?</div>
+        <div style="font-size:12px;color:var(--t3);font-family:var(--fm);margin-bottom:12px">Selecciona tu nombre para ver tu plan</div>
+        <input id="s-buscar-al" placeholder="Buscar mi nombre..." oninput="filtrarListaAlumnos(this.value)"
+          style="width:100%;background:var(--bg3);border:1px solid var(--bor);border-radius:12px;padding:11px 14px;color:var(--tx);font-family:var(--fb);font-size:14px;outline:none;margin-bottom:12px">
+        <div class="al-grid" id="s-al-grid"></div>
+        <div style="font-size:11px;color:var(--t3);font-family:var(--fm);margin-top:14px;text-align:center">
+          <span onclick="mostrarCodigoBox()" style="color:var(--s2);text-decoration:underline;cursor:pointer">← Volver al código</span>
+        </div>
+      </div>
       <button style="width:100%;padding:12px;border-radius:9px;border:1px solid var(--bor);background:transparent;color:var(--t3);font-family:var(--fm);font-size:11px;text-transform:uppercase;letter-spacing:1.5px;cursor:pointer;margin-top:6px;min-height:48px" onclick="launchMode()">← Volver</button>
     <div style="margin-top:12px;padding:14px;background:var(--bg3);border:1px solid var(--bor);border-radius:12px;text-align:center;margin-bottom:24px"><div style="font-size:10px;color:var(--t3);margin-bottom:10px;font-family:var(--fm);text-transform:uppercase;letter-spacing:1px">Primera vez</div><button onclick="document.getElementById('stu-f').click()" style="width:100%;padding:13px;border-radius:9px;background:var(--gr);border:none;color:#000;font-family:var(--fd);font-size:14px;font-weight:700;cursor:pointer">Descargar mi rutina</button><div style="font-size:10px;color:var(--t3);margin-top:7px">Tu entrenador te envia el archivo</div><input type="file" id="stu-f" accept=".json" style="display:none" onchange="importStu(this)"></div>
     </div>
+  </div>
+  <div id="rev-banner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:500;background:var(--si);color:var(--bg);padding:9px 14px;align-items:center;justify-content:space-between;font-family:var(--fm);font-size:11px;font-weight:700">
+    <span>👁 REVISANDO COMO ALUMNO</span>
+    <button onclick="salirRevision()" style="background:var(--bg);color:var(--si);border:none;border-radius:20px;padding:5px 14px;font-family:var(--fm);font-size:10px;font-weight:700;cursor:pointer">← Volver a mi panel</button>
   </div>
   <div class="ss active" id="s-hoy">
     <div class="s-hero"><div class="s-hero-ov"></div><div class="s-hero-c"><div class="shg" id="s-gr">Buenos días</div><div class="shn" id="s-name">—</div><div class="shs" id="s-sub">—</div><div class="shbd"><div class="shb shb-g" id="s-obj">—</div><div class="shb shb-s" id="s-nivel">—</div></div></div></div>
@@ -971,6 +998,16 @@ select.fi{appearance:none;cursor:pointer;}
 
 <!-- MODALS -->
 <div class="mo" id="m-al"><div class="md"><div class="mt" id="m-al-t">Nuevo alumno</div><input type="hidden" id="m-al-id"><div class="fr"><div class="fg"><label class="fl">Nombre</label><input class="fi" id="m-al-n" placeholder="Steve"></div><div class="fg"><label class="fl">Objetivo</label><select class="fi" id="m-al-o"><option>Hipertrofia</option><option>Fuerza</option><option>Salud</option><option>Rendimiento</option><option>Movilidad</option></select></div></div><div class="fr"><div class="fg"><label class="fl">Nivel</label><select class="fi" id="m-al-nv"><option>Principiante</option><option>Intermedio</option><option>Avanzado</option></select></div><div class="fg"><label class="fl">Horario</label><input class="fi" id="m-al-h" type="time"></div></div><div class="fr"><div class="fg"><label class="fl">Peso (kg)</label><input class="fi" id="m-al-p" type="number" placeholder="80"></div><div class="fg"><label class="fl">Valor sesión (CLP)</label><input class="fi" id="m-al-ta" type="number" placeholder="13000"></div></div><div class="fr"><div class="fg"><label class="fl">Semanas activo</label><input class="fi" id="m-al-sw" type="number" placeholder="1"></div><div class="fg"><label class="fl">Sesiones realizadas</label><input class="fi" id="m-al-se" type="number" placeholder="0"></div></div><div class="fg"><label class="fl">Observaciones</label><input class="fi" id="m-al-ob" placeholder="Movilidad hombro..."></div><div class="fg"><label class="fl">Estado pago</label><select class="fi" id="m-al-pa"><option value="al_dia">Al día</option><option value="pendiente">Pendiente</option><option value="vencido">Vencido</option></select></div><div class="fg"><label class="fl">🔒 PIN acceso alumno (4 dígitos — opcional)</label><input class="fi" id="m-al-pin" type="password" maxlength="4" placeholder="Ej: 1234 · Dejar vacío = sin PIN"><div style="font-size:10px;color:var(--t3);font-family:var(--fm);margin-top:5px">El alumno lo ingresa al seleccionar su nombre.</div></div>
+<div id="m-al-codigo-box" style="display:none;background:var(--bg3);border:1px solid var(--bor);border-radius:14px;padding:14px;margin:12px 0">
+  <div style="font-family:var(--fm);font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px">Código de acceso del alumno</div>
+  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+    <div id="m-al-codigo" style="font-family:var(--fm);font-size:20px;font-weight:700;color:var(--gr);letter-spacing:2px">—</div>
+    <button class="btn btn-g btn-sm" onclick="copiarCodigoAlumno()" style="padding:5px 12px">Copiar</button>
+    <button class="btn btn-g btn-sm" onclick="enviarCodigoWA()" style="padding:5px 12px;background:#25d366;color:#fff;border:none">WhatsApp</button>
+  </div>
+  <div style="font-size:10px;color:var(--t3);margin-top:8px;line-height:1.5">El alumno escribe este código una sola vez para entrar a su rutina.</div>
+  <button class="btn btn-g btn-sm" onclick="verComoAlumno(document.getElementById('m-al-id').value)" style="width:100%;margin-top:10px;background:var(--bg2);border:1px solid var(--si);color:var(--si)">👁 Ver su sesión como la ve él</button>
+</div>
 <div class="macts"><button class="btn btn-g" onclick="closeM('m-al')">Cancelar</button><button class="btn btn-red btn-sm" id="m-al-del" onclick="delAl()" style="display:none">Eliminar</button><button class="btn btn-p" onclick="saveAl()">Guardar →</button></div></div></div>
 
 <div class="mo" id="m-ej"><div class="md md-w"><div class="mt" id="m-ej-t">Nuevo ejercicio</div><input type="hidden" id="m-ej-id"><div class="fr"><div class="fg"><label class="fl">Nombre</label><input class="fi" id="m-ej-n" placeholder="Peso muerto rumano (barra)"></div><div class="fg"><label class="fl">Músculo principal</label><input class="fi" id="m-ej-m" placeholder="Piernas, Glúteo"></div></div><div class="fr"><div class="fg"><label class="fl">Equipamiento</label><select class="fi" id="m-ej-eq"><option>Barra</option><option>Mancuernas</option><option>Kettlebell</option><option>Clavas</option><option>Fitball</option><option>Peso corporal</option><option>Máquina</option><option>Polea</option><option>TRX</option><option>Bandas</option></select></div><div class="fg"><label class="fl">Tipo</label><select class="fi" id="m-ej-tp"><option>Principal</option><option>Accesorio</option><option>Core</option><option>Movilidad</option></select></div></div><div class="fg"><label class="fl">🖼 URL foto / GIF (Drive: .../uc?export=view&id=TU_ID)</label><input class="fi" id="m-ej-fo" placeholder="https://drive.google.com/uc?export=view&id=..." oninput="prevImg(this.value)"><img id="m-ej-prev" style="width:100%;height:120px;object-fit:cover;border-radius:7px;margin-top:7px;display:none;border:1px solid var(--bor)" alt="preview"></div><div class="fg"><label class="fl">🎬 URL video YouTube (se muestra al alumno)</label><input class="fi" id="m-ej-vi" placeholder="https://youtube.com/watch?v=..."></div><div class="fg"><label class="fl">Clave técnica / indicación</label><textarea class="fi" id="m-ej-no" rows="2" style="resize:vertical" placeholder="Codos a 45°, escápulas retraídas..."></textarea></div><div class="macts"><button class="btn btn-g" onclick="closeM('m-ej')">Cancelar</button><button class="btn btn-red btn-sm" id="m-ej-del" onclick="delEjById2()" style="display:none">Eliminar</button><button class="btn btn-p" onclick="saveEj()">Guardar →</button></div></div></div>
@@ -1697,6 +1734,10 @@ function editAl(id){
   set('m-al-t','Editar alumno');
   ['id','n','o','nv','h','p','ta','sw','se','ob','pa'].forEach(f=>{const el=document.getElementById('m-al-'+f);if(!el)return;const map={id:'id',n:'n',o:'obj',nv:'nivel',h:'h',p:'peso',ta:'tarifa',sw:'semanas',se:'sesiones',ob:'obs',pa:'pago'};el.value=a[map[f]]||'';});
   if(document.getElementById('m-al-pin'))document.getElementById('m-al-pin').value=a.pin||'';
+  // Mostrar codigo de acceso del alumno
+  var box=document.getElementById('m-al-codigo-box');
+  var cod=document.getElementById('m-al-codigo');
+  if(box&&cod){cod.textContent=codigoAlumno(a);box.style.display='block';}
   document.getElementById('m-al-del').style.display='inline-flex';openM('m-al');
 }
 function saveAl(){
@@ -2100,6 +2141,148 @@ function optImg(url, ancho){
   return url || '';
 }
 
+// ═══ CÓDIGO DE ACCESO POR ALUMNO ═══
+// Genera un codigo unico y estable a partir del nombre + id del alumno.
+// Ej: "Camila Perez" -> "CAMILA47"
+function codigoAlumno(a){
+  if(!a) return '';
+  if(a.codigo) return a.codigo; // si ya tiene uno guardado, respetarlo
+  var base=(a.n||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+            .replace(/[^A-Za-z]/g,'').toUpperCase().slice(0,6);
+  if(!base) base='ALUMNO';
+  // numero estable derivado del id (no cambia nunca)
+  var h=0, s=String(a.id||a.n||'');
+  for(var i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))%100;}
+  var num=('0'+h).slice(-2);
+  return base+num;
+}
+
+// Busca un alumno por su codigo (ignora mayusculas y espacios)
+function buscarPorCodigo(cod){
+  if(!cod) return null;
+  var limpio=String(cod).trim().toUpperCase().replace(/\s/g,'');
+  var als=DB.get('alumnos')||[];
+  for(var i=0;i<als.length;i++){
+    if(codigoAlumno(als[i]).toUpperCase()===limpio) return als[i];
+  }
+  return null;
+}
+
+// ENTRENADOR: revisar la sesion de un alumno tal como la ve el
+function verComoAlumno(alId){
+  var als=DB.get('alumnos')||[];
+  var a=als.find(function(x){return x.id===alId;});
+  if(!a){showToast('Alumno no encontrado');return;}
+  closeM('m-al');
+  window._modoRevision=true;            // marca que entro el entrenador
+  h('trainer');sh('student','flex');
+  sLogin(a);
+  var banner=document.getElementById('rev-banner');
+  if(banner)banner.style.display='flex';
+}
+
+// Volver al panel de entrenador desde el modo revision
+function salirRevision(){
+  window._modoRevision=false;
+  var banner=document.getElementById('rev-banner');
+  if(banner)banner.style.display='none';
+  ALUMNO=null;PLAN=null;
+  h('student');sh('trainer','flex');
+  tAll();
+}
+
+// ═══ ACCESO DEL ALUMNO POR CÓDIGO ═══
+function entrarConCodigo(){
+  var inp=document.getElementById('s-cod-input');
+  var err=document.getElementById('s-cod-error');
+  if(!inp)return;
+  var cod=inp.value.trim().toUpperCase();
+  if(!cod){if(err)err.textContent='Escribe tu código';return;}
+  var a=buscarPorCodigo(cod);
+  if(!a){
+    if(err)err.textContent='Código no encontrado. Revísalo o busca tu nombre.';
+    inp.value='';inp.focus();
+    return;
+  }
+  if(err)err.textContent='';
+  sLogin(a);
+}
+
+function mostrarListaAlumnos(){
+  var c=document.getElementById('s-cod-box'), l=document.getElementById('s-lista-box');
+  if(c)c.style.display='none';
+  if(l)l.style.display='block';
+  buildSLogin();
+}
+
+function mostrarCodigoBox(){
+  var c=document.getElementById('s-cod-box'), l=document.getElementById('s-lista-box');
+  if(c)c.style.display='block';
+  if(l)l.style.display='none';
+}
+
+function filtrarListaAlumnos(q){
+  var als=DB.get('alumnos')||[];
+  var t=(q||'').toLowerCase().trim();
+  var filtrados=t?als.filter(function(a){return (a.n||'').toLowerCase().indexOf(t)>=0;}):als;
+  set('s-al-grid',filtrados.map(function(a){
+    return '<div class="al-btn" onclick="sLoginById(\''+a.id+'\')"><div class="al-btn-n">'+a.n+'</div><div class="al-btn-m">'+a.obj+' · '+a.nivel+'</div></div>';
+  }).join('')||'<p style="color:var(--t3);font-size:13px;text-align:center;padding:20px;grid-column:1/-1">Sin resultados.</p>');
+}
+
+// Entrada directa por link: ...?c=CODIGO
+function checkCodigoEnURL(){
+  try{
+    var params=new URLSearchParams(window.location.search);
+    var c=params.get('c');
+    if(!c)return false;
+    var a=buscarPorCodigo(c);
+    if(a){
+      h('mode');sh('student','flex');
+      sLogin(a);
+      return true;
+    }
+  }catch(e){}
+  return false;
+}
+
+function nuevoAlumno(){
+  set('m-al-t','Nuevo alumno');
+  ['id','n','h','p','ta','sw','se','ob'].forEach(function(f){
+    var el=document.getElementById('m-al-'+f);if(el)el.value='';
+  });
+  var pin=document.getElementById('m-al-pin');if(pin)pin.value='';
+  var box=document.getElementById('m-al-codigo-box');
+  if(box)box.style.display='none'; // el codigo aparece al guardar
+  var del=document.getElementById('m-al-del');
+  if(del)del.style.display='none';
+  openM('m-al');
+}
+
+function copiarCodigoAlumno(){
+  var cod=document.getElementById('m-al-codigo').textContent.trim();
+  if(!cod||cod==='—')return;
+  if(navigator.clipboard){
+    navigator.clipboard.writeText(cod).then(function(){showToast('Código copiado: '+cod);});
+  } else {
+    var t=document.createElement('textarea');t.value=cod;document.body.appendChild(t);
+    t.select();try{document.execCommand('copy');showToast('Código copiado: '+cod);}catch(e){}
+    document.body.removeChild(t);
+  }
+}
+
+function enviarCodigoWA(){
+  var cod=document.getElementById('m-al-codigo').textContent.trim();
+  var nom=document.getElementById('m-al-n').value.trim()||'';
+  if(!cod||cod==='—')return;
+  var link='https://ruben11629-pixel.github.io/RUBENTRENA/?c='+encodeURIComponent(cod);
+  var msg='Hola '+nom.split(' ')[0]+'! Aquí está tu acceso a tu rutina 💪\n\n'+
+          'Entra con este link: '+link+'\n\n'+
+          'O abre la app y escribe tu código: '+cod+'\n\n'+
+          'Solo tienes que hacerlo la primera vez. — Rubén';
+  window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');
+}
+
 // ═══ COLOR ÚNICO POR ALUMNO ═══
 var ALUMNO_COLORES = [
   {bg:'#1e2a3d',c:'#6a8ab8'},
@@ -2198,8 +2381,8 @@ function buildSLogin(){
   set('s-al-grid',als.map(a=>`<div class="al-btn" onclick="sLoginById('${a.id}')"><div class="al-btn-n">${a.n}</div><div class="al-btn-m">${a.obj} · ${a.nivel}</div></div>`).join('')||'<p style="color:var(--t3);font-size:13px;text-align:center;padding:20px;grid-column:1/-1">Sin alumnos.</p>');
 }
 function sLoginById(id){const a=(DB.get('alumnos')||[]).find(x=>x.id===id);if(a)sLogin(a);}
-function sLogin(a){ALUMNO=a;localStorage.setItem('rt6_student',a.id);const ruts=DB.get('rutinas')||[];PLAN=ruts.find(r=>r.alId===a.id)||null;CCOMP={};ECOMP={};CDIA=0;h('s-login');sAll();}
-function sLogout(){localStorage.removeItem('rt6_student');ALUMNO=null;document.getElementById('s-login').style.display='flex';buildSLogin();}
+function sLogin(a){ALUMNO=a;if(!window._modoRevision)localStorage.setItem('rt6_student',a.id);const ruts=DB.get('rutinas')||[];PLAN=ruts.find(r=>r.alId===a.id)||null;CCOMP={};ECOMP={};CDIA=0;h('s-login');sAll();}
+function sLogout(){localStorage.removeItem('rt6_student');ALUMNO=null;document.getElementById('s-login').style.display='flex';if(typeof mostrarCodigoBox==='function')mostrarCodigoBox();var i=document.getElementById('s-cod-input');if(i)i.value='';buildSLogin();}
 
 function sAll(){if(!ALUMNO){buildSLogin();return;}sHoy();sPlan();sProg();sPerfil();}
 
@@ -3103,6 +3286,10 @@ function insertarPack(pi){
 
 // Mantenimiento y arranque
 if(typeof limpiarSesionesViejas==='function') limpiarSesionesViejas();
+// Entrada directa por link con codigo (?c=CODIGO) — se revisa tras cargar datos
+setTimeout(function(){
+  if(typeof checkCodigoEnURL==='function') checkCodigoEnURL();
+},400);
 // Iniciar Firebase automáticamente al cargar la app
 if(!window.FB) initFirebase();
 
