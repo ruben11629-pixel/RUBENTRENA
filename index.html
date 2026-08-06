@@ -5,7 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#141918">
+<meta name="theme-color" content="#0a120b">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="RubenTrena">
+<meta name="description" content="Tu rutina de entrenamiento personalizada">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <title>RubenTrena Spotters</title>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -78,6 +84,8 @@ html,body{height:100%;background:var(--bg);color:var(--tx);font-family:var(--fb)
 .ci-pills{display:flex;gap:6px;margin-top:2px;}
 .ci-pill{flex:1;height:5px;border-radius:10px;background:#2a3d2e;cursor:pointer;transition:background .15s;}
 .ci-pill.on{background:#fff;}
+.dsem{padding:9px 13px;border-radius:20px;border:1px solid var(--bor);background:var(--bg3);color:var(--t3);font-family:var(--fm);font-size:11px;cursor:pointer;user-select:none;transition:all .15s;min-width:48px;text-align:center;}
+.dsem.on{background:var(--si);color:var(--bg);border-color:var(--si);font-weight:700;}
 /* ─── COMPONENTS ─── */
 .btn{padding:10px 16px;border-radius:50px;border:none;cursor:pointer;font-family:var(--fd);font-size:14px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;transition:all .18s;min-height:44px;}
 .btn-p{background:var(--si);color:var(--bg);}
@@ -1015,7 +1023,22 @@ select.fi{appearance:none;cursor:pointer;}
 <div class="mo" id="m-rut"><div class="md md-w" style="max-height:96vh"><div class="mt" id="m-rut-t">Nueva rutina</div><input type="hidden" id="m-rut-id"><div class="fr"><div class="fg"><label class="fl">Nombre</label><input class="fi" id="m-rut-n" placeholder="Plan Semana Actual"></div><div class="fg"><label class="fl">Alumno</label><select class="fi" id="m-rut-al"></select></div></div><div id="m-rut-dias"></div><button class="btn btn-g" style="width:100%;margin-bottom:11px" onclick="addDiaR()">+ Agregar día</button><div class="macts"><button class="btn btn-g" onclick="closeM('m-rut')">Cancelar</button><button class="btn btn-red btn-sm" id="m-rut-del" onclick="delRut()" style="display:none">Eliminar</button><button class="btn btn-p" onclick="saveRut()">Guardar rutina →</button></div></div></div>
 
 <div class="mo" id="m-ses"><div class="md"><div class="mt" id="m-ses-t">Nueva sesión</div><input type="hidden" id="m-ses-id"><div class="fg"><label class="fl">Alumno</label><select class="fi" id="m-ses-al"></select></div><div class="fr"><div class="fg"><label class="fl">Fecha</label><input class="fi" type="date" id="m-ses-fe"></div><div class="fg"><label class="fl">Hora</label><input class="fi" type="time" id="m-ses-ho"></div></div><div class="fg"><label class="fl">Tipo</label><select class="fi" id="m-ses-ti"><option>Individual</option><option>Grupal Online</option><option>Pareja</option><option>Evaluación</option></select></div><div class="fg"><label class="fl">🔄 Repetir automáticamente</label><select class="fi" id="m-ses-rep" onchange="document.getElementById('m-ses-rep-n-wrap').style.display=this.value?'block':'none'"><option value="">Sin repetición</option><option value="7">Cada semana (mismo día y hora)</option><option value="14">Cada 2 semanas</option><option value="30">Cada mes</option></select></div>
-<div id="m-ses-rep-n-wrap" style="display:none"><div class="fg"><label class="fl">¿Cuántas veces hacia adelante?</label><input class="fi" id="m-ses-rep-n" type="number" value="8" min="1" max="52"></div></div>
+<div id="m-ses-rep-n-wrap" style="display:none">
+  <div class="fg"><label class="fl">¿Cuántas semanas hacia adelante?</label><input class="fi" id="m-ses-rep-n" type="number" value="8" min="1" max="52"></div>
+  <div class="fg" id="m-ses-dias-wrap">
+    <label class="fl">¿Qué días de la semana?</label>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">
+      <div class="dsem" data-d="1" onclick="toggleDiaSem(this)">Lun</div>
+      <div class="dsem" data-d="2" onclick="toggleDiaSem(this)">Mar</div>
+      <div class="dsem" data-d="3" onclick="toggleDiaSem(this)">Mié</div>
+      <div class="dsem" data-d="4" onclick="toggleDiaSem(this)">Jue</div>
+      <div class="dsem" data-d="5" onclick="toggleDiaSem(this)">Vie</div>
+      <div class="dsem" data-d="6" onclick="toggleDiaSem(this)">Sáb</div>
+      <div class="dsem" data-d="0" onclick="toggleDiaSem(this)">Dom</div>
+    </div>
+    <div style="font-size:10px;color:var(--t3);margin-top:7px;line-height:1.5">Si no marcas ninguno, repite solo el mismo día de la fecha elegida.</div>
+  </div>
+</div>
 <div class="fg"><label class="fl">Notas</label><input class="fi" id="m-ses-no" placeholder="Observaciones..."></div><div class="macts"><button class="btn btn-g" onclick="closeM('m-ses')">Cancelar</button><button class="btn btn-red btn-sm" id="m-ses-del" onclick="delSes()" style="display:none">Eliminar</button><button class="btn btn-p" onclick="saveSes()">Agendar →</button></div></div></div>
 
 <div class="mo" id="m-pag"><div class="md"><div class="mt">Registrar pago</div><div class="fg"><label class="fl">Alumno</label><select class="fi" id="m-pag-al"></select></div><div class="fr"><div class="fg"><label class="fl">Monto (CLP)</label><input class="fi" id="m-pag-mo" type="number" placeholder="78000"></div><div class="fg"><label class="fl">Fecha</label><input class="fi" id="m-pag-fe" type="date"></div></div><div class="fr"><div class="fg"><label class="fl">Método</label><select class="fi" id="m-pag-me"><option>Transferencia</option><option>Efectivo</option><option>Mercado Pago</option><option>WebPay</option></select></div><div class="fg"><label class="fl">Estado</label><select class="fi" id="m-pag-es"><option value="pagado">Pagado</option><option value="pendiente">Pendiente</option><option value="vencido">Vencido</option></select></div></div><div class="macts"><button class="btn btn-g" onclick="closeM('m-pag')">Cancelar</button><button class="btn btn-p" onclick="savePag()">Confirmar ✓</button></div></div></div>
@@ -1145,7 +1168,7 @@ function launchStudent(){
 function sh(id,d){document.getElementById(id).style.display=d;}
 function h(id){document.getElementById(id).style.display='none';}
 function set(id,html){const el=document.getElementById(id);if(el)el.innerHTML=html;}
-function today(){return new Date().toISOString().split('T')[0];}
+function today(){var d=new Date();return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);}
 function fmtDate(d){return d.toLocaleDateString('es-CL',{weekday:'long',day:'numeric',month:'long'});}
 function ejIco(m){const ml=(m||'').toLowerCase();if(ml.includes('pierna')||ml.includes('glút'))return'🦵';if(ml.includes('espalda'))return'🔱';if(ml.includes('hombro'))return'🏔️';if(ml.includes('core'))return'🎯';if(ml.includes('movilidad'))return'🤸';return'💪';}
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2600);}
@@ -1722,7 +1745,7 @@ function selDay(dateStr){
 
 function prevP(){if(CV==='month')CD=new Date(CD.getFullYear(),CD.getMonth()-1,1);else CD=new Date(CD.getTime()-7*86400000);tCal();}
 function nextP(){if(CV==='month')CD=new Date(CD.getFullYear(),CD.getMonth()+1,1);else CD=new Date(CD.getTime()+7*86400000);tCal();}
-function qSes(fecha,hora){document.getElementById('m-ses-fe').value=fecha;document.getElementById('m-ses-ho').value=hora;openM('m-ses');}
+function qSes(fecha,hora){limpiarDiasSem();document.getElementById('m-ses-fe').value=fecha;document.getElementById('m-ses-ho').value=hora;openM('m-ses');}
 
 // CRUD
 function openM(id){document.getElementById(id)?.classList.add('open');}
@@ -2776,25 +2799,97 @@ function renderStats(){
 
 // ═══ SESIONES RECURRENTES ═══
 // Override saveSes to support recurring
+function toggleDiaSem(el){ el.classList.toggle('on'); }
+
+function limpiarDiasSem(){
+  document.querySelectorAll('#m-ses-dias-wrap .dsem.on').forEach(function(el){el.classList.remove('on');});
+  var rep=document.getElementById('m-ses-rep');
+  if(rep){rep.value='';}
+  var wrap=document.getElementById('m-ses-rep-n-wrap');
+  if(wrap)wrap.style.display='none';
+}
+
+// Convierte Date a 'YYYY-MM-DD' usando la fecha LOCAL (no UTC).
+// Esto evita que las sesiones se corran un dia por la zona horaria de Chile.
+function fechaLocal(d){
+  var y=d.getFullYear();
+  var m=('0'+(d.getMonth()+1)).slice(-2);
+  var dd=('0'+d.getDate()).slice(-2);
+  return y+'-'+m+'-'+dd;
+}
+
 function saveSes(){
   const repInterval=parseInt(document.getElementById('m-ses-rep')?.value||'0');
   const repN=parseInt(document.getElementById('m-ses-rep-n')?.value||'8');
   if(!repInterval){saveSesSimple();return;}
+
   const id=document.getElementById('m-ses-id').value||('s'+Date.now());
-  const alId=document.getElementById('m-ses-al').value;const al=(DB.get('alumnos')||[]).find(a=>a.id===alId)||{n:'—'};
+  const alId=document.getElementById('m-ses-al').value;
+  const al=(DB.get('alumnos')||[]).find(a=>a.id===alId)||{n:'—'};
   const fecha=document.getElementById('m-ses-fe').value||today();
   const hora=document.getElementById('m-ses-ho').value||'09:00';
   const tipo=document.getElementById('m-ses-ti').value;
   const notas=document.getElementById('m-ses-no').value;
   const color=alColor(alId);
   const list=DB.get('sesiones')||[];
-  const base=new Date(fecha+'T12:00:00');
-  for(let i=0;i<=repN;i++){
-    const d=new Date(base.getTime()+i*repInterval*86400000);
-    const df=d.toISOString().split('T')[0];
-    list.push({id:i===0?id:'s'+Date.now()+i,alId,alN:al.n,tipo,fecha:df,hora,notas,color,done:false});
+
+  // Dias de la semana marcados (0=Dom ... 6=Sab)
+  var diasSel=[];
+  document.querySelectorAll('#m-ses-dias-wrap .dsem.on').forEach(function(el){
+    diasSel.push(parseInt(el.getAttribute('data-d')));
+  });
+
+  // Construir fecha base en horario LOCAL (evita el corrimiento de dia)
+  var p=fecha.split('-');
+  var base=new Date(parseInt(p[0]), parseInt(p[1])-1, parseInt(p[2]), 12, 0, 0);
+
+  var creadas=0;
+  var nuevas=[];
+
+  if(repInterval===7 && diasSel.length>0){
+    // Repetir en los dias marcados, durante repN semanas
+    // Empezar desde el lunes de la semana de la fecha base
+    var lunes=new Date(base);
+    var dow=lunes.getDay();
+    var diff=(dow===0?-6:1-dow); // llevar al lunes de esa semana
+    lunes.setDate(lunes.getDate()+diff);
+
+    for(var w=0; w<repN; w++){
+      for(var k=0; k<diasSel.length; k++){
+        var target=new Date(lunes);
+        var dsem=diasSel[k];
+        var offset=(dsem===0?6:dsem-1); // Lun=0 ... Dom=6
+        target.setDate(lunes.getDate()+w*7+offset);
+        if(target<base) continue; // no crear sesiones antes de la fecha elegida
+        nuevas.push({
+          id:'s'+Date.now()+'_'+w+'_'+k,
+          alId, alN:al.n, tipo, fecha:fechaLocal(target), hora, notas, color, done:false
+        });
+        creadas++;
+      }
+    }
+  } else {
+    // Repeticion simple por intervalo de dias (cada 7, 14 o 30)
+    for(var i2=0; i2<=repN; i2++){
+      var d=new Date(base);
+      d.setDate(base.getDate()+i2*repInterval);
+      nuevas.push({
+        id: i2===0?id:('s'+Date.now()+'_'+i2),
+        alId, alN:al.n, tipo, fecha:fechaLocal(d), hora, notas, color, done:false
+      });
+      creadas++;
+    }
   }
-  DB.set('sesiones',list);closeM('m-ses');tCal();tDash();showToast(`✓ ${al.n} — ${repN+1} sesiones creadas`);
+
+  if(!creadas){
+    showToast('No se creó ninguna sesión — revisa los días marcados');
+    return;
+  }
+
+  DB.set('sesiones', list.concat(nuevas));
+  closeM('m-ses');
+  tCal(); tDash();
+  showToast('✓ '+al.n+' — '+creadas+' sesiones creadas');
 }
 
 // ═══ BACKUP IMPORT ═══
@@ -3282,6 +3377,16 @@ function insertarPack(pi){
   window._pickerModo='ej';
   renderRDias();
   showToast('Pack "'+p.nombre+'" agregado');
+}
+
+// ═══ PWA: SERVICE WORKER ═══
+// Permite instalar la app y que funcione sin conexión
+if('serviceWorker' in navigator){
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('sw.js')
+      .then(function(reg){ console.log('SW ok'); })
+      .catch(function(err){ console.warn('SW:', err); });
+  });
 }
 
 // Mantenimiento y arranque
