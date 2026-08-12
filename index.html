@@ -1020,7 +1020,7 @@ select.fi{appearance:none;cursor:pointer;}
 
 <div class="mo" id="m-ej"><div class="md md-w"><div class="mt" id="m-ej-t">Nuevo ejercicio</div><input type="hidden" id="m-ej-id"><div class="fr"><div class="fg"><label class="fl">Nombre</label><input class="fi" id="m-ej-n" placeholder="Peso muerto rumano (barra)"></div><div class="fg"><label class="fl">Músculo principal</label><input class="fi" id="m-ej-m" placeholder="Piernas, Glúteo"></div></div><div class="fr"><div class="fg"><label class="fl">Equipamiento</label><select class="fi" id="m-ej-eq"><option>Barra</option><option>Mancuernas</option><option>Kettlebell</option><option>Clavas</option><option>Fitball</option><option>Peso corporal</option><option>Máquina</option><option>Polea</option><option>TRX</option><option>Bandas</option></select></div><div class="fg"><label class="fl">Tipo</label><select class="fi" id="m-ej-tp"><option>Principal</option><option>Accesorio</option><option>Core</option><option>Movilidad</option></select></div></div><div class="fg"><label class="fl">🖼 URL foto / GIF (Drive: .../uc?export=view&id=TU_ID)</label><input class="fi" id="m-ej-fo" placeholder="https://drive.google.com/uc?export=view&id=..." oninput="prevImg(this.value)"><img id="m-ej-prev" style="width:100%;height:120px;object-fit:cover;border-radius:7px;margin-top:7px;display:none;border:1px solid var(--bor)" alt="preview"></div><div class="fg"><label class="fl">🎬 URL video YouTube (se muestra al alumno)</label><input class="fi" id="m-ej-vi" placeholder="https://youtube.com/watch?v=..."></div><div class="fg"><label class="fl">Clave técnica / indicación</label><textarea class="fi" id="m-ej-no" rows="2" style="resize:vertical" placeholder="Codos a 45°, escápulas retraídas..."></textarea></div><div class="macts"><button class="btn btn-g" onclick="closeM('m-ej')">Cancelar</button><button class="btn btn-red btn-sm" id="m-ej-del" onclick="delEjById2()" style="display:none">Eliminar</button><button class="btn btn-p" onclick="saveEj()">Guardar →</button></div></div></div>
 
-<div class="mo" id="m-rut"><div class="md md-w" style="max-height:96vh"><div class="mt" id="m-rut-t">Nueva rutina</div><input type="hidden" id="m-rut-id"><div class="fr"><div class="fg"><label class="fl">Nombre</label><input class="fi" id="m-rut-n" placeholder="Plan Semana Actual"></div><div class="fg"><label class="fl">Alumno</label><select class="fi" id="m-rut-al"></select></div></div><div id="m-rut-dias"></div><button class="btn btn-g" style="width:100%;margin-bottom:11px" onclick="addDiaR()">+ Agregar día</button><div class="macts"><button class="btn btn-g" onclick="closeM('m-rut')">Cancelar</button><button class="btn btn-red btn-sm" id="m-rut-del" onclick="delRut()" style="display:none">Eliminar</button><button class="btn btn-p" onclick="saveRut()">Guardar rutina →</button></div></div></div>
+<div class="mo" id="m-rut"><div class="md md-w" style="max-height:96vh"><div class="mt" id="m-rut-t">Nueva rutina</div><input type="hidden" id="m-rut-id"><div class="fr"><div class="fg"><label class="fl">Nombre</label><input class="fi" id="m-rut-n" placeholder="Plan Semana Actual"></div><div class="fg"><label class="fl">Alumno</label><select class="fi" id="m-rut-al" onchange="if(typeof renderRDias==='function')renderRDias()"></select></div></div><div id="m-rut-dias"></div><button class="btn btn-g" style="width:100%;margin-bottom:11px" onclick="addDiaR()">+ Agregar día</button><div class="macts"><button class="btn btn-g" onclick="closeM('m-rut')">Cancelar</button><button class="btn btn-red btn-sm" id="m-rut-del" onclick="delRut()" style="display:none">Eliminar</button><button class="btn btn-p" onclick="saveRut()">Guardar rutina →</button></div></div></div>
 
 <div class="mo" id="m-ses"><div class="md"><div class="mt" id="m-ses-t">Nueva sesión</div><input type="hidden" id="m-ses-id"><div class="fg"><label class="fl">Alumno</label><select class="fi" id="m-ses-al"></select></div><div class="fr"><div class="fg"><label class="fl">Fecha</label><input class="fi" type="date" id="m-ses-fe"></div><div class="fg"><label class="fl">Hora</label><input class="fi" type="time" id="m-ses-ho"></div></div><div class="fg"><label class="fl">Tipo</label><select class="fi" id="m-ses-ti"><option>Individual</option><option>Grupal Online</option><option>Pareja</option><option>Evaluación</option></select></div><div class="fg"><label class="fl">🔄 Repetir automáticamente</label><select class="fi" id="m-ses-rep" onchange="document.getElementById('m-ses-rep-n-wrap').style.display=this.value?'block':'none'"><option value="">Sin repetición</option><option value="7">Cada semana (mismo día y hora)</option><option value="14">Cada 2 semanas</option><option value="30">Cada mes</option></select></div>
 <div id="m-ses-rep-n-wrap" style="display:none">
@@ -1822,6 +1822,17 @@ function renderRDias(){
         html+='<input class="fi" type="number" style="font-size:12px;text-align:center;padding:4px 2px" value="'+(b.descanso[ei]||90)+'" onchange="R_DIAS['+di+'].bloques['+bi+'].descanso['+ei+']=parseInt(this.value)||90">';
         html+='<input class="fi" style="font-size:12px;text-align:center;padding:4px 2px" value="'+(b.rir[ei]||'')+'" placeholder="RIR" onchange="R_DIAS['+di+'].bloques['+bi+'].rir['+ei+']=this.value">';
         html+='<button class="btn btn-red btn-sm" style="padding:3px 5px;min-height:28px" onclick="delEjRow('+di+','+bi+','+ei+')">x</button></div>';
+        // Barra con el ultimo registro del alumno para este ejercicio
+        var _alSel=document.getElementById('m-rut-al');
+        var _alId=_alSel?_alSel.value:'';
+        var _ur=(typeof ultimoRegistro==='function')?ultimoRegistro(_alId,ej.n):null;
+        if(_ur){
+          html+='<div style="background:var(--bg3);border-left:2px solid var(--gr);border-radius:0 8px 8px 0;padding:6px 10px;margin:2px 0 8px 40px;display:flex;align-items:center;gap:12px;font-family:var(--fm);font-size:10px;flex-wrap:wrap">'+
+            '<span style="color:var(--t3);text-transform:uppercase;letter-spacing:.06em">Última</span>'+
+            '<span style="color:var(--gr);font-weight:700">'+(_ur.kg?_ur.kg+'kg':'—')+' × '+(_ur.reps||'—')+(_ur.series?' × '+_ur.series+' ser':'')+'</span>'+
+            '<span style="color:var(--t3);margin-left:auto">'+textoDias(_ur.dias)+'</span>'+
+            '</div>';
+        }
       });
       html+='<button class="btn btn-g btn-sm" style="width:100%;margin-top:8px" onclick="openEjPicker('+di+','+bi+')">+ Agregar ejercicio...</button></div>';
     });
@@ -2304,6 +2315,62 @@ function enviarCodigoWA(){
           'O abre la app y escribe tu código: '+cod+'\n\n'+
           'Solo tienes que hacerlo la primera vez. — Rubén';
   window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');
+}
+
+// ═══ ÚLTIMO REGISTRO DEL ALUMNO POR EJERCICIO ═══
+// Busca en el feedback la ultima vez que el alumno hizo ese ejercicio.
+// Devuelve null si nunca lo registro (asi no se muestra nada).
+function ultimoRegistro(alId, ejNombre){
+  if(!alId || !ejNombre) return null;
+  var fb = DB.get('feedback') || [];
+  var als = DB.get('alumnos') || [];
+  var al = als.find(function(a){return a.id===alId;});
+  var alNombre = al ? al.n : '';
+  // El feedback guarda alumnoId, pero por compatibilidad tambien buscamos por nombre
+  var regs = fb.filter(function(f){
+    var mismoAl = (f.alumnoId===alId) || (alNombre && f.alumno===alNombre);
+    return mismoAl && f.ejercicio===ejNombre;
+  });
+  if(!regs.length) return null;
+  // Ordenar por fecha descendente y tomar el mas reciente
+  regs.sort(function(a,b){ return (b.fecha||'').localeCompare(a.fecha||''); });
+  var r = regs[0];
+  var entries = r.entries || [];
+  if(!entries.length) return null;
+  // Tomar el set con mayor peso de esa sesion
+  var mejor = entries[0];
+  entries.forEach(function(e){
+    if(parseFloat(e.kg||0) > parseFloat(mejor.kg||0)) mejor = e;
+  });
+  return {
+    kg: mejor.kg || '',
+    reps: mejor.rp || '',
+    series: entries.length,
+    fecha: r.fecha || '',
+    dias: diasDesde(r.fecha)
+  };
+}
+
+// Cuantos dias pasaron desde una fecha 'YYYY-MM-DD'
+function diasDesde(fecha){
+  if(!fecha) return null;
+  try{
+    var p = fecha.split('-');
+    var d = new Date(parseInt(p[0]), parseInt(p[1])-1, parseInt(p[2]));
+    var hoy = new Date();
+    hoy.setHours(0,0,0,0); d.setHours(0,0,0,0);
+    return Math.round((hoy - d) / 86400000);
+  }catch(e){ return null; }
+}
+
+// Texto amigable: "hoy", "ayer", "hace 6 días"
+function textoDias(n){
+  if(n===null || n===undefined) return '';
+  if(n<=0) return 'hoy';
+  if(n===1) return 'ayer';
+  if(n<30) return 'hace '+n+' días';
+  var m = Math.round(n/30);
+  return 'hace '+m+(m===1?' mes':' meses');
 }
 
 // ═══ COLOR ÚNICO POR ALUMNO ═══
