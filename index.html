@@ -13,14 +13,14 @@
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <title>RubenTrena Spotters</title>
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 [data-theme="dark"]{
   --bg:#0a120b;--bg2:#0f1a10;--bg3:#121e13;--card:#111d12;--bor:#1a2e1c;
   --si:#9ab89b;--s2:#7a9a7b;--s3:#3a5040;
   --gr:#7ab882;--g2:#5a9862;--or:#c09858;--re:#b86060;--bl:#6a8ab8;
   --tx:#c8d8c9;--t2:#7a9a7b;--t3:#3a5040;
-  --fd:'Barlow Condensed',sans-serif;--fb:'Barlow',sans-serif;--fm:'JetBrains Mono',monospace;
+  --fd:'Barlow Condensed',sans-serif;--fb:'Plus Jakarta Sans',sans-serif;--fm:'JetBrains Mono',monospace;
   --tnav:72px;--snav:64px;
 }
 [data-theme="light"]{
@@ -28,11 +28,11 @@
   --si:#3a6b3c;--s2:#5a7a5c;--s3:#8aaa8b;
   --gr:#2e8040;--g2:#1f6030;--or:#b06020;--re:#a02020;--bl:#2a60aa;
   --tx:#1a2e1c;--t2:#4a6a4c;--t3:#8aaa8b;
-  --fd:'Barlow Condensed',sans-serif;--fb:'Barlow',sans-serif;--fm:'JetBrains Mono',monospace;
+  --fd:'Barlow Condensed',sans-serif;--fb:'Plus Jakarta Sans',sans-serif;--fm:'JetBrains Mono',monospace;
   --tnav:72px;--snav:64px;
 }
 :root{
-  --fd:'Barlow Condensed',sans-serif;--fb:'Barlow',sans-serif;--fm:'JetBrains Mono',monospace;
+  --fd:'Barlow Condensed',sans-serif;--fb:'Plus Jakarta Sans',sans-serif;--fm:'JetBrains Mono',monospace;
   --tnav:72px;--snav:64px;
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;touch-action:manipulation;}
@@ -298,7 +298,7 @@ select.fi{appearance:none;cursor:pointer;}
 .s-hero-ov{position:absolute;inset:0;background:linear-gradient(180deg,transparent 20%,var(--bg) 100%);}
 .s-hero-c{position:absolute;bottom:0;left:0;right:0;padding:16px 16px;}
 .shg{font-family:var(--fm);font-size:9px;color:var(--s2);text-transform:uppercase;letter-spacing:2px;margin-bottom:2px;}
-.shn{font-family:var(--fd);font-size:32px;font-weight:900;letter-spacing:2px;color:var(--tx);text-transform:uppercase;line-height:1;}
+.shn{font-family:var(--fb);font-size:30px;font-weight:800;letter-spacing:-.8px;color:var(--tx);line-height:1.1;}
 .shs{font-size:12px;color:var(--t2);margin-top:4px;}
 .shbd{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;}
 .shb{padding:4px 10px;border-radius:20px;font-size:9px;font-family:var(--fm);font-weight:600;text-transform:uppercase;border:1px solid;}
@@ -870,10 +870,38 @@ select.fi{appearance:none;cursor:pointer;}
   <div class="ss active" id="s-hoy">
     <div class="s-hero"><div class="s-hero-ov"></div><div class="s-hero-c"><div class="shg" id="s-gr">Buenos días</div><div class="shn" id="s-name">—</div><div class="shs" id="s-sub">—</div><div class="shbd"><div class="shb shb-g" id="s-obj">—</div><div class="shb shb-s" id="s-nivel">—</div></div></div></div>
     <div class="ssec">
-      <div class="ns"><div class="ns-l">Próxima sesión</div><div class="ns-t" id="s-nst">—</div><div class="ns-d" id="s-nsd">—</div><div class="ns-r" id="s-nsr">—</div></div>
-      <div class="s3"><div class="sbox"><div class="sv" id="s-st1">—</div><div class="svl">Sesiones</div></div><div class="sbox"><div class="sv" id="s-st2">—</div><div class="svl">Semanas</div></div><div class="sbox"><div class="sv" id="s-st3">—</div><div class="svl">Racha</div></div></div>
-      <div class="ssec-t">Hoy <span class="ssec-lnk" onclick="sGo('plan')">Ver plan →</span></div>
-      <div id="s-hoy-prev"></div>
+
+      <!-- Frase del día -->
+      <div id="s-frase" style="font-size:15px;color:var(--tx);line-height:1.55;font-weight:500;margin:2px 0 22px;padding-left:14px;border-left:2px solid var(--s3)"></div>
+
+      <!-- Recordatorios antes de entrenar -->
+      <div style="background:var(--card);border:1px solid var(--bor);border-radius:18px;padding:16px;margin-bottom:16px">
+        <div style="font-family:var(--fm);font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:12px">Antes de entrenar</div>
+
+        <div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--bor)">
+          <div style="width:34px;height:34px;border-radius:11px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0">💧</div>
+          <div><div style="font-size:12.5px;color:var(--tx);font-weight:600">Hidrátate</div><div style="font-size:10.5px;color:var(--t3);margin-top:2px;line-height:1.4">500 ml antes y sorbos durante la sesión</div></div>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--bor)">
+          <div style="width:34px;height:34px;border-radius:11px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0">🍽️</div>
+          <div><div style="font-size:12.5px;color:var(--tx);font-weight:600">Come 1–2 h antes</div><div style="font-size:10.5px;color:var(--t3);margin-top:2px;line-height:1.4">Carbohidrato + algo de proteína</div></div>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--bor)">
+          <div style="width:34px;height:34px;border-radius:11px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0">😴</div>
+          <div><div style="font-size:12.5px;color:var(--tx);font-weight:600">¿Dormiste 7 horas?</div><div style="font-size:10.5px;color:var(--t3);margin-top:2px;line-height:1.4">Si no, baja un poco la carga hoy</div></div>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:12px;padding:11px 0">
+          <div style="width:34px;height:34px;border-radius:11px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0">🤕</div>
+          <div><div style="font-size:12.5px;color:var(--tx);font-weight:600">¿Alguna molestia?</div><div style="font-size:10.5px;color:var(--t3);margin-top:2px;line-height:1.4">Avísale a Rubén antes de empezar</div></div>
+        </div>
+      </div>
+
+      <!-- Botón principal -->
+      <button onclick="sGo('plan')" style="width:100%;padding:16px;border-radius:50px;background:var(--si);border:none;color:var(--bg);font-family:var(--fb);font-size:14.5px;font-weight:800;cursor:pointer;letter-spacing:.2px;margin-bottom:22px">Empezar entrenamiento →</button>
+
     </div>
   </div>
   <div class="ss" id="s-plan">
@@ -2373,6 +2401,48 @@ function textoDias(n){
   return 'hace '+m+(m===1?' mes':' meses');
 }
 
+// ═══ FRASE DEL DÍA ═══
+// Rotan solas segun el dia del año — la misma frase durante todo el dia.
+var FRASES = [
+  'La constancia gana siempre.',
+  'El progreso no siempre se ve, pero está.',
+  'Hoy también cuenta.',
+  'Lo difícil de hoy es lo fácil de mañana.',
+  'No tiene que ser perfecto, tiene que ser constante.',
+  'Cada serie suma, aunque no lo parezca.',
+  'El cuerpo logra lo que la mente sostiene.',
+  'Empezar ya es la mitad del trabajo.',
+  'Mejor hecho que perfecto.',
+  'La disciplina pesa menos que el arrepentimiento.',
+  'Un poco mejor que ayer basta.',
+  'Nadie se arrepiente de haber entrenado.',
+  'La fuerza se construye repetición por repetición.',
+  'Tu única competencia eres tú de ayer.',
+  'Los resultados vienen después del hábito.',
+  'Hoy entrenas para el que serás en un año.',
+  'Descansar también es entrenar.',
+  'La técnica primero, el peso después.',
+  'Lento es suave y suave es rápido.',
+  'No cuentes los días, haz que cuenten.',
+  'La motivación arranca, el hábito sostiene.',
+  'Escucha a tu cuerpo, pero no le creas todo.',
+  'Grandes cambios, pequeñas decisiones diarias.',
+  'Sube el peso cuando el cuerpo lo pida, no el ego.',
+  'Lo que hoy cuesta, mañana será calentamiento.',
+  'El mejor entrenamiento es el que sí haces.',
+  'Paciencia: los músculos crecen sin apuro.',
+  'Come bien, duerme bien, entrena bien.',
+  'Una hora hoy, salud por años.',
+  'Sigue apareciendo. Eso es todo.'
+];
+
+function fraseDelDia(){
+  var inicio = new Date(new Date().getFullYear(), 0, 0);
+  var diff = new Date() - inicio;
+  var dia = Math.floor(diff / 86400000);
+  return FRASES[dia % FRASES.length];
+}
+
 // ═══ COLOR ÚNICO POR ALUMNO ═══
 var ALUMNO_COLORES = [
   {bg:'#1e2a3d',c:'#6a8ab8'},
@@ -2477,17 +2547,15 @@ function sLogout(){localStorage.removeItem('rt6_student');ALUMNO=null;document.g
 function sAll(){if(!ALUMNO){buildSLogin();return;}sHoy();sPlan();sProg();sPerfil();}
 
 function sHoy(){
-  if(!ALUMNO)return;const a=ALUMNO;const hr=new Date().getHours();
+  if(!ALUMNO)return;
+  const a=ALUMNO;
+  const hr=new Date().getHours();
   set('s-gr',hr<12?'Buenos días':hr<19?'Buenas tardes':'Buenas noches');
-  set('s-name',a.n.toUpperCase());set('s-sub',`${fmtDate(new Date())} · ${PLAN?.dias?.length||0} días`);
-  set('s-obj',a.obj);set('s-nivel',a.nivel);
-  const ses=DB.get('sesiones')||[];const prox=ses.filter(s=>s.alId===a.id&&!s.done).sort((a,b)=>a.fecha.localeCompare(b.fecha))[0];
-  set('s-nst',prox?.hora||a.h||'—');set('s-nsd',prox?`${prox.fecha} · ${prox.tipo}`:`Hoy — ${fmtDate(new Date())}`);
-  set('s-nsr',(PLAN?.nombre||'Tu plan').toUpperCase());
-  set('s-st1',a.sesiones||0);set('s-st2',a.semanas||1);set('s-st3',Math.min(a.sesiones||0,5));
-  const dia0=PLAN?.dias?.[0];
-  const ejs=DB.get('ejercicios')||[];
-  set('s-hoy-prev', buildHoyPrev(dia0,ejs));
+  set('s-name',a.n);
+  set('s-sub',fmtDate(new Date()));
+  set('s-obj',a.obj);
+  set('s-nivel',a.nivel);
+  set('s-frase',fraseDelDia());
 }
 
 function sPlan(){
@@ -3206,7 +3274,7 @@ function buildCalSection(container,di,sk,label,items){var wrap=document.createEl
 function showImgFull(src,name){var ov=document.createElement('div');ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.93);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;cursor:pointer';ov.addEventListener('click',function(){ov.remove();});var img=document.createElement('img');img.src=optImg(src,1000);img.style.cssText='max-width:100%;max-height:80vh;border-radius:12px;object-fit:contain;';var lbl=document.createElement('div');lbl.style.cssText='color:#fff;font-family:var(--fd);font-size:18px;font-weight:700;margin-top:14px;text-align:center;text-transform:uppercase;';lbl.textContent=name||'';ov.appendChild(img);ov.appendChild(lbl);document.body.appendChild(ov);}
 document.addEventListener('click',function(e){var med=e.target.closest('.ex-media');if(!med)return;var img=med.querySelector('img');if(!img)return;var card=med.closest('.excard');var nm=card&&card.querySelector('.ex-name')?card.querySelector('.ex-name').textContent:'';showImgFull(img.src,nm);});
 
-function buildHoyPrev(dia0,ejs){if(!dia0)return '<p style="color:var(--t3);font-size:13px;text-align:center;padding:20px">Ruben aun no asigno tu plan.</p>';var ejs2=DB.get('ejercicios')||[];var calItems=(dia0.calentamiento||[]).concat(dia0.calCore||[]);var calHtml=calItems.slice(0,3).map(function(it){var nm='';if(typeof it==='string'){nm=it;}else if(it&&it.txt!==undefined){nm=it.txt;}else if(it&&it.ref){var e2=ejs2.find(function(e){return e.id===it.ref;});if(e2)nm=e2.n;}return nm?'<div style="font-size:12px;color:var(--t2);padding:6px 0;border-bottom:1px solid var(--bor)">'+nm+'</div>':'';}).join('');var ejIds=dia0.bloques&&dia0.bloques[0]?dia0.bloques[0].ejerIds||[]:[];var ejHtml=ejIds.slice(0,2).map(function(ejId){var ej=ejs.find(function(e){return e.id===ejId;})||{n:ejId,m:'',fo:''};var fo=ej.fo?'<div class="ex-media" style="height:100px"><img src="'+ej.fo+'" onerror="this.style.display=none"><div class="ex-badge">'+ej.m+'</div></div>':'';return '<div class="excard">'+fo+'<div class="ex-body" style="padding:10px 13px"><div class="ex-name" style="font-size:17px">'+ej.n+'</div></div></div>';}).join('');return '<div class="sblq"><div class="sblq-hdr"><div class="sblq-ico">&#128293;</div><div class="sblq-t">Calentamiento</div><div class="sblq-m">'+calItems.length+' items</div></div><div class="sblq-body">'+calHtml+'</div></div>'+ejHtml;}
+
 
 function importStu(input){var file=input.files[0];if(!file)return;var reader=new FileReader();reader.onload=function(e){try{var data=JSON.parse(e.target.result);Object.keys(data).forEach(function(k){localStorage.setItem(k,JSON.stringify(data[k]));});showToast('Datos cargados');if(typeof buildSLogin==='function')buildSLogin();}catch(err){showToast('Error al cargar');}};reader.readAsText(file);input.value='';}
 
