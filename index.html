@@ -86,6 +86,10 @@ html,body{height:100%;background:var(--bg);color:var(--tx);font-family:var(--fb)
 .ci-pill.on{background:#fff;}
 .dsem{padding:9px 13px;border-radius:20px;border:1px solid var(--bor);background:var(--bg3);color:var(--t3);font-family:var(--fm);font-size:11px;cursor:pointer;user-select:none;transition:all .15s;min-width:48px;text-align:center;}
 .dsem.on{background:var(--si);color:var(--bg);border-color:var(--si);font-weight:700;}
+.rdtabs{display:flex;gap:6px;overflow-x:auto;padding:4px 0 10px;margin-bottom:8px;position:sticky;top:0;background:var(--bg2);z-index:5;-webkit-overflow-scrolling:touch;}
+.rdtab{padding:9px 16px;border-radius:22px;font-family:var(--fm);font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;border:1px solid var(--bor);color:var(--t3);background:var(--bg3);cursor:pointer;white-space:nowrap;flex-shrink:0;transition:all .14s;min-height:38px;display:flex;align-items:center;}
+.rdtab.on{background:var(--si);color:var(--bg);border-color:var(--si);font-weight:700;}
+.rdtab-add{border-style:dashed;color:var(--s2);background:transparent;}
 /* ─── COMPONENTS ─── */
 .btn{padding:10px 16px;border-radius:50px;border:none;cursor:pointer;font-family:var(--fd);font-size:14px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;transition:all .18s;min-height:44px;}
 .btn-p{background:var(--si);color:var(--bg);}
@@ -1048,7 +1052,7 @@ select.fi{appearance:none;cursor:pointer;}
 
 <div class="mo" id="m-ej"><div class="md md-w"><div class="mt" id="m-ej-t">Nuevo ejercicio</div><input type="hidden" id="m-ej-id"><div class="fr"><div class="fg"><label class="fl">Nombre</label><input class="fi" id="m-ej-n" placeholder="Peso muerto rumano (barra)"></div><div class="fg"><label class="fl">Músculo principal</label><input class="fi" id="m-ej-m" placeholder="Piernas, Glúteo"></div></div><div class="fr"><div class="fg"><label class="fl">Equipamiento</label><select class="fi" id="m-ej-eq"><option>Barra</option><option>Mancuernas</option><option>Kettlebell</option><option>Clavas</option><option>Fitball</option><option>Peso corporal</option><option>Máquina</option><option>Polea</option><option>TRX</option><option>Bandas</option></select></div><div class="fg"><label class="fl">Tipo</label><select class="fi" id="m-ej-tp"><option>Principal</option><option>Accesorio</option><option>Core</option><option>Movilidad</option></select></div></div><div class="fg"><label class="fl">🖼 URL foto / GIF (Drive: .../uc?export=view&id=TU_ID)</label><input class="fi" id="m-ej-fo" placeholder="https://drive.google.com/uc?export=view&id=..." oninput="prevImg(this.value)"><img id="m-ej-prev" style="width:100%;height:120px;object-fit:cover;border-radius:7px;margin-top:7px;display:none;border:1px solid var(--bor)" alt="preview"></div><div class="fg"><label class="fl">🎬 URL video YouTube (se muestra al alumno)</label><input class="fi" id="m-ej-vi" placeholder="https://youtube.com/watch?v=..."></div><div class="fg"><label class="fl">Clave técnica / indicación</label><textarea class="fi" id="m-ej-no" rows="2" style="resize:vertical" placeholder="Codos a 45°, escápulas retraídas..."></textarea></div><div class="macts"><button class="btn btn-g" onclick="closeM('m-ej')">Cancelar</button><button class="btn btn-red btn-sm" id="m-ej-del" onclick="delEjById2()" style="display:none">Eliminar</button><button class="btn btn-p" onclick="saveEj()">Guardar →</button></div></div></div>
 
-<div class="mo" id="m-rut"><div class="md md-w" style="max-height:96vh"><div class="mt" id="m-rut-t">Nueva rutina</div><input type="hidden" id="m-rut-id"><div class="fr"><div class="fg"><label class="fl">Nombre</label><input class="fi" id="m-rut-n" placeholder="Plan Semana Actual"></div><div class="fg"><label class="fl">Alumno</label><select class="fi" id="m-rut-al" onchange="if(typeof renderRDias==='function')renderRDias()"></select></div></div><div id="m-rut-dias"></div><button class="btn btn-g" style="width:100%;margin-bottom:11px" onclick="addDiaR()">+ Agregar día</button><div class="macts"><button class="btn btn-g" onclick="closeM('m-rut')">Cancelar</button><button class="btn btn-red btn-sm" id="m-rut-del" onclick="delRut()" style="display:none">Eliminar</button><button class="btn btn-p" onclick="saveRut()">Guardar rutina →</button></div></div></div>
+<div class="mo" id="m-rut"><div class="md md-w" style="max-height:96vh"><div class="mt" id="m-rut-t">Nueva rutina</div><input type="hidden" id="m-rut-id"><div class="fr"><div class="fg"><label class="fl">Nombre</label><input class="fi" id="m-rut-n" placeholder="Plan Semana Actual"></div><div class="fg"><label class="fl">Alumno</label><select class="fi" id="m-rut-al" onchange="if(typeof renderRDias==='function')renderRDias()"></select></div></div><div id="m-rut-dias"></div><div class="macts"><button class="btn btn-g" onclick="closeM('m-rut')">Cancelar</button><button class="btn btn-red btn-sm" id="m-rut-del" onclick="delRut()" style="display:none">Eliminar</button><button class="btn btn-p" onclick="saveRut()">Guardar rutina →</button></div></div></div>
 
 <div class="mo" id="m-ses"><div class="md"><div class="mt" id="m-ses-t">Nueva sesión</div><input type="hidden" id="m-ses-id"><div class="fg"><label class="fl">Alumno</label><select class="fi" id="m-ses-al"></select></div><div class="fr"><div class="fg"><label class="fl">Fecha</label><input class="fi" type="date" id="m-ses-fe"></div><div class="fg"><label class="fl">Hora</label><input class="fi" type="time" id="m-ses-ho"></div></div><div class="fg"><label class="fl">Tipo</label><select class="fi" id="m-ses-ti"><option>Individual</option><option>Grupal Online</option><option>Pareja</option><option>Evaluación</option></select></div><div class="fg"><label class="fl">🔄 Repetir automáticamente</label><select class="fi" id="m-ses-rep" onchange="document.getElementById('m-ses-rep-n-wrap').style.display=this.value?'block':'none'"><option value="">Sin repetición</option><option value="7">Cada semana (mismo día y hora)</option><option value="14">Cada 2 semanas</option><option value="30">Cada mes</option></select></div>
 <div id="m-ses-rep-n-wrap" style="display:none">
@@ -1820,21 +1824,59 @@ function delEjById(id){if(!confirm('¿Eliminar?'))return;DB.set('ejercicios',(DB
 function prevImg(url){const img=document.getElementById('m-ej-prev');if(!img)return;if(url){img.src=url;img.style.display='block';img.onerror=()=>img.style.display='none';}else img.style.display='none';}
 
 // RUTINAS BUILDER
-function openMRut(){set('m-rut-t','Nueva rutina');document.getElementById('m-rut-id').value='';document.getElementById('m-rut-n').value='Plan Semana Actual';R_DIAS=[];addDiaR();document.getElementById('m-rut-del').style.display='none';openM('m-rut');}
+function openMRut(){set('m-rut-t','Nueva rutina');document.getElementById('m-rut-id').value='';document.getElementById('m-rut-n').value='Plan Semana Actual';R_DIAS=[];R_DIA_ACTIVO=0;addDiaR();document.getElementById('m-rut-del').style.display='none';openM('m-rut');}
 function editRut(id){
   const r=(DB.get('rutinas')||[]).find(x=>x.id===id);if(!r)return;
   set('m-rut-t','Editar rutina');document.getElementById('m-rut-id').value=r.id;document.getElementById('m-rut-n').value=r.nombre||'';document.getElementById('m-rut-al').value=r.alId||'';
-  R_DIAS=JSON.parse(JSON.stringify(r.dias||[]));renderRDias();document.getElementById('m-rut-del').style.display='inline-flex';openM('m-rut');
+  R_DIAS=JSON.parse(JSON.stringify(r.dias||[]));R_DIA_ACTIVO=0;renderRDias();document.getElementById('m-rut-del').style.display='inline-flex';openM('m-rut');
 }
-function addDiaR(){R_DIAS.push({label:`Día ${R_DIAS.length+1}`,calentamiento:[''],bloques:[{nombre:'Bloque 1 — Parte Principal',ejerIds:[],series:[],reps:[],descanso:[]}]});renderRDias();}
+var R_DIA_ACTIVO = 0;
+
+// Cambiar de pestaña en el editor de rutinas
+function selDiaEditor(i){
+  R_DIA_ACTIVO = i;
+  renderRDias();
+  var cont = document.querySelector('#m-rut .md');
+  if(cont) cont.scrollTop = 0;
+}
+
+// Eliminar un dia y reajustar la pestaña activa
+function delDiaR(di){
+  if(R_DIAS.length<=1){ showToast('La rutina necesita al menos un día'); return; }
+  if(!confirm('¿Eliminar '+(R_DIAS[di].label||'este día')+'?')) return;
+  R_DIAS.splice(di,1);
+  if(R_DIA_ACTIVO >= R_DIAS.length) R_DIA_ACTIVO = R_DIAS.length-1;
+  renderRDias();
+}
+
+function addDiaR(){
+  R_DIAS.push({label:'Día '+(R_DIAS.length+1),calentamiento:[],calCore:[],bloques:[{nombre:'Bloque 1 — Parte Principal',ejerIds:[],series:[],reps:[],descanso:[]}]});
+  R_DIA_ACTIVO = R_DIAS.length-1;
+  renderRDias();
+}
 function renderRDias(){
   var ejs=DB.get('ejercicios')||[];
   var container=document.getElementById('m-rut-dias');
   if(!container)return;
   R_DIAS.forEach(function(d){if(!d.calentamiento)d.calentamiento=[];if(!d.calCore)d.calCore=[];if(!d.bloques)d.bloques=[];d.bloques.forEach(function(b){if(!b.ejerIds)b.ejerIds=[];if(!b.series)b.series=[];if(!b.reps)b.reps=[];if(!b.descanso)b.descanso=[];if(!b.kgs)b.kgs=[];if(!b.rir)b.rir=[];});});
+  // Asegurar que la pestaña activa exista
+  if(R_DIA_ACTIVO >= R_DIAS.length) R_DIA_ACTIVO = Math.max(0, R_DIAS.length-1);
+
   var html='';
+
+  // ── PESTAÑAS DE DÍAS ──
+  if(R_DIAS.length){
+    html+='<div class="rdtabs">';
+    R_DIAS.forEach(function(dia,di){
+      html+='<div class="rdtab'+(di===R_DIA_ACTIVO?' on':'')+'" onclick="selDiaEditor('+di+')">'+((dia.label||'Día '+(di+1)).replace(/</g,'&lt;'))+'</div>';
+    });
+    html+='<div class="rdtab rdtab-add" onclick="addDiaR()">+ Día</div>';
+    html+='</div>';
+  }
+
   R_DIAS.forEach(function(dia,di){
-    html+='<div class="dia-block"><div class="dia-block-header"><input value="'+(dia.label||'Dia '+(di+1)).replace(/"/g,'&quot;')+'" class="fi" style="width:120px;font-family:var(--fd);font-size:15px;font-weight:700" onchange="R_DIAS['+di+'].label=this.value"><button class="btn btn-red btn-sm" onclick="R_DIAS.splice('+di+',1);renderRDias()">x Dia</button></div>';
+    if(di !== R_DIA_ACTIVO) return; // solo se dibuja el día abierto
+    html+='<div class="dia-block"><div class="dia-block-header"><input value="'+(dia.label||'Dia '+(di+1)).replace(/"/g,'&quot;')+'" class="fi" style="width:130px;font-family:var(--fd);font-size:15px;font-weight:700" onchange="R_DIAS['+di+'].label=this.value;renderRDias()"><button class="btn btn-red btn-sm" onclick="delDiaR('+di+')">x Día</button></div>';
     html+='<div id="calph-'+di+'"></div>';
     dia.bloques.forEach(function(b,bi){
       html+='<div class="bloque-build"><div class="bloque-build-header"><input value="'+(b.nombre||'Bloque').replace(/"/g,'&quot;')+'" class="fi" style="flex:1;font-size:12px;font-family:var(--fm)" onchange="R_DIAS['+di+'].bloques['+bi+'].nombre=this.value"><button class="btn btn-red btn-sm" onclick="R_DIAS['+di+'].bloques.splice('+bi+',1);renderRDias()">x</button></div>';
@@ -1867,7 +1909,7 @@ function renderRDias(){
     html+='<button class="btn btn-g btn-sm" style="width:100%;margin-top:7px" onclick="addBloque('+di+')">+ Bloque</button></div>';
   });
   container.innerHTML=html;
-  R_DIAS.forEach(function(dia,di){var ph=document.getElementById('calph-'+di);if(!ph)return;var wr=document.createElement('div');wr.className='bloque-build';buildCalSection(wr,di,'calentamiento','Movilidad articular',dia.calentamiento||[]);buildCalSection(wr,di,'calCore','Core / Activacion',dia.calCore||[]);ph.replaceWith(wr);});
+  R_DIAS.forEach(function(dia,di){if(di!==R_DIA_ACTIVO)return;var ph=document.getElementById('calph-'+di);if(!ph)return;var wr=document.createElement('div');wr.className='bloque-build';buildCalSection(wr,di,'calentamiento','Movilidad articular',dia.calentamiento||[]);buildCalSection(wr,di,'calCore','Core / Activacion',dia.calCore||[]);ph.replaceWith(wr);});
 }
 function addBloque(di){R_DIAS[di].bloques.push({nombre:'Bloque '+(R_DIAS[di].bloques.length+1)+' - Accesorio',ejerIds:[],series:[],reps:[],descanso:[],kgs:[],rir:[]});renderRDias();}
 function delEjRow(di,bi,ei){['ejerIds','series','reps','descanso','kgs','rir'].forEach(function(k){if(R_DIAS[di].bloques[bi][k])R_DIAS[di].bloques[bi][k].splice(ei,1);});renderRDias();}
