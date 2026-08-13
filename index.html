@@ -1278,7 +1278,7 @@ function tRuts(data){
 }
 
 function selRut(id){
-  SEL_RUT_ID=id;tRuts();tRutsDetail(id);
+  SEL_RUT_ID=id;RUT_DIA_PREV=0;tRuts();tRutsDetail(id);
 }
 
 function tRutsDetail(id){
@@ -1289,7 +1289,21 @@ function tRutsDetail(id){
   set('rut-detail-title',r.nombre);
   set('rut-detail-sub',`${al.n} · ${r.dias?.length||0} días`);
   let html=`<div style="display:flex;gap:9px;margin-bottom:16px"><button class="btn btn-g btn-sm" onclick="editRut('${r.id}')">✎ Editar</button><button class="btn btn-pdf btn-sm" onclick="printRutinaId('${r.id}')">🖨 PDF</button></div>`;
-  r.dias?.forEach(dia=>{
+
+  const _dias = r.dias || [];
+  if(RUT_DIA_PREV >= _dias.length) RUT_DIA_PREV = 0;
+
+  // ── PESTAÑAS DE DÍAS (solo si hay más de uno) ──
+  if(_dias.length > 1){
+    html += '<div class="rdtabs">';
+    _dias.forEach(function(d,i){
+      html += '<div class="rdtab'+(i===RUT_DIA_PREV?' on':'')+'" onclick="selDiaPrev('+i+')">'+String(d.label||'Día '+(i+1)).replace(/</g,'&lt;')+'</div>';
+    });
+    html += '</div>';
+  }
+
+  _dias.forEach((dia,_di)=>{
+    if(_di !== RUT_DIA_PREV) return; // solo el día seleccionado
     html+=`<div style="background:var(--bg3);border:1px solid var(--bor);border-radius:9px;padding:14px;margin-bottom:11px">`;
     html+=`<div style="font-family:var(--fd);font-size:17px;font-weight:700;letter-spacing:2px;color:var(--si);text-transform:uppercase;margin-bottom:11px">${dia.label}</div>`;
     if(((dia.calentamiento||[]).length+(dia.calCore||[]).length)){
@@ -1831,6 +1845,13 @@ function editRut(id){
   R_DIAS=JSON.parse(JSON.stringify(r.dias||[]));R_DIA_ACTIVO=0;renderRDias();document.getElementById('m-rut-del').style.display='inline-flex';openM('m-rut');
 }
 var R_DIA_ACTIVO = 0;
+var RUT_DIA_PREV = 0;
+
+// Cambiar de día en la vista previa de la rutina
+function selDiaPrev(i){
+  RUT_DIA_PREV = i;
+  tRutsDetail(SEL_RUT_ID);
+}
 
 // Cambiar de pestaña en el editor de rutinas
 function selDiaEditor(i){
