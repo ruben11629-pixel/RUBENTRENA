@@ -2713,10 +2713,19 @@ function sDiaC(idx){
         estrDiv.textContent=_estr;
         body.appendChild(estrDiv);
       }
-      if(bestKg){var hist=document.createElement('div');hist.className='ex-hist';hist.innerHTML='<div class="ex-hist-t"><span>Historial</span><span class="ex-hist-best">max '+bestKg+'kg</span></div>';body.appendChild(hist);}
+      if(bestKg){
+        var hist=document.createElement('div');hist.className='ex-hist';
+        var _prevTxt = lastKg ? ('la vez pasada '+lastKg+'kg') : 'sin registro previo';
+        var _subeTxt = '';
+        if(lastKg && kgR && parseFloat(kgR)>parseFloat(lastKg)){
+          _subeTxt = '<span style="color:var(--gr);font-weight:700"> · hoy '+kgR+'kg ↑</span>';
+        }
+        hist.innerHTML='<div class="ex-hist-t"><span>'+_prevTxt+_subeTxt+'</span><span class="ex-hist-best">máx '+bestKg+'kg</span></div>';
+        body.appendChild(hist);
+      }
       var tbl=document.createElement('table');tbl.className='ex-tabla';tbl.innerHTML='<thead><tr><th>Serie</th><th>Kg</th><th>Reps</th><th>N</th><th>Sensaciones</th></tr></thead>';
       var tbody=document.createElement('tbody');var ejName=ej.n.replace(/'/g,'');
-      for(var si=0;si<series;si++){var tr=document.createElement('tr');var pre=si===0&&lastKg?lastKg:'';tr.innerHTML='<td style="font-family:var(--fm);font-size:11px;color:var(--s2);padding:6px 5px">'+(si+1)+'</td><td><input class="ex-inp'+(pre?' prefill':'')+'" type="number" placeholder="'+(pre||kgR||'?')+'" '+(pre?'value="'+pre+'"':'')+' data-k="kg-'+idx+'-'+bi+'-'+ei+'-'+si+'"></td><td><input class="ex-inp" placeholder="'+reps+'" data-k="rp-'+idx+'-'+bi+'-'+ei+'-'+si+'"></td><td><span style="font-family:var(--fm);font-size:11px;color:var(--s2)">'+(si+1)+'</span></td><td><input class="ex-inp fb" placeholder="Sensaciones..." data-k="fb-'+idx+'-'+bi+'-'+ei+'-'+si+'"></td>';(function(i2,bi2,ei2,si2,en,sr){var kgI=tr.querySelector('[data-k="kg-'+i2+'-'+bi2+'-'+ei2+'-'+si2+'"]');var rpI=tr.querySelector('[data-k="rp-'+i2+'-'+bi2+'-'+ei2+'-'+si2+'"]');if(kgI)kgI.addEventListener('change',function(){sGuardFb(i2,bi2,ei2,en,sr);});if(rpI)rpI.addEventListener('change',function(){sGuardFb(i2,bi2,ei2,en,sr);});})(idx,bi,ei,si,ejName,series);tbody.appendChild(tr);}
+      for(var si=0;si<series;si++){var tr=document.createElement('tr');var pre=si===0?(kgR||lastKg||''):'';tr.innerHTML='<td style="font-family:var(--fm);font-size:11px;color:var(--s2);padding:6px 5px">'+(si+1)+'</td><td><input class="ex-inp'+(pre?' prefill':'')+'" type="number" placeholder="'+(pre||kgR||'?')+'" '+(pre?'value="'+pre+'"':'')+' data-k="kg-'+idx+'-'+bi+'-'+ei+'-'+si+'"></td><td><input class="ex-inp" placeholder="'+reps+'" data-k="rp-'+idx+'-'+bi+'-'+ei+'-'+si+'"></td><td><span style="font-family:var(--fm);font-size:11px;color:var(--s2)">'+(si+1)+'</span></td><td><input class="ex-inp fb" placeholder="Sensaciones..." data-k="fb-'+idx+'-'+bi+'-'+ei+'-'+si+'"></td>';(function(i2,bi2,ei2,si2,en,sr){var kgI=tr.querySelector('[data-k="kg-'+i2+'-'+bi2+'-'+ei2+'-'+si2+'"]');var rpI=tr.querySelector('[data-k="rp-'+i2+'-'+bi2+'-'+ei2+'-'+si2+'"]');if(kgI)kgI.addEventListener('change',function(){sGuardFb(i2,bi2,ei2,en,sr);});if(rpI)rpI.addEventListener('change',function(){sGuardFb(i2,bi2,ei2,en,sr);});})(idx,bi,ei,si,ejName,series);tbody.appendChild(tr);}
       tbl.appendChild(tbody);body.appendChild(tbl);
       var doneBtn=document.createElement('button');doneBtn.className='ex-done-btn';doneBtn.id='edb-'+idx+'-'+bi+'-'+ei;doneBtn.innerHTML='&#10003; Marcar completado';(function(i2,bi2,ei2,sr,ds,en){doneBtn.addEventListener('click',function(){sTogEj(i2,bi2,ei2,sr,ds,en);});})(idx,bi,ei,series,desc,ejName);
       body.appendChild(doneBtn);card.appendChild(body);blqBody.appendChild(card);
@@ -2837,8 +2846,17 @@ function sProgSelectEj(ej){
 }
 
 function sProgRenderChart(ej){
-  const data=(window._progEjercicios||{})[ej];
-  if(!data||!data.length)return;
+  const raw=(window._progEjercicios||{})[ej];
+  if(!raw||!raw.length)return;
+
+  // Un punto por SESION (fecha), tomando el mejor peso de ese dia.
+  // Antes cada serie contaba como sesion y la curva salia distorsionada.
+  const porFecha={};
+  raw.forEach(function(d){
+    const f=d.fecha||'';
+    if(!porFecha[f] || d.kg>porFecha[f].kg) porFecha[f]=d;
+  });
+  const data=Object.values(porFecha);
 
   // Ordenar por fecha
   const sorted=[...data].sort((a,b)=>a.fecha>b.fecha?1:-1);
