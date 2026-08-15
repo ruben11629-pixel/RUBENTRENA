@@ -1355,14 +1355,20 @@ function renderFb(){
     const fechaBlocks=Object.entries(byFecha).slice(0,4).map(([fecha,items])=>{
       const esHoy=fecha===hoyStr;
       const rows=items.map(f=>{
-        const kg=f.entries?.[0]?.kg||'—';
-        const rp=f.entries?.[0]?.rp||'—';
-        const sen=f.entries?.[0]?.fb||'';
+        // Mostrar el mejor set de la sesion, no solo el primero
+        const _ents=f.entries||[];
+        let _best=_ents[0]||{};
+        _ents.forEach(function(e){ if(parseFloat(e.kg||0)>parseFloat(_best.kg||0)) _best=e; });
+        const kg=_best.kg||'—';
+        const rp=_best.rp||'—';
+        const _nSer=_ents.length;
+        const sen=(_ents.find(function(e){return e.fb&&e.fb.trim();})||{}).fb||'';
         const senCol=senColor[sen]||'var(--t3)';
-        return `<div style="display:grid;grid-template-columns:1fr auto auto auto auto;gap:6px;align-items:center;padding:7px 0;border-bottom:1px solid var(--bor)">
+        return `<div style="display:grid;grid-template-columns:1fr auto auto auto auto auto;gap:6px;align-items:center;padding:7px 0;border-bottom:1px solid var(--bor)">
           <div style="font-size:12px;font-weight:500;color:var(--tx)">${f.ejercicio||'—'}</div>
           <div style="text-align:center"><div style="font-family:var(--fm);font-size:13px;font-weight:700;color:var(--bl)">${kg}</div><div style="font-size:9px;color:var(--t3)">kg</div></div>
           <div style="text-align:center"><div style="font-family:var(--fm);font-size:13px;font-weight:700;color:var(--tx)">${rp}</div><div style="font-size:9px;color:var(--t3)">reps</div></div>
+          <div style="text-align:center"><div style="font-family:var(--fm);font-size:13px;font-weight:700;color:var(--t2)">${_nSer}</div><div style="font-size:9px;color:var(--t3)">ser</div></div>
           <div>${sen?`<span style="font-size:10px;color:${senCol};font-weight:600">${sen}</span>`:'<span style="color:var(--t3);font-size:10px">—</span>'}</div>
           <button onclick="fbDelSesion(${f._origIdx})" style="background:transparent;border:none;color:var(--t3);cursor:pointer;font-size:14px;padding:2px 4px" title="Eliminar">✕</button>
         </div>`;
@@ -2804,9 +2810,14 @@ function sDiaC(idx){
       }
       var tbl=document.createElement('table');tbl.className='ex-tabla';tbl.innerHTML='<thead><tr><th>Serie</th><th>Kg</th><th>Reps</th><th>N</th><th>Sensaciones</th></tr></thead>';
       var tbody=document.createElement('tbody');var ejName=ej.n.replace(/'/g,'');
-      for(var si=0;si<series;si++){var tr=document.createElement('tr');var pre=si===0?(kgR||lastKg||''):'';tr.innerHTML='<td style="font-family:var(--fm);font-size:11px;color:var(--s2);padding:6px 5px">'+(si+1)+'</td><td><input class="ex-inp'+(pre?' prefill':'')+'" type="number" placeholder="'+(pre||kgR||'?')+'" '+(pre?'value="'+pre+'"':'')+' data-k="kg-'+idx+'-'+bi+'-'+ei+'-'+si+'"></td><td><input class="ex-inp" placeholder="'+reps+'" data-k="rp-'+idx+'-'+bi+'-'+ei+'-'+si+'"></td><td><span style="font-family:var(--fm);font-size:11px;color:var(--s2)">'+(si+1)+'</span></td><td><input class="ex-inp fb" placeholder="Sensaciones..." data-k="fb-'+idx+'-'+bi+'-'+ei+'-'+si+'"></td>';(function(i2,bi2,ei2,si2,en,sr,eid){var kgI=tr.querySelector('[data-k="kg-'+i2+'-'+bi2+'-'+ei2+'-'+si2+'"]');var rpI=tr.querySelector('[data-k="rp-'+i2+'-'+bi2+'-'+ei2+'-'+si2+'"]');if(kgI)kgI.addEventListener('change',function(){sGuardFb(i2,bi2,ei2,en,sr,eid);});if(rpI)rpI.addEventListener('change',function(){sGuardFb(i2,bi2,ei2,en,sr,eid);});})(idx,bi,ei,si,ejName,series,ej.id);tbody.appendChild(tr);}
+      for(var si=0;si<series;si++){var tr=document.createElement('tr');
+      // Todas las series vienen precargadas con lo planificado.
+      // El alumno solo corrige lo que hizo distinto — asi nunca se guarda vacio.
+      var preKg = kgR || lastKg || '';
+      var preRp = reps || '';
+      tr.innerHTML='<td style="font-family:var(--fm);font-size:11px;color:var(--s2);padding:6px 5px">'+(si+1)+'</td><td><input class="ex-inp'+(preKg?' prefill':'')+'" type="number" placeholder="'+(preKg||'?')+'" '+(preKg?'value="'+preKg+'"':'')+' data-k="kg-'+idx+'-'+bi+'-'+ei+'-'+si+'"></td><td><input class="ex-inp'+(preRp?' prefill':'')+'" placeholder="'+reps+'" '+(preRp?'value="'+String(preRp).replace(/"/g,'&quot;')+'"':'')+' data-k="rp-'+idx+'-'+bi+'-'+ei+'-'+si+'"></td><td><span style="font-family:var(--fm);font-size:11px;color:var(--s2)">'+(si+1)+'</span></td><td><input class="ex-inp fb" placeholder="Sensaciones..." data-k="fb-'+idx+'-'+bi+'-'+ei+'-'+si+'"></td>';(function(i2,bi2,ei2,si2,en,sr,eid){var kgI=tr.querySelector('[data-k="kg-'+i2+'-'+bi2+'-'+ei2+'-'+si2+'"]');var rpI=tr.querySelector('[data-k="rp-'+i2+'-'+bi2+'-'+ei2+'-'+si2+'"]');if(kgI)kgI.addEventListener('change',function(){sGuardFb(i2,bi2,ei2,en,sr,eid);});if(rpI)rpI.addEventListener('change',function(){sGuardFb(i2,bi2,ei2,en,sr,eid);});})(idx,bi,ei,si,ejName,series,ej.id);tbody.appendChild(tr);}
       tbl.appendChild(tbody);body.appendChild(tbl);
-      var doneBtn=document.createElement('button');doneBtn.className='ex-done-btn';doneBtn.id='edb-'+idx+'-'+bi+'-'+ei;doneBtn.innerHTML='&#10003; Marcar completado';(function(i2,bi2,ei2,sr,ds,en,eid){doneBtn.addEventListener('click',function(){sTogEj(i2,bi2,ei2,sr,ds,en,eid);});})(idx,bi,ei,series,desc,ejName,ej.id);
+      var doneBtn=document.createElement('button');doneBtn.className='ex-done-btn';doneBtn.id='edb-'+idx+'-'+bi+'-'+ei;doneBtn.innerHTML='&#10003; Marcar completado';(function(i2,bi2,ei2,sr,ds,en,eid,pk,pr){doneBtn.addEventListener('click',function(){sTogEj(i2,bi2,ei2,sr,ds,en,eid,pk,pr);});})(idx,bi,ei,series,desc,ejName,ej.id,(kgR||lastKg||''),reps);
       body.appendChild(doneBtn);card.appendChild(body);blqBody.appendChild(card);
     });
     blqDiv.appendChild(blqHdr);blqDiv.appendChild(blqBody);planC.appendChild(blqDiv);
@@ -2819,17 +2830,26 @@ function sCal(di,ci){
   const item=document.getElementById(`ci-${di}-${ci}`);const chk=item?.querySelector('.ci-chk');
   const done=CCOMP[di].has(ci);item?.classList.toggle('done',done);chk?.classList.toggle('done',done);sUpdateBar(di);
 }
-function sTogEj(di,bi,ei,series,desc,ejNombre,ejId){
+function sTogEj(di,bi,ei,series,desc,ejNombre,ejId,planKg,planRp){
   const key=`${bi}-${ei}`;if(!ECOMP[di])ECOMP[di]=new Set();
   ECOMP[di].has(key)?ECOMP[di].delete(key):ECOMP[di].add(key);
   const done=ECOMP[di].has(key);
   document.getElementById(`ec-${di}-${bi}-${ei}`)?.classList.toggle('done-ej',done);
   const btn=document.getElementById(`edb-${di}-${bi}-${ei}`);if(btn){btn.classList.toggle('done',done);btn.textContent=done?'✓ Completado':'✓ Completar + Timer';}
-  if(done){sGuardFb(di,bi,ei,ejNombre,series,ejId);showToast(`✓ ${ejNombre.split('(')[0].trim()}`);startTimer(desc,ejNombre,series);}
+  if(done){sGuardFb(di,bi,ei,ejNombre,series,ejId,planKg,planRp);showToast(`✓ ${ejNombre.split('(')[0].trim()}`);startTimer(desc,ejNombre,series);}
   sUpdateBar(di);sCheckF(di);
 }
-function sGuardFb(di,bi,ei,ejNombre,series,ejId){
-  const entries=[];for(let si=0;si<series;si++){const kg=document.querySelector(`[data-k="kg-${di}-${bi}-${ei}-${si}"]`)?.value||'—';const rp=document.querySelector(`[data-k="rp-${di}-${bi}-${ei}-${si}"]`)?.value||'—';const fb2=document.querySelector(`[data-k="fb-${di}-${bi}-${ei}-${si}"]`)?.value||'';entries.push({kg,rp,serie:si+1,fb:fb2});}
+function sGuardFb(di,bi,ei,ejNombre,series,ejId,planKg,planRp){
+  const entries=[];
+  for(let si=0;si<series;si++){
+    // Si el campo quedo vacio se usa lo planificado, para no guardar registros en blanco
+    let kg=document.querySelector(`[data-k="kg-${di}-${bi}-${ei}-${si}"]`)?.value;
+    let rp=document.querySelector(`[data-k="rp-${di}-${bi}-${ei}-${si}"]`)?.value;
+    if(!kg||!String(kg).trim()) kg = planKg || '—';
+    if(!rp||!String(rp).trim()) rp = planRp || '—';
+    const fb2=document.querySelector(`[data-k="fb-${di}-${bi}-${ei}-${si}"]`)?.value||'';
+    entries.push({kg,rp,serie:si+1,fb:fb2});
+  }
   const fbList=DB.get('feedback')||[];
   // Se guarda tambien ejercicioId: asi el historial sobrevive si renombras el ejercicio
   fbList.unshift({alumno:ALUMNO.n,alumnoId:ALUMNO.id,ejercicio:ejNombre,ejercicioId:ejId||'',entries,fecha:today(),hora:new Date().toLocaleTimeString('es-CL',{hour:'2-digit',minute:'2-digit'})});
