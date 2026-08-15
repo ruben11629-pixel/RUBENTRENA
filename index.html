@@ -847,22 +847,14 @@ select.fi{appearance:none;cursor:pointer;}
           onkeypress="if(event.key==='Enter')entrarConCodigo()">
         <div id="s-cod-error" style="color:var(--re);font-size:11px;min-height:14px;margin-bottom:8px"></div>
         <button class="btn btn-p" onclick="entrarConCodigo()" style="width:100%;padding:13px;font-size:15px">Entrar a mi rutina →</button>
-        <div style="font-size:11px;color:var(--t3);font-family:var(--fm);margin-top:16px;text-align:center">
-          ¿No tienes tu código? <span onclick="mostrarListaAlumnos()" style="color:var(--s2);text-decoration:underline;cursor:pointer">Busca tu nombre</span>
+        <div style="font-size:11px;color:var(--t3);font-family:var(--fm);margin-top:16px;text-align:center;line-height:1.6">
+          ¿No tienes tu código?<br>Pídeselo a Rubén por WhatsApp
         </div>
       </div>
 
-      <!-- LISTA DE RESPALDO -->
-      <div id="s-lista-box" style="display:none">
-        <div style="font-family:var(--fd);font-size:20px;font-weight:700;letter-spacing:2px;color:var(--si);text-transform:uppercase;margin-bottom:5px">¿Quién eres?</div>
-        <div style="font-size:12px;color:var(--t3);font-family:var(--fm);margin-bottom:12px">Selecciona tu nombre para ver tu plan</div>
-        <input id="s-buscar-al" placeholder="Buscar mi nombre..." oninput="filtrarListaAlumnos(this.value)"
-          style="width:100%;background:var(--bg3);border:1px solid var(--bor);border-radius:12px;padding:11px 14px;color:var(--tx);font-family:var(--fb);font-size:14px;outline:none;margin-bottom:12px">
-        <div class="al-grid" id="s-al-grid"></div>
-        <div style="font-size:11px;color:var(--t3);font-family:var(--fm);margin-top:14px;text-align:center">
-          <span onclick="mostrarCodigoBox()" style="color:var(--s2);text-decoration:underline;cursor:pointer">← Volver al código</span>
-        </div>
-      </div>
+      <!-- Lista de alumnos removida por privacidad: el acceso es solo por codigo -->
+      <div id="s-al-grid" style="display:none"></div>
+      <div id="s-lista-box" style="display:none"></div>
       <button style="width:100%;padding:12px;border-radius:20px;border:1px solid var(--bor);background:transparent;color:var(--t3);font-family:var(--fm);font-size:11px;text-transform:uppercase;letter-spacing:1.5px;cursor:pointer;margin-top:28px;margin-bottom:24px;min-height:48px" onclick="launchMode()">← Volver al inicio</button>
     <input type="file" id="stu-f" accept=".json" style="display:none" onchange="importStu(this)">
     </div>
@@ -2367,10 +2359,8 @@ function entrarConCodigo(){
 }
 
 function mostrarListaAlumnos(){
-  var c=document.getElementById('s-cod-box'), l=document.getElementById('s-lista-box');
-  if(c)c.style.display='none';
-  if(l)l.style.display='block';
-  buildSLogin();
+  // Desactivado por privacidad: un alumno no debe ver ni entrar a la sesion de otro.
+  showToast('Ingresa con tu código de acceso');
 }
 
 function mostrarCodigoBox(){
@@ -2638,7 +2628,13 @@ function buildSLogin(){
   const als=DB.get('alumnos')||[];
   set('s-al-grid',als.map(a=>`<div class="al-btn" onclick="sLoginById('${a.id}')"><div class="al-btn-n">${a.n}</div><div class="al-btn-m">${a.obj} · ${a.nivel}</div></div>`).join('')||'<p style="color:var(--t3);font-size:13px;text-align:center;padding:20px;grid-column:1/-1">Sin alumnos.</p>');
 }
-function sLoginById(id){const a=(DB.get('alumnos')||[]).find(x=>x.id===id);if(a)sLogin(a);}
+function sLoginById(id){
+  // Solo el entrenador (modo revision) puede entrar por ID.
+  // Los alumnos deben usar su codigo de acceso.
+  if(!window._modoRevision){ showToast('Ingresa con tu código de acceso'); return; }
+  const a=(DB.get('alumnos')||[]).find(x=>x.id===id);
+  if(a)sLogin(a);
+}
 function sLogin(a){ALUMNO=a;if(!window._modoRevision)localStorage.setItem('rt6_student',a.id);const ruts=DB.get('rutinas')||[];PLAN=ruts.find(r=>r.alId===a.id)||null;CCOMP={};ECOMP={};CDIA=0;h('s-login');sAll();}
 function sLogout(){localStorage.removeItem('rt6_student');ALUMNO=null;document.getElementById('s-login').style.display='flex';if(typeof mostrarCodigoBox==='function')mostrarCodigoBox();var i=document.getElementById('s-cod-input');if(i)i.value='';buildSLogin();}
 
