@@ -1183,6 +1183,7 @@ function launchMode(){sh('mode','flex');h('trainer');h('student');}
 function launchTrainer(){h('mode');sh('trainer','flex');tAll();if(!window.FB)initFirebase();}
 function launchStudent(){
   h('mode');sh('student','flex');
+  setTimeout(function(){if(typeof codActualizarUI==='function')codActualizarUI();},120);
   var sid=localStorage.getItem('rt6_student');
   if(sid){var a=(DB.get('alumnos')||[]).find(function(x){return x.id===sid;});if(a){sLogin(a);return;}}
   buildSLogin();
@@ -2342,19 +2343,99 @@ function salirRevision(){
 }
 
 // ═══ ACCESO DEL ALUMNO POR CÓDIGO ═══
+// ═══ PROTECCIÓN CONTRA INTENTOS REPETIDOS ═══
+var COD_MAX_INTENTOS = 3;      // fallos permitidos antes de bloquear
+var COD_BLOQUEO_BASE = 60;     // segundos del primer bloqueo
+var _codTimer = null;
+
+function codEstado(){
+  return {
+    intentos: parseInt(localStorage.getItem('rt6_cod_intentos')||'0'),
+    hasta:    parseInt(localStorage.getItem('rt6_cod_hasta')||'0'),
+    bloqueos: parseInt(localStorage.getItem('rt6_cod_bloqueos')||'0')
+  };
+}
+
+function codSegRestantes(){
+  var e = codEstado();
+  var seg = Math.ceil((e.hasta - Date.now())/1000);
+  return seg > 0 ? seg : 0;
+}
+
+function codLimpiar(){
+  localStorage.removeItem('rt6_cod_intentos');
+  localStorage.removeItem('rt6_cod_hasta');
+  localStorage.removeItem('rt6_cod_bloqueos');
+}
+
+// Mantiene el boton desactivado y muestra la cuenta regresiva
+function codActualizarUI(){
+  var btn = document.querySelector('#s-cod-box .btn-p');
+  var inp = document.getElementById('s-cod-input');
+  var err = document.getElementById('s-cod-error');
+  var seg = codSegRestantes();
+
+  if(seg > 0){
+    if(btn){ btn.disabled = true; btn.style.opacity='.5'; btn.style.cursor='not-allowed'; }
+    if(inp){ inp.disabled = true; }
+    var m = Math.floor(seg/60), s = seg%60;
+    var t = m>0 ? (m+' min '+(s<10?'0':'')+s+' s') : (seg+' s');
+    if(err){ err.style.color='var(--re)'; err.textContent='Demasiados intentos. Espera '+t; }
+    if(!_codTimer) _codTimer = setInterval(codActualizarUI, 1000);
+  } else {
+    if(_codTimer){ clearInterval(_codTimer); _codTimer=null; }
+    if(btn){ btn.disabled=false; btn.style.opacity='1'; btn.style.cursor='pointer'; }
+    if(inp){ inp.disabled=false; }
+    if(err && err.textContent.indexOf('Demasiados intentos')===0){ err.textContent=''; }
+  }
+}
+
 function entrarConCodigo(){
   var inp=document.getElementById('s-cod-input');
   var err=document.getElementById('s-cod-error');
   if(!inp)return;
+
+  // ¿Está bloqueado?
+  if(codSegRestantes() > 0){ codActualizarUI(); return; }
+
   var cod=inp.value.trim().toUpperCase();
-  if(!cod){if(err)err.textContent='Escribe tu código';return;}
-  var a=buscarPorCodigo(cod);
-  if(!a){
-    if(err)err.textContent='Código no encontrado. Revísalo o busca tu nombre.';
-    inp.value='';inp.focus();
+  if(!cod){
+    if(err){ err.style.color='var(--re)'; err.textContent='Escribe tu código'; }
     return;
   }
-  if(err)err.textContent='';
+
+  var a=buscarPorCodigo(cod);
+
+  if(!a){
+    var e = codEstado();
+    var intentos = e.intentos + 1;
+
+    if(intentos >= COD_MAX_INTENTOS){
+      // Bloquear. Cada bloqueo seguido dura el doble que el anterior.
+      var nBloqueos = e.bloqueos + 1;
+      var espera = COD_BLOQUEO_BASE * Math.pow(2, nBloqueos-1);
+      if(espera > 900) espera = 900; // tope: 15 minutos
+      localStorage.setItem('rt6_cod_hasta', String(Date.now() + espera*1000));
+      localStorage.setItem('rt6_cod_bloqueos', String(nBloqueos));
+      localStorage.setItem('rt6_cod_intentos','0');
+      inp.value='';
+      codActualizarUI();
+    } else {
+      localStorage.setItem('rt6_cod_intentos', String(intentos));
+      var quedan = COD_MAX_INTENTOS - intentos;
+      if(err){
+        err.style.color='var(--re)';
+        err.textContent='Código incorrecto. Te '+(quedan===1?'queda 1 intento':'quedan '+quedan+' intentos');
+      }
+      inp.value=''; inp.focus();
+    }
+    return;
+  }
+
+  // Código correcto: limpiar todo
+  codLimpiar();
+  if(_codTimer){ clearInterval(_codTimer); _codTimer=null; }
+  if(err) err.textContent='';
   sLogin(a);
 }
 
@@ -2636,7 +2717,7 @@ function sLoginById(id){
   if(a)sLogin(a);
 }
 function sLogin(a){ALUMNO=a;if(!window._modoRevision)localStorage.setItem('rt6_student',a.id);const ruts=DB.get('rutinas')||[];PLAN=ruts.find(r=>r.alId===a.id)||null;CCOMP={};ECOMP={};CDIA=0;h('s-login');sAll();}
-function sLogout(){localStorage.removeItem('rt6_student');ALUMNO=null;document.getElementById('s-login').style.display='flex';if(typeof mostrarCodigoBox==='function')mostrarCodigoBox();var i=document.getElementById('s-cod-input');if(i)i.value='';buildSLogin();}
+function sLogout(){localStorage.removeItem('rt6_student');ALUMNO=null;document.getElementById('s-login').style.display='flex';if(typeof mostrarCodigoBox==='function')mostrarCodigoBox();var i=document.getElementById('s-cod-input');if(i)i.value='';buildSLogin();if(typeof codActualizarUI==='function')codActualizarUI();}
 
 function sAll(){if(!ALUMNO){buildSLogin();return;}sHoy();sPlan();sProg();sPerfil();}
 
