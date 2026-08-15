@@ -1936,7 +1936,7 @@ function renderRDias(){
         // Barra con el ultimo registro del alumno para este ejercicio
         var _alSel=document.getElementById('m-rut-al');
         var _alId=_alSel?_alSel.value:'';
-        var _ur=(typeof ultimoRegistro==='function')?ultimoRegistro(_alId,ej.n):null;
+        var _ur=(typeof ultimoRegistro==='function')?ultimoRegistro(_alId,ej.n,ej.id):null;
         if(_ur){
           html+='<div style="background:var(--bg3);border-left:2px solid var(--gr);border-radius:0 8px 8px 0;padding:6px 10px;margin:2px 0 8px 40px;display:flex;align-items:center;gap:12px;font-family:var(--fm);font-size:10px;flex-wrap:wrap">'+
             '<span style="color:var(--t3);text-transform:uppercase;letter-spacing:.06em">Última</span>'+
@@ -2444,16 +2444,18 @@ function enviarCodigoWA(){
 // ═══ ÚLTIMO REGISTRO DEL ALUMNO POR EJERCICIO ═══
 // Busca en el feedback la ultima vez que el alumno hizo ese ejercicio.
 // Devuelve null si nunca lo registro (asi no se muestra nada).
-function ultimoRegistro(alId, ejNombre){
-  if(!alId || !ejNombre) return null;
+function ultimoRegistro(alId, ejNombre, ejId){
+  if(!alId || (!ejNombre && !ejId)) return null;
   var fb = DB.get('feedback') || [];
   var als = DB.get('alumnos') || [];
   var al = als.find(function(a){return a.id===alId;});
   var alNombre = al ? al.n : '';
-  // El feedback guarda alumnoId, pero por compatibilidad tambien buscamos por nombre
+  // Se busca por ID del ejercicio (sobrevive a renombres) y por nombre para registros antiguos
   var regs = fb.filter(function(f){
     var mismoAl = (f.alumnoId===alId) || (alNombre && f.alumno===alNombre);
-    return mismoAl && f.ejercicio===ejNombre;
+    if(!mismoAl) return false;
+    if(ejId && f.ejercicioId) return f.ejercicioId===ejId;
+    return f.ejercicio===ejNombre;
   });
   if(!regs.length) return null;
   // Ordenar por fecha descendente y tomar el mas reciente
@@ -2697,7 +2699,7 @@ function sDiaC(idx){
     (bloque.ejerIds||[]).forEach(function(ejId,ei){
       var ej=ejs.find(function(e){return e.id===ejId;})||{n:ejId,m:'',fo:'',no:'',vi:''};
       var series=bloque.series&&bloque.series[ei]||3;var reps=bloque.reps&&bloque.reps[ei]||'10';var desc=bloque.descanso&&bloque.descanso[ei]||90;var kgR=kgRef[ei]||'';
-      var myEjFb=myFb.filter(function(f){return f.ejercicio===ej.n;}).slice(0,5);
+      var myEjFb=myFb.filter(function(f){return (ej.id&&f.ejercicioId)?f.ejercicioId===ej.id:f.ejercicio===ej.n;}).slice(0,5);
       var lastKg=myEjFb.length&&myEjFb[0].entries&&myEjFb[0].entries[0]?myEjFb[0].entries[0].kg:'';
       var bestKg=0;myEjFb.forEach(function(f){(f.entries||[]).forEach(function(e){var v=parseFloat(e.kg)||0;if(v>bestKg)bestKg=v;});});
       var card=document.createElement('div');card.className='excard';card.id='ec-'+idx+'-'+bi+'-'+ei;
@@ -2725,9 +2727,9 @@ function sDiaC(idx){
       }
       var tbl=document.createElement('table');tbl.className='ex-tabla';tbl.innerHTML='<thead><tr><th>Serie</th><th>Kg</th><th>Reps</th><th>N</th><th>Sensaciones</th></tr></thead>';
       var tbody=document.createElement('tbody');var ejName=ej.n.replace(/'/g,'');
-      for(var si=0;si<series;si++){var tr=document.createElement('tr');var pre=si===0?(kgR||lastKg||''):'';tr.innerHTML='<td style="font-family:var(--fm);font-size:11px;color:var(--s2);padding:6px 5px">'+(si+1)+'</td><td><input class="ex-inp'+(pre?' prefill':'')+'" type="number" placeholder="'+(pre||kgR||'?')+'" '+(pre?'value="'+pre+'"':'')+' data-k="kg-'+idx+'-'+bi+'-'+ei+'-'+si+'"></td><td><input class="ex-inp" placeholder="'+reps+'" data-k="rp-'+idx+'-'+bi+'-'+ei+'-'+si+'"></td><td><span style="font-family:var(--fm);font-size:11px;color:var(--s2)">'+(si+1)+'</span></td><td><input class="ex-inp fb" placeholder="Sensaciones..." data-k="fb-'+idx+'-'+bi+'-'+ei+'-'+si+'"></td>';(function(i2,bi2,ei2,si2,en,sr){var kgI=tr.querySelector('[data-k="kg-'+i2+'-'+bi2+'-'+ei2+'-'+si2+'"]');var rpI=tr.querySelector('[data-k="rp-'+i2+'-'+bi2+'-'+ei2+'-'+si2+'"]');if(kgI)kgI.addEventListener('change',function(){sGuardFb(i2,bi2,ei2,en,sr);});if(rpI)rpI.addEventListener('change',function(){sGuardFb(i2,bi2,ei2,en,sr);});})(idx,bi,ei,si,ejName,series);tbody.appendChild(tr);}
+      for(var si=0;si<series;si++){var tr=document.createElement('tr');var pre=si===0?(kgR||lastKg||''):'';tr.innerHTML='<td style="font-family:var(--fm);font-size:11px;color:var(--s2);padding:6px 5px">'+(si+1)+'</td><td><input class="ex-inp'+(pre?' prefill':'')+'" type="number" placeholder="'+(pre||kgR||'?')+'" '+(pre?'value="'+pre+'"':'')+' data-k="kg-'+idx+'-'+bi+'-'+ei+'-'+si+'"></td><td><input class="ex-inp" placeholder="'+reps+'" data-k="rp-'+idx+'-'+bi+'-'+ei+'-'+si+'"></td><td><span style="font-family:var(--fm);font-size:11px;color:var(--s2)">'+(si+1)+'</span></td><td><input class="ex-inp fb" placeholder="Sensaciones..." data-k="fb-'+idx+'-'+bi+'-'+ei+'-'+si+'"></td>';(function(i2,bi2,ei2,si2,en,sr,eid){var kgI=tr.querySelector('[data-k="kg-'+i2+'-'+bi2+'-'+ei2+'-'+si2+'"]');var rpI=tr.querySelector('[data-k="rp-'+i2+'-'+bi2+'-'+ei2+'-'+si2+'"]');if(kgI)kgI.addEventListener('change',function(){sGuardFb(i2,bi2,ei2,en,sr,eid);});if(rpI)rpI.addEventListener('change',function(){sGuardFb(i2,bi2,ei2,en,sr,eid);});})(idx,bi,ei,si,ejName,series,ej.id);tbody.appendChild(tr);}
       tbl.appendChild(tbody);body.appendChild(tbl);
-      var doneBtn=document.createElement('button');doneBtn.className='ex-done-btn';doneBtn.id='edb-'+idx+'-'+bi+'-'+ei;doneBtn.innerHTML='&#10003; Marcar completado';(function(i2,bi2,ei2,sr,ds,en){doneBtn.addEventListener('click',function(){sTogEj(i2,bi2,ei2,sr,ds,en);});})(idx,bi,ei,series,desc,ejName);
+      var doneBtn=document.createElement('button');doneBtn.className='ex-done-btn';doneBtn.id='edb-'+idx+'-'+bi+'-'+ei;doneBtn.innerHTML='&#10003; Marcar completado';(function(i2,bi2,ei2,sr,ds,en,eid){doneBtn.addEventListener('click',function(){sTogEj(i2,bi2,ei2,sr,ds,en,eid);});})(idx,bi,ei,series,desc,ejName,ej.id);
       body.appendChild(doneBtn);card.appendChild(body);blqBody.appendChild(card);
     });
     blqDiv.appendChild(blqHdr);blqDiv.appendChild(blqBody);planC.appendChild(blqDiv);
@@ -2740,18 +2742,21 @@ function sCal(di,ci){
   const item=document.getElementById(`ci-${di}-${ci}`);const chk=item?.querySelector('.ci-chk');
   const done=CCOMP[di].has(ci);item?.classList.toggle('done',done);chk?.classList.toggle('done',done);sUpdateBar(di);
 }
-function sTogEj(di,bi,ei,series,desc,ejNombre){
+function sTogEj(di,bi,ei,series,desc,ejNombre,ejId){
   const key=`${bi}-${ei}`;if(!ECOMP[di])ECOMP[di]=new Set();
   ECOMP[di].has(key)?ECOMP[di].delete(key):ECOMP[di].add(key);
   const done=ECOMP[di].has(key);
   document.getElementById(`ec-${di}-${bi}-${ei}`)?.classList.toggle('done-ej',done);
   const btn=document.getElementById(`edb-${di}-${bi}-${ei}`);if(btn){btn.classList.toggle('done',done);btn.textContent=done?'✓ Completado':'✓ Completar + Timer';}
-  if(done){sGuardFb(di,bi,ei,ejNombre,series);showToast(`✓ ${ejNombre.split('(')[0].trim()}`);startTimer(desc,ejNombre,series);}
+  if(done){sGuardFb(di,bi,ei,ejNombre,series,ejId);showToast(`✓ ${ejNombre.split('(')[0].trim()}`);startTimer(desc,ejNombre,series);}
   sUpdateBar(di);sCheckF(di);
 }
-function sGuardFb(di,bi,ei,ejNombre,series){
+function sGuardFb(di,bi,ei,ejNombre,series,ejId){
   const entries=[];for(let si=0;si<series;si++){const kg=document.querySelector(`[data-k="kg-${di}-${bi}-${ei}-${si}"]`)?.value||'—';const rp=document.querySelector(`[data-k="rp-${di}-${bi}-${ei}-${si}"]`)?.value||'—';const fb2=document.querySelector(`[data-k="fb-${di}-${bi}-${ei}-${si}"]`)?.value||'';entries.push({kg,rp,serie:si+1,fb:fb2});}
-  const fbList=DB.get('feedback')||[];fbList.unshift({alumno:ALUMNO.n,alumnoId:ALUMNO.id,ejercicio:ejNombre,entries,fecha:today(),hora:new Date().toLocaleTimeString('es-CL',{hour:'2-digit',minute:'2-digit'})});DB.set('feedback',fbList.slice(0,500));
+  const fbList=DB.get('feedback')||[];
+  // Se guarda tambien ejercicioId: asi el historial sobrevive si renombras el ejercicio
+  fbList.unshift({alumno:ALUMNO.n,alumnoId:ALUMNO.id,ejercicio:ejNombre,ejercicioId:ejId||'',entries,fecha:today(),hora:new Date().toLocaleTimeString('es-CL',{hour:'2-digit',minute:'2-digit'})});
+  DB.set('feedback',fbList.slice(0,500));
 }
 function sUpdateBar(idx){
   const dia=PLAN?.dias?.[idx];if(!dia)return;
