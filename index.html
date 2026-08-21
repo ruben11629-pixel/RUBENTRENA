@@ -1180,6 +1180,7 @@ function seed(){
 // STATE
 let CV='month',CD=new Date(),SD=null,R_DIAS=[],EJ_F='all',EVAL_ALERTS=[];
 let FB_SEL_AL='all',FB_OPEN_DATES={};
+let HIST_OPEN={};
 let ALUMNO=null,PLAN=null,CCOMP={},ECOMP={},CDIA=0;
 let T_INT=null,T_SEC=0,T_TOT=0;
 let SEL_RUT_ID=null;
@@ -1675,13 +1676,23 @@ function loadHist(){
     const unique=Object.values(byFechaAl).sort((a,b)=>b.fecha>a.fecha?1:-1);
     const last5=[...unique].reverse().slice(-5);
     const maxV=Math.max(...last5.map(d=>d.kg))||1;
+    const hKey=name.replace(/'/g,"\\'");
+    const isOpen=!!HIST_OPEN[name];
 
     return `<div class="panel" style="margin-bottom:14px">
-      <div class="ph" style="display:flex;align-items:center;justify-content:space-between">
-        <div class="pt">${name.split('(')[0].trim()}</div>
-        <div style="font-size:11px;color:var(--gr);font-family:var(--fm)">🏆 ${best}kg</div>
-      </div>
-      <div class="pb">
+      <button onclick="histToggle('${hKey}')" style="width:100%;background:transparent;border:none;padding:0;cursor:pointer;text-align:left;display:block">
+        <div class="ph" style="display:flex;align-items:center;justify-content:space-between">
+          <div>
+            <div class="pt">${name.split('(')[0].trim()}</div>
+            <div style="font-size:10px;color:var(--t3);margin-top:3px;font-family:var(--fm);text-transform:none;letter-spacing:0">${unique.length} ${unique.length===1?'sesión':'sesiones'} · última ${unique[0]?.fecha||'—'}</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="font-size:11px;color:var(--gr);font-family:var(--fm)">🏆 ${best}kg</div>
+            <span style="color:var(--t3);font-size:11px;display:inline-block;transform:rotate(${isOpen?'180':'0'}deg)">▾</span>
+          </div>
+        </div>
+      </button>
+      ${isOpen?`<div class="pb">
         <div style="font-family:var(--fm);font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px">Últimas ${last5.length} sesiones</div>
         <div class="hchart">${last5.map((d,i)=>`<div class="hcol"><div class="hbv">${d.kg}</div><div class="hbar${i===last5.length-1?' latest':''}" style="height:${Math.round(d.kg/maxV*55)+8}px"></div><div class="hbl">${d.fecha?.slice(5)||''}</div></div>`).join('')}</div>
         <div style="margin-top:12px">
@@ -1693,10 +1704,12 @@ function loadHist(){
             <div style="font-family:var(--fm);font-size:11px;color:var(--t3)">${d.rp} reps</div>
           </div>`).join('')}
         </div>
-      </div>
+      </div>`:''}
     </div>`;
   }).join(''):'<p style="color:var(--t3);font-size:13px;padding:24px;text-align:center">Sin historial de pesos. Aparecerá cuando los alumnos registren sus kg durante las sesiones.</p>');
 }
+
+function histToggle(name){HIST_OPEN[name]=!HIST_OPEN[name];loadHist();}
 
 // EVALUACIÓN
 function fillEvalSel(){const als=DB.get('alumnos')||[];const sel=document.getElementById('eval-sel');if(sel)sel.innerHTML=`<option value="">— Selecciona —</option>${als.map(a=>`<option value="${a.id}">${a.n}</option>`).join('')}`;}
