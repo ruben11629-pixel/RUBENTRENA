@@ -753,6 +753,7 @@ select.fi{appearance:none;cursor:pointer;}
             <div style="font-size:10px;color:var(--t3);margin-top:4px">totales</div>
           </div>
         </div>
+        <div id="fb-chips" style="display:flex;gap:8px;overflow-x:auto;padding-bottom:12px;margin-bottom:4px"></div>
         <div id="fb-cards" style="display:flex;flex-direction:column;gap:12px"></div>
         <div id="fb-empty" style="display:none;text-align:center;padding:48px 24px;color:var(--t3)">
           <div style="font-size:32px;margin-bottom:12px">📋</div>
@@ -1178,6 +1179,7 @@ function seed(){
 
 // STATE
 let CV='month',CD=new Date(),SD=null,R_DIAS=[],EJ_F='all',EVAL_ALERTS=[];
+let FB_SEL_AL='all',FB_OPEN_DATES={};
 let ALUMNO=null,PLAN=null,CCOMP={},ECOMP={},CDIA=0;
 let T_INT=null,T_SEC=0,T_TOT=0;
 let SEL_RUT_ID=null;
@@ -1414,12 +1416,29 @@ function renderFb(){
     byAl[f.alumno].sessions.push(f);
     byAl[f.alumno].indices.push(fi);
   });
-  const alumnos=Object.values(byAl);
+  const alumnosAll=Object.values(byAl);
   const cards=document.getElementById('fb-cards');
   const empty=document.getElementById('fb-empty');
-  if(!alumnos.length){cards.innerHTML='';empty.style.display='block';document.getElementById('fb-dot').style.display='none';return;}
+  const chipsEl=document.getElementById('fb-chips');
+  if(!alumnosAll.length){cards.innerHTML='';if(chipsEl)chipsEl.innerHTML='';empty.style.display='block';document.getElementById('fb-dot').style.display='none';return;}
   empty.style.display='none';
   const senColor={'Muy bien':'var(--gr)','Bien':'var(--gr)','Regular':'var(--or)','Mal':'var(--re)','Muy mal':'var(--re)'};
+
+  if(FB_SEL_AL!=='all'&&!alumnosAll.find(a=>a.name===FB_SEL_AL))FB_SEL_AL='all';
+
+  if(chipsEl){
+    chipsEl.innerHTML=`<button onclick="fbSelAl('all')" style="flex-shrink:0;padding:8px 16px;border-radius:20px;border:1px solid ${FB_SEL_AL==='all'?'var(--gr)':'var(--bor)'};background:${FB_SEL_AL==='all'?'var(--bg3)':'transparent'};color:${FB_SEL_AL==='all'?'var(--gr)':'var(--t2)'};font-family:var(--fb);font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">Todos</button>`+
+      alumnosAll.map(a=>{
+        const active=FB_SEL_AL===a.name;
+        const col=colorAlumno(a.name);
+        return `<button onclick="fbSelAl('${a.name.replace(/'/g,"\\'")}')" style="flex-shrink:0;display:flex;align-items:center;gap:6px;padding:5px 14px 5px 5px;border-radius:20px;border:1px solid ${active?col.c:'var(--bor)'};background:${active?'var(--bg3)':'transparent'};color:${active?'var(--tx)':'var(--t2)'};font-family:var(--fb);font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">
+          <span style="width:22px;height:22px;border-radius:50%;background:${col.bg};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:${col.c}">${a.name.charAt(0).toUpperCase()}</span>
+          ${a.name.split(' ')[0]}
+        </button>`;
+      }).join('');
+  }
+
+  const alumnos=FB_SEL_AL==='all'?alumnosAll:alumnosAll.filter(a=>a.name===FB_SEL_AL);
 
   cards.innerHTML=alumnos.map(al=>{
     const sess=al.sessions;const last=sess[0];
@@ -1436,6 +1455,8 @@ function renderFb(){
 
     const fechaBlocks=Object.entries(byFecha).slice(0,4).map(([fecha,items])=>{
       const esHoy=fecha===hoyStr;
+      const dKey=al.name+'__'+fecha;
+      const isOpen=!!FB_OPEN_DATES[dKey];
       const rows=items.map(f=>{
         // Mostrar el mejor set de la sesion, no solo el primero
         const _ents=f.entries||[];
@@ -1456,15 +1477,19 @@ function renderFb(){
         </div>`;
       }).join('');
 
-      return `<div style="padding:8px 16px">
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;margin-bottom:2px">
+      return `<div>
+        <button onclick="fbToggleDate('${dKey.replace(/'/g,"\\'")}')" style="width:100%;display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:transparent;border:none;border-top:1px solid var(--bor);cursor:pointer;text-align:left">
           <div style="display:flex;align-items:center;gap:6px">
             <div style="font-family:var(--fm);font-size:10px;color:var(--t3)">${fecha}</div>
             ${esHoy?'<span style="background:var(--gr);color:#0a120b;border-radius:4px;padding:1px 5px;font-size:9px;font-weight:700">HOY</span>':''}
+            <span style="font-size:10px;color:var(--t3)">${items.length} ${items.length===1?'ejercicio':'ejercicios'}</span>
           </div>
-          <button onclick="fbDelFecha('${al.name}','${fecha}')" style="background:transparent;border:none;color:var(--re);cursor:pointer;font-size:10px;font-family:var(--fm);opacity:.7">Borrar día</button>
-        </div>
-        ${rows}
+          <div style="display:flex;align-items:center;gap:10px">
+            <span onclick="event.stopPropagation();fbDelFecha('${al.name.replace(/'/g,"\\'")}','${fecha}')" style="color:var(--re);cursor:pointer;font-size:10px;font-family:var(--fm);opacity:.7">Borrar día</span>
+            <span style="color:var(--t3);font-size:11px;display:inline-block;transform:rotate(${isOpen?'180':'0'}deg)">▾</span>
+          </div>
+        </button>
+        ${isOpen?`<div style="padding:0 16px">${rows}</div>`:''}
       </div>`;
     }).join('');
 
@@ -1489,6 +1514,9 @@ function renderFb(){
   document.getElementById('fb-dot').style.display=hoy?'block':'none';
   renderCheckins();
 }
+
+function fbSelAl(nombre){FB_SEL_AL=nombre;renderFb();}
+function fbToggleDate(key){FB_OPEN_DATES[key]=!FB_OPEN_DATES[key];renderFb();}
 
 // Eliminar una sesión individual
 function fbDelSesion(idx){
