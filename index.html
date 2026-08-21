@@ -1879,7 +1879,9 @@ function renderDayList(dateStr){
     var nm=document.createElement('div');nm.style.cssText='font-size:15px;font-weight:600;color:var(--tx);';nm.textContent=s.alN||'—';
     var tipo=document.createElement('div');tipo.style.cssText='font-size:11px;color:var(--t3);font-family:var(--fm);margin-top:2px;';tipo.textContent=(s.tipo||'Individual')+(s.notas?' · '+s.notas:'');
     info.appendChild(nm);info.appendChild(tipo);
-    var acts=document.createElement('div');acts.style.cssText='display:flex;gap:6px;';
+    var acts=document.createElement('div');acts.style.cssText='display:flex;gap:6px;align-items:center;';
+    var calBtn=document.createElement('button');calBtn.style.cssText='background:transparent;border:none;color:var(--t2);cursor:pointer;font-size:15px;padding:0 4px;';calBtn.textContent='📅';calBtn.title='Enviar a calendario por WhatsApp';
+    (function(sid){calBtn.addEventListener('click',function(){sesCalWA(sid);});})(s.id);
     var done=document.createElement('div');
     done.style.cssText='width:28px;height:28px;border-radius:50%;border:2px solid '+(s.done?color:'var(--bor)')+';background:'+(s.done?color:'transparent')+';display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;';
     done.textContent=s.done?'✓':'';
@@ -1887,7 +1889,7 @@ function renderDayList(dateStr){
     (function(sid){done.addEventListener('click',function(){var ses2=DB.get('sesiones')||[];var si2=ses2.findIndex(function(x){return x.id===sid;});if(si2>=0){ses2[si2].done=!ses2[si2].done;DB.set('sesiones',ses2);renderDayList(SD);}});})(s.id);
     var del=document.createElement('button');del.style.cssText='background:transparent;border:none;color:var(--t3);cursor:pointer;font-size:16px;padding:0 4px;';del.textContent='✕';del.title='Eliminar';
     (function(sid){del.addEventListener('click',function(){if(!confirm('Eliminar sesión?'))return;var ses2=DB.get('sesiones')||[];DB.set('sesiones',ses2.filter(function(x){return x.id!==sid;}));renderMiniCal(CD.getFullYear(),CD.getMonth());showToast('Sesión eliminada');});})(s.id);
-    acts.appendChild(done);acts.appendChild(del);
+    acts.appendChild(calBtn);acts.appendChild(done);acts.appendChild(del);
     card.appendChild(hora);card.appendChild(info);card.appendChild(acts);
     list.appendChild(card);
   });
@@ -1895,6 +1897,33 @@ function renderDayList(dateStr){
   var addBtn=document.createElement('button');addBtn.className='btn btn-g btn-sm';addBtn.style.cssText='width:100%;margin-top:4px;';addBtn.textContent='+ Agregar sesión este día';
   addBtn.addEventListener('click',function(){openM('m-ses');});
   list.appendChild(addBtn);
+}
+
+// Genera el link de "Agregar a Google Calendar" para una sesión
+function calGenLink(s){
+  var parts=(s.fecha||today()).split('-');
+  var horaParts=(s.hora||'09:00').split(':');
+  var y=parseInt(parts[0]),mo=parseInt(parts[1])-1,d=parseInt(parts[2]);
+  var hh=parseInt(horaParts[0])||9,mm=parseInt(horaParts[1])||0;
+  var start=new Date(y,mo,d,hh,mm);
+  var end=new Date(start.getTime()+60*60000);
+  function fmt(dt){
+    function p(n){return String(n).padStart(2,'0');}
+    return dt.getFullYear()+p(dt.getMonth()+1)+p(dt.getDate())+'T'+p(dt.getHours())+p(dt.getMinutes())+'00';
+  }
+  var titulo='Entrenamiento - '+(s.alN||'');
+  var detalles='Sesión de '+(s.tipo||'Individual')+' con RubenTrena.'+(s.notas?' '+s.notas:'');
+  return 'https://calendar.google.com/calendar/render?action=TEMPLATE&text='+encodeURIComponent(titulo)+'&dates='+fmt(start)+'/'+fmt(end)+'&details='+encodeURIComponent(detalles);
+}
+
+// Abre WhatsApp con el link de calendario listo para enviar al alumno
+function sesCalWA(sid){
+  var ses=DB.get('sesiones')||[];
+  var s=ses.find(function(x){return x.id===sid;});
+  if(!s){showToast('Sesión no encontrada');return;}
+  var link=calGenLink(s);
+  var msg='📅 Hola '+(s.alN||'')+'! Aquí tu sesión de entrenamiento:\n'+link;
+  window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');
 }
 
 function tCal(){
