@@ -877,6 +877,9 @@ select.fi{appearance:none;cursor:pointer;}
     <div class="s-hero"><div class="s-hero-ov"></div><div class="s-hero-c"><div class="shg" id="s-gr">Buenos días</div><div class="shn" id="s-name">—</div><div class="shs" id="s-sub">—</div><div class="shbd"><div class="shb shb-g" id="s-obj">—</div><div class="shb shb-s" id="s-nivel">—</div></div></div></div>
     <div class="ssec">
 
+      <!-- Racha de entrenamiento -->
+      <div id="s-racha-card"></div>
+
       <!-- Frase del día -->
       <div id="s-frase" style="font-size:15px;color:var(--tx);line-height:1.55;font-weight:500;margin:2px 0 22px;padding-left:14px;border-left:2px solid var(--s3)"></div>
 
@@ -1264,7 +1267,7 @@ function tDash(){
 function tAlumnos(data){
   const list=data||(DB.get('alumnos')||[]);
   set('al-sub',`// ${list.length} alumnos`);
-  set('al-list',list.map(a=>{const col=colorAlumno(a.n);return `<div class="lr" onclick="editAl('${a.id}')"><div class="lav" style="background:${col.bg};color:${col.c}">${a.n[0]}</div><div style="flex:1"><div class="ln">${a.n}${a.pin?' 🔒':''}</div><div class="lm">${a.obj} · ${a.nivel} · ${a.h||'—'}</div></div><div style="display:flex;align-items:center;gap:9px"><div style="font-family:var(--fm);font-size:11px;color:var(--or)">$${a.tarifa.toLocaleString('es-CL')}</div><span class="badge ${a.pago==='al_dia'?'bok':a.pago==='vencido'?'bred':'bwarn'}">${a.pago==='al_dia'?'Al día':a.pago==='vencido'?'Vencido':'Pendiente'}</span></div></div>`;}).join('')||'<p style="color:var(--t3);font-size:13px;padding:20px;text-align:center">Sin alumnos.</p>');
+  set('al-list',list.map(a=>{const col=colorAlumno(a.n);const racha=calcRachaSemana(a.id);const rachaChip=racha>0?` <span style="font-size:10px;font-weight:800;color:var(--or)">💪${racha}</span>`:'';return `<div class="lr" onclick="editAl('${a.id}')"><div class="lav" style="background:${col.bg};color:${col.c}">${a.n[0]}</div><div style="flex:1"><div class="ln">${a.n}${a.pin?' 🔒':''}${rachaChip}</div><div class="lm">${a.obj} · ${a.nivel} · ${a.h||'—'}</div></div><div style="display:flex;align-items:center;gap:9px"><div style="font-family:var(--fm);font-size:11px;color:var(--or)">$${a.tarifa.toLocaleString('es-CL')}</div><span class="badge ${a.pago==='al_dia'?'bok':a.pago==='vencido'?'bred':'bwarn'}">${a.pago==='al_dia'?'Al día':a.pago==='vencido'?'Vencido':'Pendiente'}</span></div></div>`;}).join('')||'<p style="color:var(--t3);font-size:13px;padding:20px;text-align:center">Sin alumnos.</p>');
 }
 
 function tEjer(data){
@@ -2879,6 +2882,36 @@ function sLogout(){localStorage.removeItem('rt6_student');ALUMNO=null;document.g
 
 function sAll(){if(!ALUMNO){buildSLogin();return;}sHoy();sPlan();sProg();sPerfil();}
 
+// ═══ RACHA DE ENTRENAMIENTO (por semana) ═══
+// Cuenta semanas consecutivas (empezando por la actual) con al menos 1 sesión completada.
+// Mover una sesión de día no la corta, porque se calcula sobre la fecha real de cada sesión ✓.
+function inicioSemana(fechaStr){
+  var d=new Date(fechaStr+'T00:00:00');
+  var day=d.getDay();
+  var diff=(day===0?-6:1-day);
+  d.setDate(d.getDate()+diff);
+  return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);
+}
+function calcRachaSemana(alId){
+  var ses=(DB.get('sesiones')||[]).filter(function(s){return s.alId===alId&&s.done&&s.fecha;});
+  if(!ses.length)return 0;
+  var semanasConSesion={};
+  ses.forEach(function(s){semanasConSesion[inicioSemana(s.fecha)]=true;});
+  var cursor=new Date(inicioSemana(today())+'T00:00:00');
+  var count=0,primeraVuelta=true,vueltas=0;
+  while(vueltas<520){
+    vueltas++;
+    var key=cursor.getFullYear()+'-'+('0'+(cursor.getMonth()+1)).slice(-2)+'-'+('0'+cursor.getDate()).slice(-2);
+    var tieneSesion=!!semanasConSesion[key];
+    if(tieneSesion){count++;}
+    else if(primeraVuelta){/* semana actual sin sesión aún: no corta, todavía puede entrenar */}
+    else{break;}
+    primeraVuelta=false;
+    cursor.setDate(cursor.getDate()-7);
+  }
+  return count;
+}
+
 function sHoy(){
   if(!ALUMNO)return;
   const a=ALUMNO;
@@ -2889,6 +2922,15 @@ function sHoy(){
   set('s-obj',a.obj);
   set('s-nivel',a.nivel);
   set('s-frase',fraseDelDia());
+  var racha=calcRachaSemana(a.id);
+  var rc=document.getElementById('s-racha-card');
+  if(rc){
+    rc.innerHTML=racha>0?('<div style="margin:14px 0 20px;background:linear-gradient(135deg,rgba(240,168,72,0.14),rgba(240,168,72,0.04));border:1px solid rgba(240,168,72,0.25);border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:12px">'
+      +'<div style="font-size:28px">💪</div>'
+      +'<div><div style="font-size:20px;font-weight:900;color:var(--or);line-height:1">'+racha+' '+(racha===1?'semana seguida':'semanas seguidas')+'</div>'
+      +'<div style="font-size:11px;color:var(--t2);margin-top:2px">¡No la cortes esta semana!</div></div>'
+      +'</div>'):'';
+  }
 }
 
 function sPlan(){
