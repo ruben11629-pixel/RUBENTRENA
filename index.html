@@ -3909,6 +3909,71 @@ setTimeout(function(){
 // Iniciar Firebase automáticamente al cargar la app
 if(!window.FB) initFirebase();
 
+// ═══ AUTO-SYNC SILENCIOSO (al abrir o volver a la app) ═══
+// Entrenador: sube sus cambios locales solo. Alumno: baja lo último sin recargar la página
+// (para no cortar un cronómetro de descanso en curso). Los botones manuales ☁ Sync / ↓ Actualizar
+// siguen funcionando exactamente igual, esto es solo un respaldo extra.
+let _lastAutoSync=Date.now(); // ignora los primeros 15s: el arranque ya sincroniza por su cuenta
+
+function autoPushSilencioso(){
+  if(!window.FB||!window._fbDoc)return;
+  var keys=['alumnos','ejercicios','rutinas','sesiones','feedback','pagos','medidas','notas','eval','packs'];
+  var _ej=(DB.get('ejercicios')||[]).length, _al=(DB.get('alumnos')||[]).length;
+  if(_ej===0&&_al===0)return; // misma protección que "☁ Sync": no subir un dispositivo vacío
+  var up={};var n=0;
+  keys.forEach(function(k){
+    var v=localStorage.getItem('rt6_'+k);
+    if(v&&v!=='null'&&v.length>2){up[k]=v;n++;}
+  });
+  if(!n)return;
+  var dot=document.getElementById('fb-dot'),txt=document.getElementById('fb-txt');
+  if(dot)dot.style.background='#ff9f0a';
+  window._fbDoc.set(up,{merge:true}).then(function(){
+    if(dot)dot.style.background='#4ade80';
+    if(txt){txt.textContent='en linea';txt.style.color='#4ade80';}
+  }).catch(function(){
+    if(dot)dot.style.background='#b86060';
+  });
+}
+
+function autoPullSilencioso(){
+  if(!window.FB||!window._fbDoc)return;
+  if(T_INT)return; // hay un cronómetro de descanso activo — no interrumpir
+  try{
+    window._fbDoc.get().then(function(s){
+      var existe=typeof s.exists==='function'?s.exists():s.exists;
+      if(!existe)return;
+      var data=s.data();
+      var keys=['alumnos','ejercicios','rutinas','sesiones','feedback','pagos','medidas','notas','packs'];
+      keys.forEach(function(k){
+        if(data[k]!==undefined&&data[k]!==null){
+          localStorage.removeItem('rt6_'+k);
+          localStorage.setItem('rt6_'+k,data[k]);
+        }
+      });
+      if(typeof sAll==='function')sAll();
+    }).catch(function(){});
+  }catch(e){}
+}
+
+function autoSyncOnResume(){
+  if(document.visibilityState!=='visible')return;
+  var now=Date.now();
+  if(now-_lastAutoSync<15000)return; // evita disparos duplicados (visibilitychange + focus casi juntos)
+  _lastAutoSync=now;
+  var trainerEl=document.getElementById('trainer');
+  var studentEl=document.getElementById('student');
+  var trainerActivo=trainerEl&&trainerEl.style.display!=='none';
+  var studentActivo=studentEl&&studentEl.style.display!=='none'&&ALUMNO;
+  if(trainerActivo){
+    autoPushSilencioso();
+  } else if(studentActivo){
+    autoPullSilencioso();
+  }
+}
+document.addEventListener('visibilitychange', autoSyncOnResume);
+window.addEventListener('focus', autoSyncOnResume);
+
 </script>
 </body>
 </html>
