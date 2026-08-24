@@ -2182,7 +2182,7 @@ function tGo(s){
 function alumnoActualizar(){
   var btn=document.getElementById('s-update-btn');
   if(btn){btn.textContent='Actualizando...';btn.disabled=true;btn.style.opacity='0.7';}
-  var keys=['alumnos','ejercicios','rutinas','sesiones','feedback','pagos','medidas','notas','packs'];
+  var keys=['alumnos','ejercicios','rutinas','sesiones','feedback','pagos','medidas','notas','pin_trainer','packs'];
   var terminado=false;
   function liberar(msg,color){
     if(terminado)return;terminado=true;
@@ -2247,7 +2247,7 @@ function forzarDescargaFirebase(){
   }
   if(typeof firebase==='undefined'){liberar('Sin conexión');return;}
   if(btn){btn.textContent='Descargando...';btn.disabled=true;}
-  var keys=['alumnos','ejercicios','rutinas','sesiones','feedback','pagos','medidas','notas','packs'];
+  var keys=['alumnos','ejercicios','rutinas','sesiones','feedback','pagos','medidas','notas','pin_trainer','packs'];
   var guard=setTimeout(function(){liberar('Sin respuesta — reintenta');},12000);
   try{
     var db=firebase.firestore();
@@ -2302,7 +2302,7 @@ function recuperarDesdeFirebase(){
       '• '+(DB.get('packs')||[]).length+' packs\n\n'+
       '¿Restaurar TODO desde la nube a este dispositivo?';
     if(!confirm(msg))return;
-    var keys=['alumnos','ejercicios','rutinas','sesiones','feedback','pagos','medidas','notas','eval','packs'];
+    var keys=['alumnos','ejercicios','rutinas','sesiones','feedback','pagos','medidas','notas','pin_trainer','eval','packs'];
     var n=0;
     keys.forEach(function(k){
       if(d[k]!==undefined&&d[k]!==null){localStorage.setItem('rt6_'+k,d[k]);n++;}
@@ -2374,7 +2374,10 @@ var PIN_MAESTRO = 'RUBEN';
 var PIN_DEFAULT = '1629';
 
 function getPinActual(){
-  return localStorage.getItem('rt6_pin_trainer') || PIN_DEFAULT;
+  var raw = localStorage.getItem('rt6_pin_trainer');
+  if(raw===null||raw===undefined||raw==='')return PIN_DEFAULT;
+  try{ return String(JSON.parse(raw)); }
+  catch(e){ return String(raw); } // formato antiguo (sin JSON), se usa tal cual
 }
 
 function abrirPinTrainer(){
@@ -2387,7 +2390,7 @@ function abrirPinTrainer(){
 function verificarPin(){
   var val = document.getElementById('pin-input').value.trim();
   var pinActual = getPinActual();
-  if(val === pinActual || val.toUpperCase() === PIN_MAESTRO){
+  if(val === String(pinActual) || val.toUpperCase() === PIN_MAESTRO){
     closeM('m-pin-trainer');
     launchTrainer();
   } else {
@@ -2401,8 +2404,7 @@ function cambiarPinDesdePanel(){
   var actual = getPinActual();
   var nuevo = prompt('Tu PIN actual es: '+actual+'\n\nIngresa el nuevo PIN de 4 dígitos:');
   if(nuevo && /^[0-9]{4}$/.test(nuevo)){
-    localStorage.setItem('rt6_pin_trainer', nuevo);
-    if(window.DB) DB.set('config_pin', nuevo);
+    DB.set('pin_trainer', nuevo);
     showToast('✓ PIN actualizado a: '+nuevo);
   } else if(nuevo){
     showToast('El PIN debe tener 4 números');
@@ -2414,8 +2416,7 @@ function cambiarPinPrompt(){
   if(maestro === PIN_MAESTRO){
     var nuevo = prompt('Ingresa tu nuevo PIN de 4 dígitos:');
     if(nuevo && /^[0-9]{4}$/.test(nuevo)){
-      localStorage.setItem('rt6_pin_trainer', nuevo);
-      if(window.DB) DB.set('config_pin', nuevo);
+      DB.set('pin_trainer', nuevo);
       showToast('✓ PIN actualizado a: '+nuevo);
     } else if(nuevo){
       showToast('El PIN debe tener 4 números');
@@ -2797,7 +2798,7 @@ function forzarSyncFirebase(){
     showToast('Firebase no conectado — espera el punto verde');
     return;
   }
-  const keys=['alumnos','ejercicios','rutinas','sesiones','feedback','pagos','medidas','notas','eval','packs'];
+  const keys=['alumnos','ejercicios','rutinas','sesiones','feedback','pagos','medidas','notas','pin_trainer','eval','packs'];
   // PROTECCIÓN: no subir si el dispositivo está vacío (evita borrar la nube por error)
   var _ej=(DB.get('ejercicios')||[]).length, _al=(DB.get('alumnos')||[]).length;
   if(_ej===0&&_al===0){
@@ -2844,7 +2845,9 @@ function forzarSyncFirebase(){
 
 function exportData(){
   const keys=['alumnos','ejercicios','rutinas','sesiones','pagos','feedback','eval'];
-  const data={};keys.forEach(k=>data[k]=DB.get(k)||[]);data.exportDate=new Date().toISOString();
+  const data={};keys.forEach(k=>data[k]=DB.get(k)||[]);
+  const pinAct=DB.get('pin_trainer');if(pinAct)data.pin_trainer=pinAct;
+  data.exportDate=new Date().toISOString();
   const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
   const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`rubentrena-backup-${today()}.json`;a.click();URL.revokeObjectURL(url);
   showToast('✓ Backup descargado');
@@ -3455,7 +3458,7 @@ function processImport(input){
       const data=JSON.parse(e.target.result);
       const dateStr=data.exportDate?data.exportDate.slice(0,10):'desconocida';
       if(!confirm(`¿Restaurar backup del ${dateStr}? Esto reemplazará TODOS tus datos actuales.\n\nEsta acción no se puede deshacer.`))return;
-      const keys=['alumnos','ejercicios','rutinas','sesiones','pagos','feedback','eval','medidas','notas'];
+      const keys=['alumnos','ejercicios','rutinas','sesiones','pagos','feedback','eval','medidas','notas','pin_trainer'];
       keys.forEach(k=>{if(data[k])DB.set(k,data[k]);});
       DB.set('seeded',true);tAll();showToast('✓ Backup restaurado exitosamente');
     }catch{showToast('⚠ Archivo inválido — verifica que sea un backup de RubenTrena');}
@@ -3665,7 +3668,7 @@ function sRenderNotasYMedidas(){
 }
 
 
-function initFirebase(){try{var s1=document.createElement('script');s1.src='https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js';s1.onload=function(){var s2=document.createElement('script');s2.src='https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js';s2.onload=function(){try{if(!firebase.apps.length)firebase.initializeApp({apiKey:'AIzaSyBDGlSXzoeRJcS_y7Ebjm6QxuaRYEko1aA',authDomain:'rubentrena-433ea.firebaseapp.com',projectId:'rubentrena-433ea',storageBucket:'rubentrena-433ea.firebasestorage.app',messagingSenderId:'544105379170',appId:'1:544105379170:web:b6752a6a670d67454ae83b'});var _d=firebase.firestore().collection('rubentrena').doc('data');window._fbDoc=_d;window.FB={set:function(k,v){var o={};o[k]=JSON.stringify(v);_d.set(o,{merge:true}).catch(function(){});},syncAll:function(){var keys=['alumnos','ejercicios','rutinas','sesiones','feedback','pagos','medidas','notas'];_d.get().then(function(s){var dot=document.getElementById('fb-dot'),txt=document.getElementById('fb-txt');if(dot)dot.style.background='#4ade80';if(txt){txt.textContent='en linea';txt.style.color='#4ade80';}if(typeof sActualizarConexion==='function')sActualizarConexion(true);var mDot=document.getElementById('mode-conn-dot'),mTxt=document.getElementById('mode-conn-txt');if(mDot)mDot.style.background='#4ade80';if(mTxt){mTxt.textContent='en linea';mTxt.style.color='#4ade80';}if(!s.exists()){var up={};keys.forEach(function(k){var v=localStorage.getItem('rt6_'+k);if(v)up[k]=v;});if(Object.keys(up).length>0)_d.set(up,{merge:true}).catch(function(){});}else{var d=s.data();keys.forEach(function(k){if(d[k]!==undefined){localStorage.removeItem('rt6_'+k);localStorage.setItem('rt6_'+k,d[k]);}});}if(typeof tAll==='function')tAll();var sg=document.getElementById('s-al-grid');if(sg)buildSLogin&&buildSLogin();}).catch(function(e){console.warn('sync:',e);});}};window.FB.syncAll();}catch(e){console.warn('Firebase:',e);}};document.head.appendChild(s2);};document.head.appendChild(s1);}catch(e){console.warn('Firebase init:',e);}}
+function initFirebase(){try{var s1=document.createElement('script');s1.src='https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js';s1.onload=function(){var s2=document.createElement('script');s2.src='https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js';s2.onload=function(){try{if(!firebase.apps.length)firebase.initializeApp({apiKey:'AIzaSyBDGlSXzoeRJcS_y7Ebjm6QxuaRYEko1aA',authDomain:'rubentrena-433ea.firebaseapp.com',projectId:'rubentrena-433ea',storageBucket:'rubentrena-433ea.firebasestorage.app',messagingSenderId:'544105379170',appId:'1:544105379170:web:b6752a6a670d67454ae83b'});var _d=firebase.firestore().collection('rubentrena').doc('data');window._fbDoc=_d;window.FB={set:function(k,v){var o={};o[k]=JSON.stringify(v);_d.set(o,{merge:true}).catch(function(){});},syncAll:function(){var keys=['alumnos','ejercicios','rutinas','sesiones','feedback','pagos','medidas','notas','pin_trainer'];_d.get().then(function(s){var dot=document.getElementById('fb-dot'),txt=document.getElementById('fb-txt');if(dot)dot.style.background='#4ade80';if(txt){txt.textContent='en linea';txt.style.color='#4ade80';}if(typeof sActualizarConexion==='function')sActualizarConexion(true);var mDot=document.getElementById('mode-conn-dot'),mTxt=document.getElementById('mode-conn-txt');if(mDot)mDot.style.background='#4ade80';if(mTxt){mTxt.textContent='en linea';mTxt.style.color='#4ade80';}if(!s.exists()){var up={};keys.forEach(function(k){var v=localStorage.getItem('rt6_'+k);if(v)up[k]=v;});if(Object.keys(up).length>0)_d.set(up,{merge:true}).catch(function(){});}else{var d=s.data();keys.forEach(function(k){if(d[k]!==undefined){localStorage.removeItem('rt6_'+k);localStorage.setItem('rt6_'+k,d[k]);}});}if(typeof tAll==='function')tAll();var sg=document.getElementById('s-al-grid');if(sg)buildSLogin&&buildSLogin();}).catch(function(e){console.warn('sync:',e);});}};window.FB.syncAll();}catch(e){console.warn('Firebase:',e);}};document.head.appendChild(s2);};document.head.appendChild(s1);}catch(e){console.warn('Firebase init:',e);}}
 
 var PICKER_DI=0,PICKER_BI=0,PICKER_EQ='all';
 function openEjPicker(di,bi){
@@ -3959,7 +3962,7 @@ let _lastAutoSync=Date.now(); // ignora los primeros 15s: el arranque ya sincron
 
 function autoPushSilencioso(){
   if(!window.FB||!window._fbDoc)return;
-  var keys=['alumnos','ejercicios','rutinas','sesiones','feedback','pagos','medidas','notas','eval','packs'];
+  var keys=['alumnos','ejercicios','rutinas','sesiones','feedback','pagos','medidas','notas','pin_trainer','eval','packs'];
   var _ej=(DB.get('ejercicios')||[]).length, _al=(DB.get('alumnos')||[]).length;
   if(_ej===0&&_al===0)return; // misma protección que "☁ Sync": no subir un dispositivo vacío
   var up={};var n=0;
@@ -3986,7 +3989,7 @@ function autoPullSilencioso(){
       var existe=typeof s.exists==='function'?s.exists():s.exists;
       if(!existe)return;
       var data=s.data();
-      var keys=['alumnos','ejercicios','rutinas','sesiones','feedback','pagos','medidas','notas','packs'];
+      var keys=['alumnos','ejercicios','rutinas','sesiones','feedback','pagos','medidas','notas','pin_trainer','packs'];
       keys.forEach(function(k){
         if(data[k]!==undefined&&data[k]!==null){
           localStorage.removeItem('rt6_'+k);
