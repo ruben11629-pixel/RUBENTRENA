@@ -3048,8 +3048,14 @@ function sGuardFb(di,bi,ei,ejNombre,series,ejId,planKg,planRp){
     entries.push({kg,rp,serie:si+1,fb:fb2});
   }
   const fbList=DB.get('feedback')||[];
+  const hoy=today();
+  // Si ya existe un registro de este mismo ejercicio/alumno/dia, se actualiza en el mismo lugar
+  // en vez de agregar uno nuevo (esto evita duplicados cuando se guarda mas de una vez, por ej.
+  // al editar un campo y despues tocar "Marcar completado").
+  const exIdx=fbList.findIndex(f=>f.alumnoId===ALUMNO.id&&f.fecha===hoy&&(ejId?f.ejercicioId===ejId:f.ejercicio===ejNombre));
   // Se guarda tambien ejercicioId: asi el historial sobrevive si renombras el ejercicio
-  fbList.unshift({alumno:ALUMNO.n,alumnoId:ALUMNO.id,ejercicio:ejNombre,ejercicioId:ejId||'',entries,fecha:today(),hora:new Date().toLocaleTimeString('es-CL',{hour:'2-digit',minute:'2-digit'})});
+  const registro={alumno:ALUMNO.n,alumnoId:ALUMNO.id,ejercicio:ejNombre,ejercicioId:ejId||'',entries,fecha:hoy,hora:new Date().toLocaleTimeString('es-CL',{hour:'2-digit',minute:'2-digit'})};
+  if(exIdx>=0) fbList[exIdx]=registro; else fbList.unshift(registro);
   DB.set('feedback',fbList.slice(0,500));
 }
 function sUpdateBar(idx){
