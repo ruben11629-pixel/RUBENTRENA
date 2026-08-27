@@ -3088,7 +3088,16 @@ function sUpdateBar(idx){
 function sCheckF(idx){const dia=PLAN?.dias?.[idx];if(!dia)return;const tE=dia.bloques?.reduce((s,b)=>s+(b.ejerIds?.length||0),0)||0;document.getElementById('s-finish').style.display=(ECOMP[idx]?.size||0)>=tE&&tE>0?'block':'none';}
 function sFinish(){
   const dia=PLAN?.dias?.[CDIA];const hist=DB.get('hist_s')||[];hist.unshift({fecha:fmtDate(new Date()),dia:dia?.label||'Sesión',alumno:ALUMNO?.n,completada:true});DB.set('hist_s',hist.slice(0,50));
-  const ses=DB.get('sesiones')||[];const si=ses.findIndex(s=>s.alId===ALUMNO.id&&s.fecha===today()&&!s.done);if(si>=0){ses[si].done=true;DB.set('sesiones',ses);}
+  const ses=DB.get('sesiones')||[];const si=ses.findIndex(s=>s.alId===ALUMNO.id&&s.fecha===today()&&!s.done);
+  if(si>=0){
+    ses[si].done=true;
+  } else {
+    // No hay sesion agendada para hoy (alumno sin horario fijo, ej. entrena en otro gym).
+    // Se registra igual como completada, para que cuente en su racha e historial.
+    const col=colorAlumno(ALUMNO.n);
+    ses.push({id:'s'+Date.now(),alId:ALUMNO.id,alN:ALUMNO.n,tipo:'Individual',fecha:today(),hora:'',notas:'Auto-registrada (sin horario fijo)',color:col.c,done:true,auto:true});
+  }
+  DB.set('sesiones',ses);
   const als=DB.get('alumnos')||[];const ai=als.findIndex(a=>a.id===ALUMNO.id);if(ai>=0){als[ai].sesiones=(als[ai].sesiones||0)+1;DB.set('alumnos',als);ALUMNO=als[ai];}
   showToast('🎉 ¡Sesión completada! Rubén ya lo sabe.');document.getElementById('s-finish').style.display='none';ECOMP[CDIA]=new Set();CCOMP[CDIA]=new Set();stopTimer();
   setTimeout(()=>{sProg();sGo('prog');},1200);
