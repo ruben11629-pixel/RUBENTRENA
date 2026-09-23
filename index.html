@@ -373,6 +373,7 @@ select.fi{appearance:none;cursor:pointer;}
 .wbar{height:4px;background:var(--bg3);margin:0 16px 12px;border-radius:2px;overflow:hidden;}
 .wbar-fill{height:100%;background:linear-gradient(90deg,var(--g2),var(--gr));border-radius:2px;transition:width .4s ease;}
 .finish-btn{width:100%;padding:16px;border-radius:11px;border:none;background:linear-gradient(135deg,var(--g2),var(--gr));color:#fff;font-family:var(--fd);font-size:18px;font-weight:900;letter-spacing:2px;text-transform:uppercase;cursor:pointer;margin-top:8px;display:none;min-height:54px;}
+.finish-btn-parcial{width:auto;padding:9px 18px;border:1px solid rgba(122,184,130,.35);background:transparent;color:var(--si);font-family:var(--fb);font-size:12px;font-weight:700;letter-spacing:.3px;text-transform:none;min-height:auto;}
 .s-ptop{padding:20px 16px 0;background:linear-gradient(180deg,var(--bg2),transparent);}
 .s-pav{width:64px;height:64px;border-radius:50%;background:var(--bg3);border:3px solid var(--s3);display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-size:26px;font-weight:800;color:var(--si);margin-bottom:10px;}
 .s-pname{font-family:var(--fd);font-size:24px;font-weight:900;letter-spacing:2px;text-transform:uppercase;}
@@ -3020,6 +3021,7 @@ function sDiaC(idx){
     blqDiv.appendChild(blqHdr);blqDiv.appendChild(blqBody);planC.appendChild(blqDiv);
   });
   sRestoreInp(idx);
+  sCheckF(idx);
 }
 
 function sCal(di,ci){
@@ -3085,9 +3087,28 @@ function sUpdateBar(idx){
     segsEl.innerHTML=html;
   }
 }
-function sCheckF(idx){const dia=PLAN?.dias?.[idx];if(!dia)return;const tE=dia.bloques?.reduce((s,b)=>s+(b.ejerIds?.length||0),0)||0;document.getElementById('s-finish').style.display=(ECOMP[idx]?.size||0)>=tE&&tE>0?'block':'none';}
+function sCheckF(idx){
+  const dia=PLAN?.dias?.[idx];if(!dia)return;
+  const tE=dia.bloques?.reduce((s,b)=>s+(b.ejerIds?.length||0),0)||0;
+  const btn=document.getElementById('s-finish');
+  if(!btn)return;
+  if(!tE){btn.style.display='none';return;} // dia sin ejercicios, nada que guardar
+  const done=ECOMP[idx]?.size||0;
+  btn.style.display='block';
+  if(done>=tE){
+    btn.className='finish-btn';
+    btn.textContent='🎉 Sesión completada — ¡Excelente!';
+  } else {
+    btn.className='finish-btn finish-btn-parcial';
+    btn.textContent='✓ Guardar sesión ('+done+'/'+tE+')';
+  }
+}
 function sFinish(){
-  const dia=PLAN?.dias?.[CDIA];const hist=DB.get('hist_s')||[];hist.unshift({fecha:fmtDate(new Date()),dia:dia?.label||'Sesión',alumno:ALUMNO?.n,completada:true});DB.set('hist_s',hist.slice(0,50));
+  const dia=PLAN?.dias?.[CDIA];
+  const tE=dia?.bloques?.reduce((s,b)=>s+(b.ejerIds?.length||0),0)||0;
+  const doneCount=ECOMP[CDIA]?.size||0;
+  const completa=tE>0&&doneCount>=tE;
+  const hist=DB.get('hist_s')||[];hist.unshift({fecha:fmtDate(new Date()),dia:dia?.label||'Sesión',alumno:ALUMNO?.n,completada:completa,ejerciciosHechos:doneCount,ejerciciosTotal:tE});DB.set('hist_s',hist.slice(0,50));
   const ses=DB.get('sesiones')||[];const si=ses.findIndex(s=>s.alId===ALUMNO.id&&s.fecha===today()&&!s.done);
   if(si>=0){
     ses[si].done=true;
@@ -3099,7 +3120,8 @@ function sFinish(){
   }
   DB.set('sesiones',ses);
   const als=DB.get('alumnos')||[];const ai=als.findIndex(a=>a.id===ALUMNO.id);if(ai>=0){als[ai].sesiones=(als[ai].sesiones||0)+1;DB.set('alumnos',als);ALUMNO=als[ai];}
-  showToast('🎉 ¡Sesión completada! Rubén ya lo sabe.');document.getElementById('s-finish').style.display='none';ECOMP[CDIA]=new Set();CCOMP[CDIA]=new Set();stopTimer();
+  showToast(completa?'🎉 ¡Sesión completada! Rubén ya lo sabe.':'✓ Sesión guardada ('+doneCount+'/'+tE+'). Rubén ya lo sabe.');
+  document.getElementById('s-finish').style.display='none';ECOMP[CDIA]=new Set();CCOMP[CDIA]=new Set();stopTimer();
   setTimeout(()=>{sProg();sGo('prog');},1200);
 }
 function sRestoreInp(idx){
